@@ -1,1 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cryptography from Basics — Course Portal & Jump-In Map</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .portal-hero {
+      padding: 60px 0 40px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+    .portal-eyebrow {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .portal-title {
+      font-size: 38px;
+      font-weight: 750;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      color: var(--text-main);
+    }
+    .portal-subtitle {
+      font-size: 19px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 680px;
+    }
+
+    /* Jump In Diagnostic */
+    .jumpin-card {
+      background: var(--widget-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 48px;
+    }
+    .jumpin-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .jumpin-desc {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    .jumpin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .jumpin-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .jumpin-btn:hover {
+      border-color: var(--accent);
+      background: var(--surface-hover);
+    }
+    .jumpin-btn strong { font-size: 13.5px; }
+    .jumpin-btn span { font-size: 11.5px; color: var(--text-muted); }
+
+    /* Module Grid */
+    .tier-section {
+      margin-bottom: 44px;
+    }
+    .tier-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tier-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .tier-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .module-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 14px;
+    }
+    .module-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      text-decoration: none;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.15s;
+    }
+    .module-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-soft);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .card-index {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .card-duration {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 650;
+      line-height: 1.35;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+    .card-desc {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .card-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .card-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">BASICS</span>
+    </a>
+
+    <div class="top-controls">
+      <!-- Font Switcher -->
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+
+      <!-- Theme Switcher -->
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Portal Layout -->
+  <main style="max-width: 1080px; margin: 0 auto; padding: 0 28px 100px 28px;">
+
+    <!-- Hero -->
+    <section class="portal-hero">
+      <div class="portal-eyebrow">Zero Math • Zero Code • Applied Intuition</div>
+      <h1 class="portal-title">Cryptography from Basics</h1>
+      <p class="portal-subtitle">
+        A 12-module self-paced journey from electrical switches to quantum encryption. Designed with clear mental models, zero prerequisite jargon, and focused interactive tools.
+      </p>
+    </section>
+
+    <!-- Jump-In Diagnostic -->
+    <section class="jumpin-card">
+      <div class="jumpin-title">Where Should You Start? (Jump-In Diagnostic)</div>
+      <div class="jumpin-desc">Select your current familiarity to jump straight to your optimal starting point:</div>
+      <div class="jumpin-grid">
+        <a href="modules/m01-foundations.html" class="jumpin-btn">
+          <strong>New to Cryptography</strong>
+          <span>Start from absolute zero → Mod 01</span>
+        </a>
+        <a href="modules/m02-bits-and-encoding.html" class="jumpin-btn">
+          <strong>Know Encryption vs Hashing</strong>
+          <span>Understand bits & Base64 → Mod 02</span>
+        </a>
+        <a href="modules/m06-symmetric-aes.html" class="jumpin-btn">
+          <strong>Know Basic Ciphers</strong>
+          <span>Explore AES & Block Modes → Mod 06</span>
+        </a>
+        <a href="modules/m08-asymmetric-diffie-hellman.html" class="jumpin-btn">
+          <strong>Confused by Public Keys</strong>
+          <span>Diffie-Hellman & RSA → Mod 08</span>
+        </a>
+        <a href="modules/m11-applied-https-tokens.html" class="jumpin-btn">
+          <strong>Want Real-World Tech</strong>
+          <span>HTTPS, Passkeys & E2EE → Mod 11</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- TIER 1 -->
+    <section class="tier-section">
+      <div class="tier-header">
+        <span class="tier-name">Tier 1: Foundations & The Digital Material</span>
+        <span class="tier-badge">Modules 01 – 04</span>
+      </div>
+      <div class="module-card-grid">
+        
+        <a href="modules/m01-foundations.html" class="module-card" id="card-m01">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 01</span>
+              <span class="card-duration">5 min</span>
+            </div>
+            <div class="card-title">The Core Philosophy</div>
+            <div class="card-desc">Meet Alice, Bob, Eve, and Mallory. Understand the CIA triad and why secret algorithms always fail.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">CIA Triad</span>
+            <span class="card-tag">Kerckhoffs's Law</span>
+            <span class="card-tag">Actors</span>
+          </div>
+        </a>
+
+        <a href="modules/m02-bits-and-encoding.html" class="module-card" id="card-m02">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 02</span>
+              <span class="card-duration">6 min</span>
+            </div>
+            <div class="card-title">Bits, Data & Encoding</div>
+            <div class="card-desc">How letters become switches. Master ASCII, Hexadecimal, Base64 padding, and why encoding is NOT encryption.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">Live Inspector</span>
+            <span class="card-tag">Hex</span>
+            <span class="card-tag">Base64</span>
+          </div>
+        </a>
+
+        <a href="modules/m03-steganography.html" class="module-card" id="card-m03">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 03</span>
+              <span class="card-duration">5 min</span>
+            </div>
+            <div class="card-title">Steganography</div>
+            <div class="card-desc">Hiding secrets in plain sight vs. scrambling them. Learn LSB pixel modification and layered security.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">LSB Hiding</span>
+            <span class="card-tag">Watermarks</span>
+            <span class="card-tag">Stego Lab</span>
+          </div>
+        </a>
+
+        <a href="modules/m04-randomness-entropy.html" class="module-card" id="card-m04">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 04</span>
+              <span class="card-duration">6 min</span>
+            </div>
+            <div class="card-title">Randomness & Entropy</div>
+            <div class="card-desc">The fuel of all secrets. Why bad random numbers break strong encryption, CSPRNGs, and lava lamps.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">Entropy</span>
+            <span class="card-tag">CSPRNG</span>
+            <span class="card-tag">Lava Lamps</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- TIER 2 -->
+    <section class="tier-section">
+      <div class="tier-header">
+        <span class="tier-name">Tier 2: The Shared-Key World & Integrity</span>
+        <span class="tier-badge">Modules 05 – 07</span>
+      </div>
+      <div class="module-card-grid">
+
+        <a href="modules/m05-classical-ciphers.html" class="module-card" id="card-m05">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 05</span>
+              <span class="card-duration">6 min</span>
+            </div>
+            <div class="card-title">Classical Ciphers</div>
+            <div class="card-desc">Caesar, monoalphabetic substitution, and why frequency analysis shatters simple ciphers. The One-Time Pad dilemma.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">Caesar Dial</span>
+            <span class="card-tag">Frequency Analysis</span>
+            <span class="card-tag">One-Time Pad</span>
+          </div>
+        </a>
+
+        <a href="modules/m06-symmetric-aes.html" class="module-card" id="card-m06">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 06</span>
+              <span class="card-duration">7 min</span>
+            </div>
+            <div class="card-title">Symmetric & AES</div>
+            <div class="card-desc">Fast bulk encryption. Stream vs Block ciphers, Confusion & Diffusion rounds, and the infamous ECB penguin.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">AES</span>
+            <span class="card-tag">ECB Penguin</span>
+            <span class="card-tag">CBC & GCM</span>
+          </div>
+        </a>
+
+        <a href="modules/m07-hashing-integrity.html" class="module-card" id="card-m07">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 07</span>
+              <span class="card-duration">6 min</span>
+            </div>
+            <div class="card-title">Hashing & Fingerprints</div>
+            <div class="card-desc">The digital fingerprint. The Avalanche Effect, collisions & Birthday Paradox, SHA-256, and HMAC seals.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">Avalanche Heatmap</span>
+            <span class="card-tag">Collisions</span>
+            <span class="card-tag">HMAC</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- TIER 3 -->
+    <section class="tier-section">
+      <div class="tier-header">
+        <span class="tier-name">Tier 3: The Public-Key Revolution & Trust</span>
+        <span class="tier-badge">Modules 08 – 10</span>
+      </div>
+      <div class="module-card-grid">
+
+        <a href="modules/m08-asymmetric-diffie-hellman.html" class="module-card" id="card-m08">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 08</span>
+              <span class="card-duration">7 min</span>
+            </div>
+            <div class="card-title">Public-Key Revolution</div>
+            <div class="card-desc">The padlock analogy, one-way trapdoors, Diffie-Hellman paint mixing, and why the world uses Hybrid Encryption.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">Color Mixing Lab</span>
+            <span class="card-tag">Diffie-Hellman</span>
+            <span class="card-tag">RSA & ECC</span>
+          </div>
+        </a>
+
+        <a href="modules/m09-signatures-pki.html" class="module-card" id="card-m09">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 09</span>
+              <span class="card-duration">7 min</span>
+            </div>
+            <div class="card-title">Signatures & PKI</div>
+            <div class="card-desc">Digital signatures in reverse, Man-in-the-Middle attacks, X.509 Certificates, CAs, and the Chain of Trust.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">MITM Simulator</span>
+            <span class="card-tag">Certificates</span>
+            <span class="card-tag">Root CAs</span>
+          </div>
+        </a>
+
+        <a href="modules/m10-key-vaults-kdfs.html" class="module-card" id="card-m10">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 10</span>
+              <span class="card-duration">6 min</span>
+            </div>
+            <div class="card-title">Key Vaults & KDFs</div>
+            <div class="card-desc">Turning weak human passwords into strong keys with Argon2/bcrypt. Hardware enclaves, TPMs, and seed phrases.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">Salting</span>
+            <span class="card-tag">Argon2 / KDF</span>
+            <span class="card-tag">Secure Enclaves</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- TIER 4 -->
+    <section class="tier-section">
+      <div class="tier-header">
+        <span class="tier-name">Tier 4: Applied Daily Systems & The Future</span>
+        <span class="tier-badge">Modules 11 – 12</span>
+      </div>
+      <div class="module-card-grid">
+
+        <a href="modules/m11-applied-https-tokens.html" class="module-card" id="card-m11">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 11</span>
+              <span class="card-duration">8 min</span>
+            </div>
+            <div class="card-title">Applied HTTPS & Tokens</div>
+            <div class="card-desc">The complete TLS handshake, End-to-End Encrypted chat (Signal/WhatsApp), JSON Web Tokens (JWT), and Passkeys.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">TLS Handshake</span>
+            <span class="card-tag">JWT Inspector</span>
+            <span class="card-tag">Passkeys</span>
+          </div>
+        </a>
+
+        <a href="modules/m12-zkp-quantum-era.html" class="module-card" id="card-m12">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 12</span>
+              <span class="card-duration">7 min</span>
+            </div>
+            <div class="card-title">ZKP & The Quantum Era</div>
+            <div class="card-desc">Proving secrets without revealing them (Zero-Knowledge). Shor's algorithm, quantum threats, and Post-Quantum cryptography.</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">Ali Baba Cave</span>
+            <span class="card-tag">Post-Quantum</span>
+            <span class="card-tag">Replay Attacks</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="assets/js/common.js"></script>
+</body>
+</html>
 
