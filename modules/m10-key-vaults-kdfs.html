@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 10: Key Vaults & KDFs — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .salt-demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .salt-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 10</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link active"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 6 min read</span>
+        <span>•</span>
+        <span>Tier: Key Management</span>
+        <span>•</span>
+        <span>Prerequisites: Modules 04, 07</span>
+      </div>
+
+      <h1 class="lesson-headline">Key Vaults & Key Derivation</h1>
+      <p class="lesson-lead">
+        A 256-bit AES key is a string of 32 random bytes that no human can memorize. How do we turn human passwords into strong keys, and where do we safely store the world's master secrets?
+      </p>
+
+      <!-- Section 1 -->
+      <section id="the-password-problem">
+        <h2>1. The Human Dilemma: Passwords $\neq$ Keys</h2>
+        <p>
+          Humans choose passwords like <code>Coffee2024!</code>. To a computer, that password has almost zero entropy. If a company uses a password directly as an encryption key, a hacker's GPU will crack it in 2 seconds.
+        </p>
+        <p>
+          To solve this, we use <strong>Key Derivation Functions (KDFs)</strong>. A KDF takes a low-entropy human password and stretches it through intense mathematical loops to produce a high-entropy 256-bit key.
+        </p>
+      </section>
+
+      <!-- Section 2: Interactive Salt Tool -->
+      <section id="salting-rainbow">
+        <h2>2. Salting: Defeating Rainbow Tables</h2>
+        <p>
+          Hackers have built massive databases called <strong>Rainbow Tables</strong> containing precomputed hashes for billions of common passwords. If you store plain hashes, they look up the hash in 0.001 seconds!
+        </p>
+
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>Salt & Rainbow Table Breaker</span>
+              <span class="widget-badge">Interactive Inspector</span>
+            </div>
+            <button class="choice-btn" style="padding:4px 10px; font-size:11px;" onclick="generateNewSalt()">Generate New Salt</button>
+          </div>
+
+          <div class="widget-content">
+            <div class="salt-demo-grid">
+              
+              <div class="salt-box">
+                <div style="font-size:13px; font-weight:700; color:#c53030;">1. Plain Hash (No Salt)</div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Password: `password123`</div>
+                <div style="font-family:var(--font-mono); font-size:12px; background:var(--code-bg); padding:8px; border-radius:4px; margin-top:6px; word-break:break-all;">
+                  ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f
+                </div>
+                <div style="font-size:11.5px; color:#c53030; margin-top:6px;">❌ Found in Rainbow Table in 1 millisecond!</div>
+              </div>
+
+              <div class="salt-box">
+                <div style="font-size:13px; font-weight:700; color:var(--accent);">2. Salted Hash (With Salt)</div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Input: `password123` + <span id="currentSalt" style="font-family:var(--font-mono); color:var(--accent-text);">salt_79a2</span></div>
+                <div style="font-family:var(--font-mono); font-size:12px; background:var(--code-bg); padding:8px; border-radius:4px; margin-top:6px; word-break:break-all;" id="saltedHashOut">
+                  Calculating salted hash...
+                </div>
+                <div style="font-size:11.5px; color:var(--accent); margin-top:6px;">✓ Precomputed rainbow tables are useless!</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="hardware-vaults">
+        <h2>3. Where Do Secrets Live? Hardware Enclaves</h2>
+        <p>
+          If your private key is stored in your computer's normal RAM, any malicious malware or spyware can read it. To prevent this, modern devices use dedicated physical vaults:
+        </p>
+        <ul>
+          <li><strong>TPM (Trusted Platform Module):</strong> A physical crypto-chip soldered onto laptop motherboards that secures BitLocker drive encryption keys.</li>
+          <li><strong>Secure Enclaves (Apple & Android):</strong> An isolated micro-CPU inside your phone. When you use FaceID, the biometric match happens inside the enclave. Your phone's main operating system never sees the master private key!</li>
+          <li><strong>Hardware Security Modules (HSMs):</strong> Multi-thousand-dollar physical appliances used by banks. If an attacker physically drills into the case, the chip detects the pressure change and erases its internal memory instantly.</li>
+        </ul>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            Why are modern password hashing algorithms (like Argon2 or bcrypt) deliberately designed to be slow, taking hundreds of milliseconds to calculate?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'For a normal user logging in, 0.2 seconds is imperceptible. But for a hacker trying to guess 10 billion passwords on a GPU rig, this deliberate slowness makes brute-force attacks cost millions of dollars in electricity!')">A) To make brute-force password guessing economically and computationally impossible for hackers.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Argon2 is state-of-the-art modern cryptography.')">B) Because modern CPUs are too slow to run modern math.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Salts and keys are separate concepts.')">C) Because it requires waiting for the user to enter a salt.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m09-signatures-pki.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>09. Signatures & PKI</span>
+        </a>
+        <a href="m11-applied-https-tokens.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>11. Applied HTTPS & Tokens</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#the-password-problem" class="toc-nav-link">1. Passwords != Keys</a></li>
+        <li class="toc-nav-item"><a href="#salting-rainbow" class="toc-nav-link">2. Salting & Rainbow Tables</a></li>
+        <li class="toc-nav-item"><a href="#hardware-vaults" class="toc-nav-link">3. Hardware Vaults</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    async function updateSaltHash(saltStr) {
+      document.getElementById('currentSalt').textContent = saltStr;
+      const combined = "password123" + saltStr;
+      const buf = new TextEncoder().encode(combined);
+      const hash = await crypto.subtle.digest('SHA-256', buf);
+      const hex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+      document.getElementById('saltedHashOut').textContent = hex;
+    }
+
+    function generateNewSalt() {
+      const rand = Math.floor(Math.random() * 65536).toString(16).padStart(4, '0');
+      updateSaltHash('salt_' + rand);
+    }
+    updateSaltHash('salt_79a2');
+  </script>
+</body>
+</html>
