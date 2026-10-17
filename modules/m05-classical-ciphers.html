@@ -4,31 +4,2537 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Module 05: Classical Ciphers — Cryptography from Basics</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
   <style>
-    .cipher-controls {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin-top: 14px;
+/* -------------------------------------------------------------
+   CRYPTOGRAPHY FROM BASICS — UNIFIED DESIGN SYSTEM
+   Ergonomic, Minimalist, Cognitive-Friendly, Human-Crafted
+------------------------------------------------------------- */
+
+:root {
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --measure: 700px; /* Optimal reading length */
+  
+  --font-sans: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Charter", "Georgia", "Iowan Old Style", "Newsreader", serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+}
+
+/* 1. WARM PAPER (Default: Focused daylight, zero eye glare) */
+html[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #fbfaf8;
+  --bg-alt: #f3f1ec;
+  --surface: #ffffff;
+  --surface-hover: #f7f5f0;
+  --border: #e6e3dc;
+  --border-focus: #c8c3b8;
+  
+  --text-main: #22252a;      /* Soft charcoal ink */
+  --text-secondary: #5a6069;
+  --text-muted: #8b929c;
+  
+  --accent: #2d6a4f;         /* Forest Sage */
+  --accent-soft: rgba(45, 106, 79, 0.08);
+  --accent-border: rgba(45, 106, 79, 0.25);
+  --accent-text: #1b4332;
+
+  --code-bg: #efece5;
+  --widget-bg: #f5f3ed;
+  --widget-card: #ffffff;
+  --shadow-soft: 0 2px 8px rgba(34, 37, 42, 0.04);
+  --shadow-float: 0 8px 24px rgba(34, 37, 42, 0.08);
+  --progress-color: #2d6a4f;
+}
+
+/* 2. SEPIA (Kindle E-Reader warmth for extended study) */
+html[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --bg-alt: #eae4d8;
+  --surface: #fbf7f0;
+  --surface-hover: #ede6d9;
+  --border: #ddd5c7;
+  --border-focus: #b8ac99;
+  
+  --text-main: #2e2823;
+  --text-secondary: #655b52;
+  --text-muted: #95887b;
+  
+  --accent: #8c5b36;         /* Warm Sienna */
+  --accent-soft: rgba(140, 91, 54, 0.1);
+  --accent-border: rgba(140, 91, 54, 0.25);
+  --accent-text: #603813;
+
+  --code-bg: #e6ded1;
+  --widget-bg: #ede6d9;
+  --widget-card: #fbf7f0;
+  --shadow-soft: 0 2px 8px rgba(46, 40, 35, 0.04);
+  --shadow-float: 0 8px 24px rgba(46, 40, 35, 0.08);
+  --progress-color: #8c5b36;
+}
+
+/* 3. SLATE (Night reading with reduced blue-light) */
+html[data-theme="slate"] {
+  color-scheme: dark;
+  --bg: #141618;
+  --bg-alt: #1a1d20;
+  --surface: #202428;
+  --surface-hover: #262b30;
+  --border: #2c3238;
+  --border-focus: #424a52;
+  
+  --text-main: #e2e4e8;
+  --text-secondary: #9ea5b0;
+  --text-muted: #6a727d;
+  
+  --accent: #52b788;         /* Mint Sage */
+  --accent-soft: rgba(82, 183, 136, 0.12);
+  --accent-border: rgba(82, 183, 136, 0.3);
+  --accent-text: #74c69d;
+
+  --code-bg: #181b1e;
+  --widget-bg: #181b1f;
+  --widget-card: #202428;
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.2);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --progress-color: #52b788;
+}
+
+/* Font Switching */
+html[data-font="sans"] { --font-current: var(--font-sans); }
+html[data-font="serif"] { --font-current: var(--font-serif); }
+
+/* Theme-adaptive Ergonomic Scrollbars */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-focus) var(--bg);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-focus);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-current);
+  background-color: var(--bg);
+  color: var(--text-main);
+  line-height: 1.76;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Scroll progress */
+#readingProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--progress-color);
+  width: 0%;
+  z-index: 9999;
+}
+
+/* Topbar */
+.topbar {
+  height: 58px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: sticky !important;
+  top: 0 !important;
+  background: var(--bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000 !important;
+  width: 100%;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-main);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brand-mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.segmented-control {
+  display: flex;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg-btn {
+  background: none;
+  border: none;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.seg-btn.active {
+  background: var(--surface);
+  color: var(--text-main);
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.theme-picker {
+  display: flex;
+  gap: 5px;
+}
+
+.theme-chip {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.theme-chip:hover { border-color: var(--border-focus); color: var(--text-main); }
+.theme-chip.active {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 270px 1fr 220px;
+  min-height: calc(100vh - 58px);
+  max-width: 1420px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 28px 20px;
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+}
+
+.nav-group-title {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 20px 10px 8px 10px;
+}
+
+.nav-list { list-style: none; }
+.nav-item { margin-bottom: 2px; }
+
+.nav-link {
+  display: flex;
+  align-items: baseline;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.12s;
+  font-family: var(--font-sans);
+}
+.nav-link:hover { background: var(--surface-hover); color: var(--text-main); }
+.nav-link.active {
+  background: var(--surface);
+  color: var(--accent-text);
+  font-weight: 600;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.nav-index {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+/* Reading Canvas */
+.reading-canvas {
+  padding: 50px 60px 100px 60px;
+  max-width: calc(var(--measure) + 120px);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.cognitive-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lesson-headline {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  color: var(--text-main);
+}
+
+.lesson-lead {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.62;
+  margin-bottom: 34px;
+}
+
+h2 {
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 44px 0 16px 0;
+  color: var(--text-main);
+}
+
+p {
+  margin-bottom: 20px;
+  color: var(--text-main);
+  opacity: 0.94;
+}
+
+ul, ol {
+  margin: 0 0 22px 24px;
+  color: var(--text-main);
+}
+
+li {
+  margin-bottom: 8px;
+  line-height: 1.65;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  padding: 2px 5px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: inherit;
+  font-size: inherit;
+}
+
+.code-block-wrap {
+  position: relative;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 64px 14px 16px;
+  margin: 12px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-main);
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+.code-block-wrap code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.copy-btn:hover {
+  background: var(--bg-alt);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Dilemma Box */
+.dilemma-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  margin: 30px 0;
+}
+
+.dilemma-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.dilemma-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-main);
+  margin-bottom: 0;
+}
+
+/* Analogy Tooltip */
+.analogy-term {
+  border-bottom: 1.5px dotted var(--accent);
+  cursor: help;
+  color: var(--text-main);
+  font-weight: 500;
+  position: relative;
+  display: inline-block;
+}
+
+.analogy-term:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-float);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  width: 260px;
+  border-radius: var(--radius-md);
+  z-index: 1000;
+  font-family: var(--font-sans);
+  font-weight: normal;
+  pointer-events: none;
+}
+
+/* Tactical Widget Container */
+.widget-frame {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.widget-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+
+.widget-caption {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.widget-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-text);
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.widget-content {
+  padding: 24px;
+}
+
+.clean-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 11px 14px;
+  font-family: var(--font-mono);
+  font-size: 14.5px;
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: all 0.15s;
+}
+.clean-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Checkpoint Box */
+.checkpoint-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 40px 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.checkpoint-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.checkpoint-prompt {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+
+.checkpoint-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.choice-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+.choice-btn.selected-correct {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+.feedback-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  display: none;
+}
+
+/* Footer Nav */
+.lesson-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+
+.nav-btn {
+  text-decoration: none;
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+.nav-btn-sub { font-size: 11px; color: var(--text-muted); }
+
+/* Right TOC */
+.toc-panel {
+  padding: 40px 20px;
+  border-left: 1px solid var(--border);
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+  font-family: var(--font-sans);
+}
+
+.toc-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.toc-nav-list { list-style: none; }
+.toc-nav-item { margin-bottom: 8px; }
+.toc-nav-link {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+  line-height: 1.4;
+  display: block;
+}
+.toc-nav-link:hover { color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 1080px) {
+  .layout { grid-template-columns: 240px 1fr; }
+  .toc-panel { display: none; }
+}
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .reading-canvas { padding: 24px 20px; }
+  .top-controls .segmented-control { display: none; }
+}
+
+/* =============================================================
+   VISUAL INFOGRAPHICS & DIAGRAM SUITE
+   ============================================================= */
+.pillar-visual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pillar-visual-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+.pillar-visual-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+.pillar-card-c::before,
+.pillar-card-i::before,
+.pillar-card-a::before,
+.pillar-card-r::before,
+.pillar-card-danger::before,
+.pillar-card-slate::before {
+  background: var(--accent);
+}
+
+.pillar-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.pillar-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+.pillar-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+}
+.pillar-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.pillar-card-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.pillar-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  margin: 0 -20px -20px -20px;
+  padding: 12px 20px;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.pillar-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pillar-meta-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.pillar-meta-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* Channel & Pipeline Architecture Diagrams */
+.channel-diagram {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 28px 0;
+}
+.channel-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+}
+.channel-actor-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  width: 140px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+}
+.channel-wire-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 14px 0;
+}
+.channel-line {
+  width: 100%;
+  height: 2px;
+  background: var(--border-focus);
+  position: relative;
+}
+.channel-line::before {
+  content: '►';
+  position: absolute;
+  right: 0;
+  top: -7px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+.threat-bubble {
+  background: var(--surface);
+  border: 1px dashed #c53030;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 12px;
+  color: var(--text-main);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Flow Ladders & Sequence Boxes */
+.ladder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+.ladder-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+}
+.ladder-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* =============================================================
+   INTERACTIVE PROCESS STEPPERS (FIXES NUMBER RENDERING)
+   ============================================================= */
+.step-stepper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 12px 0 24px 0;
+  padding: 0 14px;
+}
+.step-stepper::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+  transform: translateY(-50%);
+}
+.step-node {
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  transition: all 0.25s ease;
+  user-select: none;
+}
+.step-node.active {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  transform: scale(1.1);
+}
+.step-node.completed {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.process-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin: 16px 0;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sim-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* =============================================================
+   WORKED EXAMPLES (STANDARDIZED EDITORIAL FORMAT)
+   ============================================================= */
+.worked-example {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin: 32px 0;
+  box-shadow: var(--shadow-soft);
+}
+.example-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.example-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.example-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+.example-step {
+  display: flex;
+  gap: 14px;
+  margin: 12px 0;
+  align-items: flex-start;
+}
+.example-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.example-step-content {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.example-math {
+  font-family: var(--font-mono);
+  background: var(--code-bg);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 13px;
+  margin: 6px 0;
+  display: block;
+  overflow-x: auto;
+}
+.example-result {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  color: var(--accent-text);
+  font-weight: 600;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .pillar-visual-grid, .pillar-visual-grid-3 { grid-template-columns: 1fr; }
+  .channel-flow { flex-direction: column; }
+  .channel-actor-box { width: 100%; }
+}
+
+/* =============================================================
+   ATTACK POST-MORTEMS & HISTORIC CATASTROPHES
+   ============================================================= */
+.case-study {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid #c53030;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+}
+.case-study-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.case-study-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9b2c2c;
+  background: rgba(197, 48, 48, 0.08);
+  border: 1px solid rgba(197, 48, 48, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.case-study-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.case-study-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+.case-study-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.case-study-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.case-study-box-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.case-study-box p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.case-study-lesson {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--accent-text);
+  line-height: 1.6;
+}
+
+/* =============================================================
+   DISAMBIGUATION MATRICES, DEEP TABLES & COMPARISON TABLES
+   ============================================================= */
+.disambiguation-matrix {
+  margin: 32px 0;
+  overflow-x: auto;
+}
+table,
+.matrix-table,
+.deep-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin: 24px 0;
+}
+table th,
+.matrix-table th,
+.deep-table th {
+  background: var(--bg-alt);
+  color: var(--text-main);
+  font-weight: 700;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+table td,
+.matrix-table td,
+.deep-table td {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  vertical-align: top;
+}
+table tr:hover td,
+.matrix-table tr:hover td,
+.deep-table tr:hover td {
+  background: var(--surface-hover);
+}
+.status-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-broken {
+  background: rgba(197, 48, 48, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(197, 48, 48, 0.25);
+}
+.status-legacy {
+  background: rgba(214, 158, 46, 0.1);
+  color: #b7791f;
+  border: 1px solid rgba(214, 158, 46, 0.25);
+}
+.status-recommended {
+  background: rgba(45, 106, 79, 0.1);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.status-quantum {
+  background: rgba(107, 70, 193, 0.1);
+  color: #6b46c1;
+  border: 1px solid rgba(107, 70, 193, 0.25);
+}
+
+/* =============================================================
+   COMMANDMENTS & GOLDEN RULES
+   ============================================================= */
+.commandment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.commandment-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  gap: 14px;
+  transition: all 0.15s;
+}
+.commandment-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+.commandment-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.commandment-body h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.commandment-body p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.commandment-danger {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #c53030;
+  margin-top: 6px;
+  display: block;
+}
+
+/* =============================================================
+   GRAND UNIFIED PROTOCOL PIPELINE (HOW ALL 12 MODULES CONNECT)
+   ============================================================= */
+.protocol-pipeline {
+  position: relative;
+  margin: 36px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.protocol-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.15s;
+}
+.protocol-stage:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateX(4px);
+}
+.protocol-step-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.protocol-stage-content { flex: 1; }
+.protocol-stage-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+.protocol-stage-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.protocol-module-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* =============================================================
+   CIPHER ARCHITECTURE & MODES SCHEMATICS
+   ============================================================= */
+.cipher-arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.cipher-arch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.schematic-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* MODES SCHEMATICS */
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mode-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram {
+  background: var(--bg-alt);
+  border: 1px dashed var(--border-focus);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin: 10px 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-align: center;
+  color: var(--text-main);
+}
+
+/* =============================================================
+   INTERACTIVE MODES TAMPER LAB
+   ============================================================= */
+.tamper-lab-container {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 32px 0;
+}
+.tamper-mode-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.tamper-mode-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tamper-mode-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+.tamper-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+@media (max-width: 600px) {
+  .tamper-blocks-grid { grid-template-columns: 1fr; }
+}
+.tamper-block {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.tamper-block.corrupted {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.25);
+  animation: pulse-corrupt 0.35s ease;
+}
+.tamper-block.flipped {
+  border-color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+  animation: pulse-flipped 0.35s ease;
+}
+.tamper-block.intact {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+@keyframes pulse-corrupt {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes pulse-flipped {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.sim-btn {
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+.sim-btn-danger {
+  border-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #dc2626 !important;
+}
+.sim-btn-danger:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+.sim-btn-secondary {
+  border-color: var(--border);
+  background: var(--bg-alt);
+  color: var(--text-secondary);
+}
+.sim-btn-secondary:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+/* =============================================================
+   CRYPTOGRAPHY MYTHS VS REALITY
+   ============================================================= */
+.myth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin: 28px 0;
+}
+.myth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.myth-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c53030;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.myth-reality {
+  background: var(--bg-alt);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* =============================================================
+   CATALOG FILTER BUTTONS
+   ============================================================= */
+.catalog-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 24px 0;
+}
+.catalog-filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.catalog-filter-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.catalog-filter-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* =============================================================
+   VISUAL FLOWCHART NODES (PROFESSIONAL RENDERED DIAGRAMS)
+   ============================================================= */
+.flow-diagram-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+.flow-node-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.flow-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.flow-box-highlight {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+.flow-box-danger {
+  border-color: rgba(197, 48, 48, 0.3);
+  background: rgba(197, 48, 48, 0.05);
+}
+.flow-box-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.flow-box-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.flow-box-sub {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+.flow-substeps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.flow-substep-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+}
+.flow-arrow-down {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  height: 20px;
+  font-size: 14px;
+}
+.flow-arrow-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  width: 24px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.flow-operator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* MODE SCHEMATICS GRID & CARDS */
+.modes-visual-schematics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.mode-schematic-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-soft);
+}
+.mode-schematic-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.mode-schematic-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram-canvas {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 12px 0;
+}
+
+
+/* -------------------------------------------------------------
+   GLOBAL SEARCH & QUICK-LAUNCHER (MODAL & TRIGGER)
+------------------------------------------------------------- */
+.search-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-right: 8px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+.search-trigger-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-focus);
+  color: var(--text-main);
+}
+.search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  color: var(--text-muted);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+#searchModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  box-sizing: border-box;
+}
+#searchModalOverlay.active {
+  display: flex;
+}
+#searchModalCard {
+  background: var(--surface);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 640px;
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+  animation: searchCardPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes searchCardPop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+#searchModalHeader {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+#searchModalInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  color: var(--text-main);
+  outline: none;
+  font-family: var(--font-sans);
+}
+#searchModalInput::placeholder {
+  color: var(--text-muted);
+}
+#searchModalClose {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+#searchModalClose:hover {
+  background: var(--bg-alt);
+  color: var(--text-main);
+}
+#searchModalResults {
+  overflow-y: auto;
+  padding: 8px;
+  max-height: 52vh;
+}
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-main);
+  transition: background 0.12s ease;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+.search-result-item:hover,
+.search-result-item.active {
+  background: var(--accent-soft);
+}
+.search-result-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.search-result-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  margin-right: 12px;
+  white-space: nowrap;
+}
+.search-result-text {
+  overflow: hidden;
+}
+.search-result-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-arrow {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-left: 8px;
+  font-family: var(--font-mono);
+}
+#searchModalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+}
+
+/* -------------------------------------------------------------
+   ENVELOPE ENCRYPTION & INCIDENT RESPONSE PLAYBOOK COMPONENTS
+------------------------------------------------------------- */
+.envelope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.envelope-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+.envelope-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.envelope-card-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.envelope-step-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+.runbook-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+}
+.runbook-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-soft);
+}
+.runbook-step-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.runbook-step-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.runbook-step-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.runbook-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+.runbook-checklist li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 6px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+.runbook-checklist li::before {
+  content: "->";
+  position: absolute;
+  left: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hardware-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.hardware-tier-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hardware-tier-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  width: fit-content;
+  margin-bottom: 8px;
+}
+
+
+/* -------------------------------------------------------------
+   TLS 1.2 vs TLS 1.3 SEQUENCE DIAGRAM STYLES
+------------------------------------------------------------- */
+.seq-diagram-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: var(--shadow-soft);
+}
+.seq-diagram-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.seq-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+}
+.seq-protocol-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.seq-protocol-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.seq-protocol-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.badge-legacy {
+  background: rgba(220, 38, 38, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+.badge-modern {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.seq-flow-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.seq-lifelines {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px dashed var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.seq-rtt-section {
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.seq-rtt-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+.seq-flight {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.seq-flight-dir {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 11.5px;
+}
+.seq-flight-arrow-r {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-arrow-l {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-payload {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-main);
+  background: var(--bg-alt);
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+.seq-flight-tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  width: fit-content;
+}
+.tag-plain {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+.tag-enc {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+/* -------------------------------------------------------------
+   SYSTEMS & SECURITY KNOWLEDGE HUB DOMAIN CARDS
+------------------------------------------------------------- */
+.hub-domains-container {
+  margin: 40px 0;
+}
+.hub-domains-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 24px;
+}
+.hub-domain-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px 22px 24px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 330px;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.hub-domain-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-float);
+  border-color: var(--accent);
+}
+.hub-domain-card.active-domain {
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-float);
+}
+.hub-domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.hub-domain-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+.hub-domain-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.badge-active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.badge-roadmap {
+  background: var(--bg-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.hub-domain-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.hub-domain-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.hub-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.hub-topic-tag {
+  font-size: 11px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+
+/* -------------------------------------------------------------
+   TRACK VIEW TOGGLE & NAVIGATION IN HUB
+------------------------------------------------------------- */
+.track-view-section {
+  display: none;
+  animation: fadeIn 0.15s ease;
+}
+.track-view-section.active {
+  display: block;
+}
+.back-to-tracks-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+.back-to-tracks-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.track-card-clickable {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.track-card-clickable:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+
+.track-card-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  transition: color 0.15s ease;
+}
+.track-card-clickable:hover .track-card-action {
+  color: var(--accent-text);
+}
+.track-action-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.track-action-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+
+/* -------------------------------------------------------------
+   WIDE SCREEN UTILIZATION & CHEATSHEET CARDS DIRECTORY
+------------------------------------------------------------- */
+.hub-main-container {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 40px 100px 40px;
+}
+@media (min-width: 1600px) {
+  .hub-main-container {
+    max-width: 1640px;
+    padding: 0 56px 120px 56px;
+  }
+}
+@media (max-width: 768px) {
+  .hub-main-container {
+    padding: 0 20px 80px 20px;
+  }
+}
+
+.hub-cheatsheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 22px;
+  margin-top: 18px;
+}
+.hub-cheatsheet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 220px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+.hub-cheatsheet-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-float);
+}
+.hub-cheatsheet-card.active-ref {
+  border-left: 4px solid var(--accent);
+}
+.cheatsheet-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cheatsheet-track-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.cheatsheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.cheatsheet-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+/* =============================================================
+   IMMERSIVE BACKGROUND ANIMATIONS (HUB & TRACK LANDING ONLY)
+   ============================================================= */
+.immersive-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+#immersiveBgCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.immersive-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 28%, transparent 25%, var(--bg) 95%);
+  pointer-events: none;
+}
+
+/* Elevate portal content layers crisply above the ambient canvas */
+.hub-main-container,
+.modal-overlay {
+  position: relative;
+  z-index: 1;
+}
+
+</style>
+  <style>
+    .freq-box {
+      background: var(--widget-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      margin: 36px 0;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
     }
-    .alphabet-strip {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      background: var(--code-bg);
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      letter-spacing: 0.15em;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-    .shift-readout {
+    .freq-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 13px;
-      font-weight: 600;
+      padding: 14px 22px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
     }
+    .freq-body { padding: 24px; }
+    .freq-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 120px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 10px 4px 10px;
+      margin: 16px 0;
+    }
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .bar-rect {
+      width: 100%;
+      background: var(--accent);
+      border-radius: 2px 2px 0 0;
+      transition: height 0.3s ease;
+      min-height: 2px;
+    }
+    .bar-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .deep-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 14px;
+    }
+    .deep-table th, .deep-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    .deep-table th { background: var(--bg-alt); font-weight: 650; }
+    .deep-table td { background: var(--surface); }
   </style>
 </head>
 <body>
@@ -38,19 +2544,24 @@
   <!-- Topbar -->
   <header class="topbar">
     <a href="../index.html" class="brand">
-      <span>CRYPTOGRAPHY</span>
-      <span class="brand-mark">MODULE 05</span>
+      <span>SYSTEMS &amp; SECURITY</span> <span class="brand-mark">MODULE 05</span>
     </a>
 
     <div class="top-controls">
+      <button type="button" class="search-trigger-btn" onclick="openSearchModal()" title="Search documentation (Ctrl+K)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <span>Search</span>
+        <kbd class="search-kbd">Ctrl K</kbd>
+      </button>
+      
       <div class="segmented-control">
         <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
         <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
       </div>
       <div class="theme-picker">
-        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
-        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
-        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">Slate</button>
       </div>
     </div>
   </header>
@@ -85,6 +2596,12 @@
       <ul class="nav-list">
         <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
         <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+        <li class="nav-item"><a href="m13-misc-topics.html" class="nav-link"><span class="nav-index">13</span><span>Connected Topics &amp; X.509</span></a></li>
+      </ul>
+      <div class="nav-group-title">Master Reference</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="../cheatsheet.html" class="nav-link"><span class="nav-index">DM</span><span>Decision Matrix & Cheatsheet</span></a></li>
+        <li class="nav-item"><a href="../openssl-cheatsheet.html" class="nav-link"><span class="nav-index">OS</span><span>OpenSSL 3.x Cheatsheet</span></a></li>
       </ul>
     </aside>
 
@@ -92,112 +2609,307 @@
     <main class="reading-canvas">
 
       <div class="cognitive-meta">
-        <span>📖 6 min read</span>
+        <span>11 min read</span>
         <span>•</span>
         <span>Tier: Shared Secrets</span>
         <span>•</span>
-        <span>Prerequisites: Module 01</span>
+        <span>Prerequisites: Modules 01, 04</span>
       </div>
 
-      <h1 class="lesson-headline">Classical Ciphers & Breaking Patterns</h1>
+      <h1 class="lesson-headline">Classical Ciphers & The Science of Pattern Breaking</h1>
       <p class="lesson-lead">
-        For thousands of years, humans believed that swapping or reordering letters was enough to hide secrets. They overlooked one fatal flaw: human language leaves unmistakable footprints.
+        From ancient Spartan scytales to Roman shift dials and Renaissance polyalphabetic squares, humans spent centuries seeking secrecy. Their attempts all collapsed because human thought leaves statistical signatures.
       </p>
 
       <!-- Section 1 -->
-      <section id="substitution-ciphers">
-        <h2>1. The Caesar Shift: The Oldest Trick</h2>
+      <section id="substitution-mechanics">
+        <h2>1. Substitution vs. Transposition: The Two Core Operations</h2>
         <p>
-          Julius Caesar did not trust his messengers. When writing to his generals, he shifted every letter in the Roman alphabet forward by 3 positions: <code>A</code> became <code>D</code>, <code>B</code> became <code>E</code>, and so on.
+          Historically, every cipher ever invented operates through two fundamental transformations:
+        </p>
+        <ul>
+          <li><strong>Substitution (Swapping identity):</strong> Replacing one character with another (e.g. <code>'A'</code> becomes <code>'X'</code>). The position stays the same; the symbols change.</li>
+          <li><strong>Transposition (Permuting order):</strong> Shuffling the positions of the letters (e.g. writing in a zigzag or grid). The symbols stay the same; the order changes.</li>
+        </ul>
+        <p>
+          The simplest substitution is the <strong>Caesar Shift</strong> (used by Julius Caesar with shift k = 3). Because the English alphabet has only 26 letters, there are only 25 non-trivial keys. An attacker can write down all 25 possible shifts by hand in 2 minutes.
         </p>
         <p>
-          Because the English alphabet has only 26 letters, there are only <strong>25 possible keys</strong>. Even without a computer, a Roman soldier could try all 25 shifts on a napkin in 3 minutes.
+          To defeat brute-force guessing, 16th-century writers used <strong>Monoalphabetic Substitution</strong>, picking an arbitrary permutation of the alphabet. This creates 26! ≈ 4.03 × 10<sup>26</sup> possible keys. A supercomputer checking a billion keys per second would take 12 million years to guess them all. Yet humans can crack it in 5 minutes! How?
         </p>
 
-        <!-- Interactive Caesar Tool -->
-        <div class="widget-frame">
-          <div class="widget-bar">
-            <div class="widget-caption">
-              <span>Interactive Caesar Shift Dial</span>
-              <span class="widget-badge">Shift Explorer</span>
+        
+        <!-- Worked Example: Caesar & Vigenere -->
+        <div class="worked-example">
+          <div class="example-header">
+            <span class="example-badge">Worked Example</span>
+            <h3 class="example-title">Encrypting with the Vigenère Polyalphabetic Cipher</h3>
+          </div>
+          <p style="font-size:14px; color:var(--text-secondary); margin-bottom:14px;">
+            Let's trace how the repeated keyword <code>"LEMON"</code> encrypts the message <code>"ATTACK"</code> to flatten single-letter frequencies:
+          </p>
+
+          <div class="example-step">
+            <div class="example-step-num">1</div>
+            <div class="example-step-content">
+              <strong>Align Plaintext and Key Characters:</strong><br>
+              Plaintext: <code>A &nbsp;T &nbsp;T &nbsp;A &nbsp;C &nbsp;K</code><br>
+              Keyword: &nbsp; <code>L &nbsp;E &nbsp;M &nbsp;O &nbsp;N &nbsp;L</code>
             </div>
-            <span style="font-family:var(--font-mono); font-size:11px;" id="shiftVal">Shift: +3</span>
           </div>
 
-          <div class="widget-content">
-            <div class="cipher-controls">
-              <div class="shift-readout">
-                <span>Drag to shift the alphabet:</span>
-                <input type="range" id="caesarSlider" min="1" max="25" value="3" style="width:50%; accent-color:var(--accent);">
-              </div>
+          <div class="example-step">
+            <div class="example-step-num">2</div>
+            <div class="example-step-content">
+              <strong>Convert Letters to Numbers (A=0, B=1, ... Z=25):</strong><br>
+              Plain: <code>0, 19, 19, 0, 2, 10</code><br>
+              Key: &nbsp; <code>11, 4, 12, 14, 13, 11</code>
+            </div>
+          </div>
 
+          <div class="example-step">
+            <div class="example-step-num">3</div>
+            <div class="example-step-content">
+              <strong>Add Modulo 26: (Plain + Key) mod 26:</strong><br>
+              • Letter 1: (0 + 11) mod 26 = 11 → <strong>'L'</strong><br>
+              • Letter 2: (19 + 4) mod 26 = 23 → <strong>'X'</strong><br>
+              • Letter 3: (19 + 12) mod 26 = 31 mod 26 = 5 → <strong>'F'</strong><br>
+              • Letter 4: (0 + 14) mod 26 = 14 → <strong>'O'</strong><br>
+              • Letter 5: (2 + 13) mod 26 = 15 → <strong>'P'</strong><br>
+              • Letter 6: (10 + 11) mod 26 = 21 → <strong>'V'</strong>
+            </div>
+          </div>
+
+          <div class="example-result">
+             <strong>Ciphertext:</strong> <code>"LXFOPV"</code>. Notice that the two 'T's in "ATTACK" became completely different letters ('X' and 'F'), defeating simple Caesar frequency attacks!
+          </div>
+        </div>
+
+        <!-- Visual Dual-Family Architecture Grid -->
+        <div style="margin:20px 0;">
+          <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px;">
+            Visual Architecture: The Two Fundamental Operations of Classical Ciphers
+          </div>
+          <div class="pillar-visual-grid">
+            
+            <!-- Substitution Card -->
+            <div class="pillar-visual-card pillar-card-c">
               <div>
-                <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:4px;">Original Plaintext Alphabet:</div>
-                <div class="alphabet-strip">A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</div>
+                <div class="pillar-card-header">
+                  <div class="pillar-icon-badge" style="color:#2563eb;">⇄</div>
+                  <div>
+                    <div class="pillar-card-title">Substitution: Identity Transform</div>
+                    <div class="pillar-card-sub">Position: Static | Symbol: Changed</div>
+                  </div>
+                </div>
+                <div class="pillar-card-body">
+                  Every letter is replaced by another according to a lookup rule. The sequence structure stays intact, but symbols morph.
+                </div>
               </div>
-
-              <div>
-                <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:4px;">Shifted Ciphertext Alphabet:</div>
-                <div class="alphabet-strip" id="shiftedAlphabet" style="color:var(--accent);">D E F G H I J K L M N O P Q R S T U V W X Y Z A B C</div>
-              </div>
-
-              <div style="margin-top:10px;">
-                <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Test Message:</label>
-                <input type="text" id="caesarInput" class="clean-input" value="MEET ME AT SUNSET">
-              </div>
-
-              <div>
-                <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:4px;">Resulting Ciphertext:</div>
-                <div class="alphabet-strip" id="caesarOutput" style="font-weight:600;">PHHW PH DW VXQVHW</div>
+              <div class="pillar-meta-row">
+                <div class="pillar-meta-item">
+                  <span class="pillar-meta-label">Example:</span>
+                  <span class="pillar-meta-val">"HELLO" → "KHOOR" (Shift +3)</span>
+                </div>
+                <div class="pillar-meta-item">
+                  <span class="pillar-meta-label">Fatal Flaw:</span>
+                  <span class="pillar-meta-val" style="color:#dc2626;">Preserves letter frequency patterns</span>
+                </div>
               </div>
             </div>
+
+            <!-- Transposition Card -->
+            <div class="pillar-visual-card pillar-card-i">
+              <div>
+                <div class="pillar-card-header">
+                  <div class="pillar-icon-badge" style="color:var(--accent);"></div>
+                  <div>
+                    <div class="pillar-card-title">Transposition: Position Scramble</div>
+                    <div class="pillar-card-sub">Position: Shuffled | Symbol: Preserved</div>
+                  </div>
+                </div>
+                <div class="pillar-card-body">
+                  Letters retain their exact identities, but their order is permuted via grids, rails, or geometric matrices.
+                </div>
+              </div>
+              <div class="pillar-meta-row">
+                <div class="pillar-meta-item">
+                  <span class="pillar-meta-label">Example:</span>
+                  <span class="pillar-meta-val">"ATTACK" → "TKAATC" (Rail Fence)</span>
+                </div>
+                <div class="pillar-meta-item">
+                  <span class="pillar-meta-label">Fatal Flaw:</span>
+                  <span class="pillar-meta-val" style="color:#dc2626;">Anagramming & vowel/consonant count</span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      <!-- Section 2 -->
-      <section id="frequency-analysis">
-        <h2>2. Frequency Analysis: The Death of Substitution</h2>
+      <!-- Section 2: Interactive Frequency Detective Tool -->
+      <section id="frequency-detective">
+        <h2>2. Process Walkthrough: Cracking Ciphers with Frequency Analysis</h2>
         <p>
-          To defeat simple shift guessing, scholars invented <strong>Monoalphabetic Substitution</strong>, mapping letters randomly (e.g., <code>A</code> $\to$ <code>X</code>, <code>B</code> $\to$ <code>Q</code>). This yields $26! \approx 4 \times 10^{26}$ combinations. A human could never guess them all.
+          In the 9th century, Arab polymath <strong>Al-Kindi</strong> wrote <em>A Manuscript on Deciphering Cryptographic Messages</em>. He discovered that while substitution disguises the letters, it <strong>leaves the frequency of language completely untouched</strong>.
         </p>
         <p>
-          Yet in the 9th century, Arab mathematician <strong>Al-Kindi</strong> cracked it using one profound insight: <em>Letter swapping scrambles the symbols, but preserves the rhythm of language.</em>
+          In typical English text:
+          * <code>'E'</code> accounts for roughly <strong>12.7%</strong> of all letters.
+          * <code>'T'</code> accounts for <strong>9.1%</strong>, <code>'A'</code> for <strong>8.2%</strong>, <code>'O'</code> for <strong>7.5%</strong>.
+          * <code>'Z'</code>, <code>'Q'</code>, and <code>'X'</code> account for less than <strong>0.2%</strong>.
         </p>
-        <div class="dilemma-card">
-          <div class="dilemma-label">The Inescapable Fingerprint of English</div>
-          <p class="dilemma-text">
-            In any typical English book, the letter <strong>E</strong> appears about <strong>13%</strong> of the time. The letters <strong>T</strong> (9%) and <strong>A</strong> (8%) follow closely. The letters <strong>Q</strong> and <strong>Z</strong> appear less than 0.2% of the time.<br><br>
-            If a hacker counts the letters in an intercepted ciphertext and finds that <code>W</code> appears 13% of the time, <code>W</code> is almost certainly the letter <code>E</code>!
-          </p>
+        <p>
+          Step through the interactive detective lab below. We have intercepted an encrypted message. Watch how counting letter frequencies exposes the secret shift instantly:
+        </p>
+
+        <!-- Frequency Detective Widget -->
+        <div class="freq-box">
+          <div class="freq-header">
+            <div>
+              <strong style="font-size:13.5px;">Frequency Analysis Detective Lab</strong>
+              <div style="font-size:11.5px; color:var(--text-muted);">Cracking substitution without knowing the key</div>
+            </div>
+            <span style="font-family:var(--font-mono); font-size:11px;" id="detectiveStepLabel">Phase 1: Intercept</span>
+          </div>
+
+          <div class="freq-body">
+            
+            <div style="margin-bottom:12px;">
+              <label style="font-size:12px; font-weight:600; color:var(--text-secondary);">Intercepted Ciphertext Stream:</label>
+              <div style="font-family:var(--font-mono); font-size:13px; background:var(--code-bg); padding:10px 14px; border-radius:var(--radius-sm); word-break:break-all;" id="cipherStream">
+                KHOOR ZRUOG WKLV LV D VHFUHW PHVVDJH DERXW FUBSWRJUDSKB
+              </div>
+            </div>
+
+            <!-- Frequency Histogram -->
+            <div style="font-size:12px; font-weight:600; color:var(--text-secondary); display:flex; justify-content:space-between;">
+              <span>Ciphertext Letter Frequency Histogram:</span>
+              <span style="color:var(--accent);" id="peakLetterLabel">Highest Peak: Letter 'H' (7 occurrences)</span>
+            </div>
+            <div class="freq-bars" id="histogramBars">
+              <!-- Injected by JS -->
+            </div>
+
+            <div class="process-stage" id="detectiveExplanation">
+              <div style="font-weight:700; font-size:14px; margin-bottom:4px;" id="detTitle">Step 1: Identify the Highest Peak</div>
+              <p style="font-size:13px; color:var(--text-secondary); margin-bottom:0;" id="detDesc">
+                In standard English, 'E' is always the most frequent letter. In our intercepted text, the letter <strong>'H'</strong> appears far more than any other letter. Let's test the hypothesis: <code>H = E</code>!
+              </p>
+            </div>
+
+            <div class="sim-controls">
+              <button class="choice-btn" style="padding:6px 14px; font-size:12px;" onclick="solveCaesarStep()">Align Peak 'H' to 'E' & Decrypt →</button>
+              <span style="font-family:var(--font-mono); font-size:12px; color:var(--accent-text);" id="decryptedOutput">Plaintext: ???</span>
+            </div>
+
+          </div>
         </div>
       </section>
 
       <!-- Section 3 -->
-      <section id="one-time-pad">
-        <h2>3. The One-Time Pad: The Only Unbreakable Cipher</h2>
+      <section id="vigenere-cipher">
+        <h2>3. The Polyalphabetic Revolution: The Vigenère Cipher</h2>
         <p>
-          In 1917, engineers discovered the only mathematically proven unbreakable cipher: the <strong>One-Time Pad (OTP)</strong>.
+          To stop Al-Kindi's frequency analysis, 16th-century cryptographer Blaise de Vigenère created a cipher using a repeating keyword.
         </p>
         <p>
-          If you take a message and combine each letter with a completely random letter from a key that is used <strong>only once and never reused</strong>, the resulting ciphertext has zero statistical patterns. Even an infinite supercomputer cannot crack it because every possible plaintext is equally likely.
+          Instead of shifting every letter by 3, the shift changes with every letter according to a secret passphrase:
         </p>
+
+        <div class="narrative-box">
+          <div class="narrative-tag">How Vigenère Works</div>
+          <p class="narrative-body">
+            <strong>Plaintext:</strong> <code>ATTACK AT DAWN</code><br>
+            <strong>Key (LEMON):</strong> <code>LEMONL EM ONLE</code><br>
+            <strong>Result:</strong> The first 'A' is shifted by 'L' (11). The second 'A' is shifted by 'O' (14). The third 'A' is shifted by 'M' (12)!<br><br>
+            Because the identical letter 'A' encrypts to completely different letters across the sentence, the single-letter frequency peaks are flattened! For 300 years, historians called it <em>Le Chiffre Indéchiffrable</em> (The Indecipherable Cipher).
+          </p>
+        </div>
+
         <p>
-          <strong>Why don't we use it for everything?</strong> The Key Distribution Problem: The secret key must be just as long as the message. If you want to download a 50 GB video game securely, you would need to securely transport a 50 GB random key first!
+          <strong>How It Was Broken (The Kasiski Examination):</strong> In 1863, Prussian officer Friedrich Kasiski noticed that if a common word (like "THE") happens to align with the same part of the keyword, it produces identical ciphertext groups. By measuring the distance between repeating words and finding their greatest common divisor, cryptanalysts determine the <strong>keyword length</strong>, breaking the cipher into separate Caesar shifts!
         </p>
       </section>
 
-      <!-- Checkpoint -->
+      <!-- Section 4 -->
+      <section id="shannon-otp">
+        <h2>4. The One-Time Pad: Claude Shannon's Perfect Secrecy</h2>
+        <p>
+          What if the keyword in a Vigenère cipher never repeats, is completely random, and is as long as the message?
+        </p>
+        <p>
+          In 1949, mathematician <strong>Claude Shannon</strong> mathematically proved that the <strong>One-Time Pad (OTP)</strong> has <strong>Information-Theoretic Perfect Secrecy</strong>:
+        </p>
+        <ul>
+          <li>Even an attacker with infinite computing power and infinite time cannot decipher it.</li>
+          <li>Why? Because for any given ciphertext, <em>every possible plaintext of that length is equally probable</em>! The ciphertext <code>"EQNVZ"</code> could decrypt to <code>"HELLO"</code> or <code>"LATER"</code> or <code>"PIZZA"</code> with equal mathematical likelihood.</li>
+        </ul>
+
+        <!-- Visual OTP Perfect Secrecy Infographic -->
+        <div class="channel-diagram">
+          <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:14px; text-align:center;">
+            Visual Proof: Why One-Time Pad Decrypts into All Possible Words Equi-Probable
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--code-bg); padding:10px 14px; border-radius:var(--radius-md); text-align:center; font-family:var(--font-mono); font-size:13px; border:1px solid var(--border);">
+              Intercepted Ciphertext: <strong style="color:var(--text-main);">"EQNVZ"</strong> (5 Bytes)
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:6px;">
+              <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; text-align:center;">
+                <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">Key Candidate 1</div>
+                <div style="font-family:var(--font-mono); font-size:12px; color:var(--accent); font-weight:600;">"XMCKL"</div>
+                <div style="font-size:15px; font-weight:800; color:var(--text-main); margin-top:4px;">"HELLO"</div>
+                <div style="font-size:10.5px; color:var(--text-muted); margin-top:2px;">Prob: 1 / 26<sup>5</sup></div>
+              </div>
+              <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; text-align:center;">
+                <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">Key Candidate 2</div>
+                <div style="font-family:var(--font-mono); font-size:12px; color:var(--accent); font-weight:600;">"TXBJA"</div>
+                <div style="font-size:15px; font-weight:800; color:var(--text-main); margin-top:4px;">"LATER"</div>
+                <div style="font-size:10.5px; color:var(--text-muted); margin-top:2px;">Prob: 1 / 26<sup>5</sup></div>
+              </div>
+              <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; text-align:center;">
+                <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">Key Candidate 3</div>
+                <div style="font-family:var(--font-mono); font-size:12px; color:var(--accent); font-weight:600;">"PZNYG"</div>
+                <div style="font-size:15px; font-weight:800; color:var(--text-main); margin-top:4px;">"PIZZA"</div>
+                <div style="font-size:10.5px; color:var(--text-muted); margin-top:2px;">Prob: 1 / 26<sup>5</sup></div>
+              </div>
+            </div>
+
+            <div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:6px;">
+              Shannon's Law: H(M | C) = H(M). Observing ciphertext <em>C</em> reveals exactly <strong>0 bits</strong> of information about plaintext <em>M</em>.
+            </div>
+          </div>
+        </div>
+
+        <div class="dilemma-card">
+          <div class="dilemma-label">The Fatal Logistics Flaw of Perfect Secrecy</div>
+          <p class="dilemma-text">
+            To use a One-Time Pad securely:
+            <ol style="margin-left:20px; margin-top:8px;">
+              <li>The pad must be generated from true physical hardware entropy.</li>
+              <li>The pad must be strictly as large as the message.</li>
+              <li>The pad must <strong>never be reused</strong> (if reused once, subtracting the two ciphertexts cancels the key and reveals both plaintexts!).</li>
+              <li><strong>The Distribution Paradox:</strong> If Alice needs to send Bob a 10 GB file securely, she must first securely physically deliver a 10 GB random pad to Bob. If she already has a secure way to transport 10 GB, why not just transport the file itself?</li>
+            </ol>
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 5 -->
       <section id="checkpoint">
         <div class="checkpoint-card">
           <div class="checkpoint-eyebrow">Checkpoint Question</div>
           <div class="checkpoint-prompt">
-            Why does frequency analysis fail against modern encryption algorithms like AES?
+            Why does reusing a One-Time Pad key even once (the "Two-Time Pad" error) completely destroy its mathematical perfection?
           </div>
           <div class="checkpoint-choices">
-            <button class="choice-btn" onclick="handleQuiz(this, true, 'Modern block ciphers use multiple rounds of Confusion and Diffusion, completely flattening any letter frequency into uniform random noise.')">A) Modern ciphers destroy all letter patterns through confusion and diffusion rounds.</button>
-            <button class="choice-btn" onclick="handleQuiz(this, false, 'Frequency analysis works on any language as long as letter frequencies exist.')">B) Modern computers don\'t use the English language.</button>
-            <button class="choice-btn" onclick="handleQuiz(this, false, 'Key length matters, but without diffusion, repeating patterns still leak.')">C) Simply because the keys are longer.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'When two ciphertexts are encrypted with the same key stream, XORing the two ciphertexts cancels out the key entirely, leaving the XOR of the two original plaintexts, which can be easily separated using frequency analysis.')">A) Subtracting or XORing the two ciphertexts cancels out the key completely, leaving the plaintexts exposed to frequency analysis.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'The One-Time Pad remains unbreakable regardless of message length, provided keys are unique.')">B) Because the key space shrinks to zero.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'OTP works natively on raw binary bits.')">C) Because computers cannot generate numbers twice.</button>
           </div>
           <div class="feedback-note"></div>
         </div>
@@ -221,50 +2933,488 @@
     <aside class="toc-panel">
       <div class="toc-heading">In This Lesson</div>
       <ul class="toc-nav-list">
-        <li class="toc-nav-item"><a href="#substitution-ciphers" class="toc-nav-link">1. The Caesar Shift Dial</a></li>
-        <li class="toc-nav-item"><a href="#frequency-analysis" class="toc-nav-link">2. Frequency Analysis</a></li>
-        <li class="toc-nav-item"><a href="#one-time-pad" class="toc-nav-link">3. The One-Time Pad</a></li>
+        <li class="toc-nav-item"><a href="#substitution-mechanics" class="toc-nav-link">1. Substitution vs Transposition</a></li>
+        <li class="toc-nav-item"><a href="#frequency-detective" class="toc-nav-link">2. Frequency Detective Lab</a></li>
+        <li class="toc-nav-item"><a href="#vigenere-cipher" class="toc-nav-link">3. The Vigenere Cipher</a></li>
+        <li class="toc-nav-item"><a href="#shannon-otp" class="toc-nav-link">4. One-Time Pad & Shannon</a></li>
         <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
       </ul>
     </aside>
 
   </div>
 
-  <script src="../assets/js/common.js"></script>
   <script>
-    const slider = document.getElementById('caesarSlider');
-    const shiftVal = document.getElementById('shiftVal');
-    const shiftedAlphabet = document.getElementById('shiftedAlphabet');
-    const caesarInput = document.getElementById('caesarInput');
-    const caesarOutput = document.getElementById('caesarOutput');
+/* -------------------------------------------------------------
+   CRYPTOGRAPHY FROM BASICS — SHARED CORE JAVASCRIPT
+   Theme, Typography, Reading Progress, Checkpoints, & Global Search
+------------------------------------------------------------- */
 
-    const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+(function () {
+  let savedTheme = 'paper';
+  let savedFont = 'sans';
+  try {
+    savedTheme = localStorage.getItem('crypto_theme') || 'paper';
+  } catch (e) {}
+  try {
+    savedFont = localStorage.getItem('crypto_font') || 'sans';
+  } catch (e) {}
 
-    function updateCaesar() {
-      const shift = parseInt(slider.value);
-      shiftVal.textContent = `Shift: +${shift}`;
+  setTheme(savedTheme, false);
+  setFont(savedFont, false);
 
-      // Build shifted alphabet
-      const shifted = ALPHABET.slice(shift) + ALPHABET.slice(0, shift);
-      shiftedAlphabet.textContent = shifted.split('').join(' ');
+  // Setup Scroll Progress Bar
+  window.addEventListener('scroll', updateReadingProgress);
 
-      // Encrypt test input
-      const text = caesarInput.value.toUpperCase();
-      let res = '';
-      for (let ch of text) {
-        const idx = ALPHABET.indexOf(ch);
-        if (idx !== -1) {
-          res += shifted[idx];
-        } else {
-          res += ch;
-        }
+  // DOM Ready Initializations
+  document.addEventListener('DOMContentLoaded', () => {
+    highlightActiveNavLink();
+    updateThemeUI(savedTheme);
+    updateFontUI(savedFont);
+    initGlobalSearch();
+  });
+})();
+
+// Reading Progress
+function updateReadingProgress() {
+  const progressBar = document.getElementById('readingProgress');
+  if (!progressBar) return;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  if (docHeight <= 0) {
+    progressBar.style.width = '0%';
+    return;
+  }
+  const scrolled = (window.scrollY / docHeight) * 100;
+  progressBar.style.width = Math.min(100, Math.max(0, scrolled)) + '%';
+}
+
+// Theme Switcher
+function setTheme(themeName, persist = true) {
+  document.documentElement.setAttribute('data-theme', themeName);
+  if (persist) {
+    try {
+      localStorage.setItem('crypto_theme', themeName);
+    } catch (e) {}
+  }
+  updateThemeUI(themeName);
+}
+
+function updateThemeUI(themeName) {
+  document.querySelectorAll('.theme-chip').forEach(chip => chip.classList.remove('active'));
+  const activeBtn = document.getElementById('theme' + themeName.charAt(0).toUpperCase() + themeName.slice(1));
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+// Font Switcher
+function setFont(fontType, persist = true) {
+  document.documentElement.setAttribute('data-font', fontType);
+  if (persist) {
+    try {
+      localStorage.setItem('crypto_font', fontType);
+    } catch (e) {}
+  }
+  updateFontUI(fontType);
+}
+
+function updateFontUI(fontType) {
+  const btnSans = document.getElementById('btnSans');
+  const btnSerif = document.getElementById('btnSerif');
+  if (btnSans && btnSerif) {
+    btnSans.classList.toggle('active', fontType === 'sans');
+    btnSerif.classList.toggle('active', fontType === 'serif');
+  }
+}
+
+// Sidebar Active Page Matcher
+function highlightActiveNavLink() {
+  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && href.endsWith(currentPath)) {
+      link.classList.add('active');
+    }
+  });
+}
+
+// Universal Checkpoint Quiz Engine
+function handleQuiz(button, isCorrect, explanationText) {
+  const parentCard = button.closest('.checkpoint-card') || button.parentElement.parentElement;
+  const feedback = parentCard.querySelector('.feedback-note');
+  const allButtons = parentCard.querySelectorAll('.choice-btn');
+
+  allButtons.forEach(btn => {
+    btn.style.opacity = '0.45';
+    btn.disabled = true;
+  });
+
+  button.style.opacity = '1';
+  if (feedback) {
+    feedback.style.display = 'block';
+    if (isCorrect) {
+      button.classList.add('selected-correct');
+      feedback.style.background = 'var(--accent-soft)';
+      feedback.style.color = 'var(--accent-text)';
+      feedback.style.border = '1px solid var(--accent-border)';
+      feedback.innerHTML = '<strong>Correct.</strong> ' + explanationText;
+    } else {
+      button.style.borderColor = '#c53030';
+      feedback.style.background = 'rgba(197, 48, 48, 0.08)';
+      feedback.style.color = '#c53030';
+      feedback.style.border = '1px solid rgba(197, 48, 48, 0.2)';
+      feedback.innerHTML = '<strong>Not quite.</strong> ' + explanationText;
+    }
+  }
+}
+
+/* -------------------------------------------------------------
+   UNIVERSAL CRYPTOGRAPHIC SEARCH & QUICK LAUNCHER (CTRL+K)
+------------------------------------------------------------- */
+const SEARCH_INDEX = [
+  // Foundations
+  { title: "CIA Triad & Non-Repudiation (CIA-R)", badge: "M01 Foundations", desc: "Confidentiality, Integrity, Availability, and Non-Repudiation pillars", path: "modules/m01-foundations.html#cia-triad", keywords: "cia confidentiality integrity availability non-repudiation triad pillars" },
+  { title: "Kerckhoffs's Principle & Shannon Maxim", badge: "M01 Foundations", desc: "Why security through obscurity fails: the enemy knows the system", path: "modules/m01-foundations.html#kerckhoffs", keywords: "kerckhoffs shannon obscurity open design enemy knows system" },
+  { title: "Threat Models & Cryptographic Adversaries", badge: "M01 Foundations", desc: "Ciphertext-only, Known-Plaintext, Chosen-Plaintext, Chosen-Ciphertext attacks", path: "modules/m01-foundations.html#threat-models", keywords: "adversary attack coa kpa cpa cca mitm passive active" },
+  
+  // Bits & Encoding
+  { title: "Bits, Bytes, Hexadecimal & ASCII", badge: "M02 Encoding", desc: "Foundational computer representations and binary conversions", path: "modules/m02-bits-and-encoding.html#bits-hex", keywords: "bits bytes binary hex hexadecimal ascii nibble base16" },
+  { title: "Base64 Encoding & 6-Bit Chunking", badge: "M02 Encoding", desc: "Representing raw binary data over 7-bit ASCII channels with padding", path: "modules/m02-bits-and-encoding.html#base64", keywords: "base64 encoding padding mime pem binary to text chunking" },
+  { title: "XOR (Exclusive OR) Cryptographic Properties", badge: "M02 Encoding", desc: "Self-inversion, commutativity, and the backbone of all modern ciphers", path: "modules/m02-bits-and-encoding.html#xor-properties", keywords: "xor exclusive or self-inverse bitwise stream cipher reversibility" },
+  
+  // Steganography
+  { title: "Steganography vs Encryption", badge: "M03 Steganography", desc: "Hiding data existence vs hiding data meaning", path: "modules/m03-steganography.html#steg-vs-crypto", keywords: "steganography hiding cover covert channel carrier" },
+  { title: "LSB (Least Significant Bit) Image Injection", badge: "M03 Steganography", desc: "Modifying lowest-order color bits to conceal secret byte payloads", path: "modules/m03-steganography.html#lsb-deep", keywords: "lsb least significant bit pixel color rgb carrier steganalysis payload" },
+
+  // Randomness
+  { title: "Entropy, PRNGs & CSPRNGs", badge: "M04 Randomness", desc: "True entropy sources vs deterministic pseudo-random generators", path: "modules/m04-randomness-entropy.html#entropy-sources", keywords: "entropy randomness prng csprng urandom seed unpredictability trng" },
+  { title: "The Dual-EC-DRBG Backdoor & Seed Compromise", badge: "M04 Randomness", desc: "How kleptographic backdoors and low entropy destroy key secrecy", path: "modules/m04-randomness-entropy.html#csprng-failures", keywords: "dual-ec-drbg backdoor nsa seed compromise debian openssl bug debian" },
+
+  // Classical Ciphers
+  { title: "Caesar & Vigenère Ciphers", badge: "M05 Classical", desc: "Monoalphabetic shifts and polyalphabetic keystreams", path: "modules/m05-classical-ciphers.html#caesar-vigenere", keywords: "caesar vigenere substitution shift polyalphabetic kasiski tabula recta" },
+  { title: "Frequency Analysis & Cryptanalysis", badge: "M05 Classical", desc: "Cracking classical ciphers using letter frequency distributions", path: "modules/m05-classical-ciphers.html#frequency-analysis", keywords: "frequency analysis cryptanalysis etaoin shrdlu letter distribution index coincidence" },
+  { title: "One-Time Pad (OTP) & Perfect Secrecy", badge: "M05 Classical", desc: "Information-theoretic security: key length >= message, truly random, never reused", path: "modules/m05-classical-ciphers.html#one-time-pad", keywords: "one time pad otp vernam perfect secrecy shannon unconditional vernam cipher" },
+
+  // Symmetric & AES
+  { title: "Block Ciphers vs Stream Ciphers", badge: "M06 Symmetric", desc: "Fixed 128-bit blocks vs continuous pseudo-random keystream XOR", path: "modules/m06-symmetric-aes.html#block-vs-stream", keywords: "block cipher stream cipher aes chacha20 keystream salsa20" },
+  { title: "AES (Advanced Encryption Standard) Round Architecture", badge: "M06 Symmetric", desc: "SubBytes (S-Box confusion), ShiftRows & MixColumns (diffusion), AddRoundKey", path: "modules/m06-symmetric-aes.html#aes-internals", keywords: "aes rijndael subbytes shiftrows mixcolumns addroundkey sbox confusion diffusion 128 192 256" },
+  { title: "Block Cipher Modes: ECB, CBC, CTR & GCM", badge: "M06 Symmetric", desc: "Why ECB is forbidden, CBC error propagation, and modern AEAD GCM", path: "modules/m06-symmetric-aes.html#block-modes-deep", keywords: "ecb cbc ctr gcm aead modes initialization vector iv authentication tag ghash" },
+  { title: "Interactive Tamper Simulator Lab", badge: "M06 Symmetric", desc: "Hands-on experiment: flip 1 ciphertext bit and watch error propagation across modes", path: "modules/m06-symmetric-aes.html#tamper-simulator", keywords: "tamper simulator lab bit-flip malleability authentication tag dropped error propagation" },
+
+  // Hashing & Integrity
+  { title: "Cryptographic Hash Functions: SHA-256, SHA-3, BLAKE3", badge: "M07 Hashing", desc: "Pre-image resistance, collision resistance, and the avalanche effect", path: "modules/m07-hashing-integrity.html#hash-properties", keywords: "sha256 sha3 keccak blake3 avalanche collision pre-image digest md5 sha1 sha2" },
+  { title: "HMAC (Keyed-Hash Message Authentication Code)", badge: "M07 Hashing", desc: "Why simple Hash(Key || Message) is vulnerable to Length Extension Attacks", path: "modules/m07-hashing-integrity.html#hmac-deep", keywords: "hmac length extension attack hash mac integrity authenticity secret key ipad opad" },
+  { title: "Merkle Trees & Lightweight Cryptographic Proofs", badge: "M07 Hashing", desc: "How Git and distributed systems verify 1 file out of 100,000 using 32-byte hashes", path: "modules/m07-hashing-integrity.html#merkle-trees", keywords: "merkle tree merkle root proof git commit integrity distributed blockchain" },
+
+  // Asymmetric & Public-Key
+  { title: "Diffie-Hellman Key Exchange (DH & ECDH)", badge: "M08 Asymmetric", desc: "Establishing a shared secret over an insecure channel without transmitting the key", path: "modules/m08-asymmetric-diffie-hellman.html#diffie-hellman", keywords: "diffie hellman ecdh discrete log public key shared secret x25519 color mixing" },
+  { title: "RSA Cryptosystem & Prime Factorization", badge: "M08 Asymmetric", desc: "Trapdoor one-way functions, Euler's totient, modular exponentiation", path: "modules/m08-asymmetric-diffie-hellman.html#rsa-deep", keywords: "rsa prime factorization modular exponentiation public private key euler totient trapdoor" },
+  { title: "Elliptic Curve Cryptography (ECC & Curve25519)", badge: "M08 Asymmetric", desc: "Point multiplication on Weierstrass and Montgomery curves for smaller, faster keys", path: "modules/m08-asymmetric-diffie-hellman.html#ecc-deep", keywords: "elliptic curve ecc curve25519 p256 point addition scalar multiplication secp256k1" },
+
+  // Signatures & PKI
+  { title: "Digital Signatures: Ed25519 & ECDSA", badge: "M09 Signatures", desc: "Authenticity and non-repudiation: sign with private key, verify with public key", path: "modules/m09-signatures-pki.html#digital-signatures", keywords: "digital signatures ed25519 ecdsa rsa sign verify signature signature verification" },
+  { title: "Public Key Infrastructure (PKI) & X.509", badge: "M09 Signatures", desc: "Certificate Authorities, trust chains, Root CAs, and Subject Alternative Names", path: "modules/m09-signatures-pki.html#pki-deep", keywords: "pki x509 certificate authority root ca intermediate chain san csr cert pem" },
+  { title: "Certificate Revocation: CRL, OCSP & OCSP Stapling", badge: "M09 Signatures", desc: "How browsers detect compromised certificates without privacy leaks or latency", path: "modules/m09-signatures-pki.html#revocation-deep", keywords: "revocation crl ocsp stapling letsencrypt compromised certificate crl distribution" },
+
+  // Key Vaults, KMS & Incident Response
+  { title: "Key Derivation Functions: Argon2id, bcrypt, PBKDF2", badge: "M10 Key Vaults", desc: "Memory-hard password hashing to neutralize GPU, FPGA, and ASIC brute-force", path: "modules/m10-key-vaults-kdfs.html#kdf-simulator", keywords: "argon2id bcrypt pbkdf2 password hashing salt pepper cost factor scrypt kdf" },
+  { title: "Hardware Security: HSMs, TPMs & Secure Enclaves", badge: "M10 Key Vaults", desc: "FIPS 140-3 physical silicon trust, Measured Boot, and zeroization circuits", path: "modules/m10-key-vaults-kdfs.html#hardware-security-deep", keywords: "hsm tpm secure enclave titan fips 140-3 measured boot zeroization hardware vault" },
+  { title: "Cloud KMS & Envelope Encryption Architecture", badge: "M10 Key Vaults", desc: "DEKs (Data Encryption Keys) + KEKs (Key Encryption Keys) for petabyte-scale encryption", path: "modules/m10-key-vaults-kdfs.html#envelope-encryption", keywords: "envelope encryption kms kek dek aws kms hashicorp vault key management google cloud kms" },
+  { title: "Cryptographic Incident Response & Key Compromise Playbook", badge: "M10 Key Vaults", desc: "Production triage, zero-downtime dual-key migration, and secret revocation runbook", path: "modules/m10-key-vaults-kdfs.html#incident-response-playbook", keywords: "incident response key compromise leak rotation playbook zero-downtime rekeying triage" },
+  { title: "Seed Phrases & BIP-39 Derivation Trees", badge: "M10 Key Vaults", desc: "Master seed phrases, checksums, and hierarchical deterministic key generation", path: "modules/m10-key-vaults-kdfs.html#seed-phrases", keywords: "bip39 seed phrase mnemonic hierarchical deterministic wallet recovery bip44" },
+
+  // Applied Protocols
+  { title: "TLS 1.3 Handshake Protocol & Forward Secrecy", badge: "M11 Applied", desc: "1-RTT encrypted handshake, ephemeral Diffie-Hellman, and zero-round-trip resumption", path: "modules/m11-applied-https-tokens.html#tls-handshake", keywords: "tls 1.3 https handshake forward secrecy pfs session resumption sni cipher suite" },
+  { title: "Token Authentication: JWT vs PASETO", badge: "M11 Applied", desc: "Why 'alg: none' ruined JWT, and how PASETO enforces cryptographic security", path: "modules/m11-applied-https-tokens.html#tokens-deep", keywords: "jwt paseto tokens alg none signature authorization bearer claims jws jwe" },
+  { title: "SSH & WireGuard Cryptographic Architecture", badge: "M11 Applied", desc: "Noise protocol, modern ChaCha20-Poly1305 tunnels, and Ed25519 identity", path: "modules/m11-applied-https-tokens.html#wireguard-ssh", keywords: "ssh wireguard noise protocol vpn authorized_keys tunneling modern crypto" },
+
+  // Quantum & ZKP
+  { title: "Post-Quantum Cryptography: NIST Standards (ML-KEM & ML-DSA)", badge: "M12 Quantum & ZKP", desc: "Shor's algorithm threat and lattice-based post-quantum cryptography (Kyber & Dilithium)", path: "modules/m12-zkp-quantum-era.html#pqc-deep", keywords: "post quantum pqc shor grover ml-kem kyber ml-dsa dilithium lattice nist quantum era" },
+  { title: "Zero-Knowledge Proofs: zk-SNARKs & zk-STARKs Intuition", badge: "M12 Quantum & ZKP", desc: "Proving knowledge of a secret without revealing the secret itself", path: "modules/m12-zkp-quantum-era.html#zkp-deep", keywords: "zero knowledge zkp snark stark proof prover verifier succinct rollups" },
+
+  // Module 13: Connected Topics & Public-Key Anatomy
+  { title: "Anatomy of an X.509 Certificate (RFC 5280)", badge: "M13 Connected Topics", desc: "TBSCertificate dissection, Subject Alternative Name (SAN), Basic Constraints, and Key Usage", path: "modules/m13-misc-topics.html#x509-anatomy", keywords: "x509 certificate rfc 5280 san subject alternative name tbscertificate basic constraints eku" },
+  { title: "Certificate Formats & Keystores: PEM, DER, PKCS#12, PKCS#7", badge: "M13 Connected Topics", desc: "Comparing Base64 PEM, raw binary DER, PKCS#7 chains, and password-encrypted PKCS#12 archives", path: "modules/m13-misc-topics.html#cert-formats", keywords: "pem der pkcs12 pfx pkcs7 p7b keystore jks certificate format conversion" },
+  { title: "Cryptographic Serialization & Canonical Encodings (ASN.1 & DER)", badge: "M13 Connected Topics", desc: "Why non-deterministic JSON fails signature checks and how ASN.1 DER and CBOR guarantee unique bitstreams", path: "modules/m13-misc-topics.html#canonical-serialization", keywords: "asn1 der cbor serialization canonical encoding tlv distinguished encoding rules json" },
+  { title: "Cryptographic Time: NTP Vulnerabilities, NTS & RFC 3161 TSP", badge: "M13 Connected Topics", desc: "Network Time Security (NTS) authenticated time and Timestamp Authorities for legal non-repudiation", path: "modules/m13-misc-topics.html#crypto-time", keywords: "time ntp nts network time security rfc 3161 tsp timestamp authority clock drift" },
+
+  // Systems & Security Engineering Tracks
+  { title: "Track 2: Operating System Fundamentals", badge: "Hub Track 02", desc: "Process lifecycles, virtual memory paging, CPU schedulers, file system inodes, and POSIX syscalls", path: "index.html#track-os-basics", keywords: "operating systems os processes threads virtual memory paging scheduling inodes syscalls ipc" },
+  { title: "Track 3: OS Internals & Kernel Security", badge: "Hub Track 03", desc: "Ring 0 vs Ring 3, memory corruption, ASLR, DEP/NX, Linux capabilities, and eBPF tracing", path: "index.html#track-os-internals", keywords: "os internals kernel security ring 0 aslr dep nx buffer overflow ebpf selinux apparmor" },
+  { title: "Track 4: Computer Networking & Protocols", badge: "Hub Track 04", desc: "TCP/IP stack, 3-way handshakes, congestion control, BGP routing, DNS, and WireGuard tunnels", path: "index.html#track-networking", keywords: "networking protocols tcp ip handshake bgp dns wireguard sockets congestion control" },
+  { title: "Track 5: Hardware Architecture & Silicon", badge: "Hub Track 05", desc: "CPU instruction pipelines, branch prediction, L1/L2/L3 caches, MESI coherence, and MMU page tables", path: "index.html#track-hardware", keywords: "hardware architecture cpu pipeline cache mesi mmu page table uefi dma interrupts" },
+  { title: "Track 6: Hardware Security & Silicon Trust", badge: "Hub Track 06", desc: "Spectre, Meltdown, Rowhammer, fault injection, voltage glitching, TPM 2.0, and Secure Enclaves", path: "index.html#track-hw-security", keywords: "hardware security spectre meltdown rowhammer fault injection tpm secure enclave glitching" },
+  { title: "Track 7: Cloud Infrastructure Security", badge: "Hub Track 07", desc: "Zero-Trust architecture, Cloud IAM least privilege, VPC peering, container isolation, and Vault", path: "index.html#track-cloud-sec", keywords: "cloud security zero trust iam vpc container kubernetes vault mtls service mesh" },
+
+  // CTF Engineering Tracks
+  { title: "CTF Track 1: Starting CTF Knowledge & Problem Patterns", badge: "CTF Track 01", desc: "Flag discovery methodology, classical cipher reconnaissance (XOR, Caesar, Vigenère), and encoding detection", path: "index.html#track-ctf-foundations", keywords: "ctf capture the flag beginner patterns cyberchef pwntools recon xor caesar vigenere encoding base64 stego" },
+  { title: "CTF Track 2: Intermediate CTF Cryptanalysis & Exploitation", badge: "CTF Track 02", desc: "CBC padding oracle attacks, ECB byte-at-a-time, RSA small exponent, PRNG state recovery, and hash length extension", path: "index.html#track-ctf-intermediate", keywords: "ctf intermediate cryptanalysis padding oracle ecb rsa factorisation mt19937 prng hash length extension jwt" },
+  { title: "CTF Track 3: Curated CTF Problem Bank & Hands-on Challenges", badge: "CTF Track 03", desc: "Categorized CTF practice challenge bank spanning crypto, forensics, token exploits, and flag formats", path: "index.html#track-ctf-problems", keywords: "ctf problems challenge bank practice ctf crypto pcap forensics web jwt flag labs" },
+
+  // Cheatsheets
+  { title: "When to Use What — Master Decision Matrix", badge: "Cheatsheet", desc: "Head-to-head algorithm comparisons, NIST lifetime matrix, and the 10 Golden Rules", path: "cheatsheet.html", keywords: "cheatsheet decision matrix recommendations comparison golden rules when to use what" },
+  { title: "OpenSSL 3.x Modern Command Handbook", badge: "OpenSSL", desc: "Intuitive command patterns for keys, certificates, HMACs, encryption, and TLS inspection", path: "openssl-cheatsheet.html", keywords: "openssl openssl 3 command cheatsheet req x509 genpkey dgst enc s_client s_server" }
+];
+
+let searchModalEl = null;
+let searchInputEl = null;
+let searchResultsEl = null;
+let activeResultIndex = -1;
+let filteredResults = [];
+
+function initGlobalSearch() {
+  if (!document.getElementById('searchModalOverlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'searchModalOverlay';
+    overlay.innerHTML = `
+      <div id="searchModalCard" onclick="event.stopPropagation()">
+        <div id="searchModalHeader">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchModalInput" placeholder="Search algorithms, ciphers, RFCs, tools, or concepts..." autocomplete="off">
+          <button id="searchModalClose" type="button" onclick="closeSearchModal()" title="Close (Esc)">&times;</button>
+        </div>
+        <div id="searchModalResults"></div>
+        <div id="searchModalFooter">
+          <span>Navigate with <kbd class="search-kbd">↑</kbd> <kbd class="search-kbd">↓</kbd></span>
+          <span>Select <kbd class="search-kbd">Enter</kbd></span>
+          <span>Close <kbd class="search-kbd">Esc</kbd></span>
+        </div>
+      </div>
+    `;
+    overlay.addEventListener('click', closeSearchModal);
+    document.body.appendChild(overlay);
+  }
+
+  searchModalEl = document.getElementById('searchModalOverlay');
+  searchInputEl = document.getElementById('searchModalInput');
+  searchResultsEl = document.getElementById('searchModalResults');
+
+  if (searchInputEl) {
+    searchInputEl.addEventListener('input', handleSearchInput);
+    searchInputEl.addEventListener('keydown', handleSearchKeydown);
+  }
+
+  // Keyboard shortcut listener
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      toggleSearchModal();
+    }
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      openSearchModal();
+    }
+    if (e.key === 'Escape' && searchModalEl && searchModalEl.classList.contains('active')) {
+      closeSearchModal();
+    }
+  });
+
+  renderSearchResults('');
+}
+
+function openSearchModal() {
+  if (!searchModalEl) initGlobalSearch();
+  searchModalEl.classList.add('active');
+  if (searchInputEl) {
+    searchInputEl.value = '';
+    renderSearchResults('');
+    setTimeout(() => searchInputEl.focus(), 50);
+  }
+}
+
+function closeSearchModal() {
+  if (searchModalEl) {
+    searchModalEl.classList.remove('active');
+  }
+}
+
+function toggleSearchModal() {
+  if (searchModalEl && searchModalEl.classList.contains('active')) {
+    closeSearchModal();
+  } else {
+    openSearchModal();
+  }
+}
+
+function handleSearchInput(e) {
+  renderSearchResults(e.target.value);
+}
+
+function handleSearchKeydown(e) {
+  if (!filteredResults.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex + 1) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex - 1 + filteredResults.length) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (activeResultIndex >= 0 && activeResultIndex < filteredResults.length) {
+      navigateToSearchResult(filteredResults[activeResultIndex]);
+    }
+  }
+}
+
+function updateActiveResultUI() {
+  const items = searchResultsEl.querySelectorAll('.search-result-item');
+  items.forEach((item, idx) => {
+    if (idx === activeResultIndex) {
+      item.classList.add('active');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+function renderSearchResults(query) {
+  if (!searchResultsEl) return;
+  const q = query.trim().toLowerCase();
+  
+  if (!q) {
+    filteredResults = SEARCH_INDEX.slice(0, 8);
+  } else {
+    const scored = [];
+    SEARCH_INDEX.forEach(item => {
+      const titleLower = item.title.toLowerCase();
+      const descLower = item.desc.toLowerCase();
+      const badgeLower = item.badge.toLowerCase();
+      const kwLower = item.keywords.toLowerCase();
+      
+      let score = 0;
+      if (titleLower === q) score += 200;
+      else if (titleLower.startsWith(q)) score += 150;
+      else if (titleLower.includes(' ' + q) || titleLower.includes('(' + q)) score += 120;
+      else if (titleLower.includes(q)) score += 40;
+
+      if (kwLower.includes(q)) score += 60;
+      if (descLower.includes(q)) score += 20;
+      if (badgeLower.includes(q)) score += 20;
+
+      if (score > 0) {
+        scored.push({ item, score });
       }
-      caesarOutput.textContent = res;
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    filteredResults = scored.map(s => s.item);
+  }
+
+  activeResultIndex = filteredResults.length > 0 ? 0 : -1;
+
+  if (filteredResults.length === 0) {
+    searchResultsEl.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13.5px;">No cryptographic concepts found matching "<strong>' + escapeHtml(query) + '</strong>".</div>';
+    return;
+  }
+
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+
+  let html = '';
+  filteredResults.forEach((item, idx) => {
+    let resolvedPath = item.path;
+    if (isInsideModules) {
+      if (resolvedPath.startsWith('modules/')) {
+        resolvedPath = resolvedPath.replace('modules/', '');
+      } else {
+        resolvedPath = '../' + resolvedPath;
+      }
+    } else {
+      resolvedPath = item.path;
     }
 
-    slider.addEventListener('input', updateCaesar);
-    caesarInput.addEventListener('input', updateCaesar);
-    updateCaesar();
+    const isActive = idx === activeResultIndex ? ' active' : '';
+    html += `
+      <a href="${resolvedPath}" class="search-result-item${isActive}" onclick="closeSearchModal()">
+        <div class="search-result-left">
+          <span class="search-result-badge">${item.badge}</span>
+          <div class="search-result-text">
+            <div class="search-result-title">${escapeHtml(item.title)}</div>
+            <div class="search-result-desc">${escapeHtml(item.desc)}</div>
+          </div>
+        </div>
+        <span class="search-result-arrow">→</span>
+      </a>
+    `;
+  });
+
+  searchResultsEl.innerHTML = html;
+}
+
+function navigateToSearchResult(item) {
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+  let resolvedPath = item.path;
+  if (isInsideModules) {
+    if (resolvedPath.startsWith('modules/')) {
+      resolvedPath = resolvedPath.replace('modules/', '');
+    } else {
+      resolvedPath = '../' + resolvedPath;
+    }
+  }
+  closeSearchModal();
+  window.location.href = resolvedPath;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+</script>
+  <script>
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const sampleCipher = "KHOOR ZRUOG WKLV LV D VHFUHW PHVVDJH DERXW FUBSWRJUDSKB";
+
+    function buildHistogram() {
+      const counts = {};
+      for (let ch of alphabet) counts[ch] = 0;
+      
+      let total = 0;
+      for (let ch of sampleCipher) {
+        if (counts[ch] !== undefined) {
+          counts[ch]++;
+          total++;
+        }
+      }
+
+      const container = document.getElementById('histogramBars');
+      container.innerHTML = '';
+
+      for (let ch of alphabet) {
+        const col = document.createElement('div');
+        col.className = 'bar-col';
+        const heightPct = Math.round((counts[ch] / 8) * 100);
+        col.innerHTML = `
+          <div class="bar-rect" style="height: ${Math.max(4, heightPct)}%;"></div>
+          <div class="bar-label">${ch}</div>
+        `;
+        container.appendChild(col);
+      }
+    }
+
+    function solveCaesarStep() {
+      // Shift from H (pos 7) to E (pos 4) is Shift = 3!
+      let plain = '';
+      for (let ch of sampleCipher) {
+        const idx = alphabet.indexOf(ch);
+        if (idx !== -1) {
+          const newIdx = (idx - 3 + 26) % 26;
+          plain += alphabet[newIdx];
+        } else {
+          plain += ch;
+        }
+      }
+
+      document.getElementById('detTitle').textContent = "Cracked! Shift = 3 (Caesar Cipher)";
+      document.getElementById('detDesc').innerHTML = `
+        By subtracting 3 from every letter ('H' → 'E', 'K' → 'H', 'R' → 'O'), the secret message is completely recovered!
+      `;
+      document.getElementById('decryptedOutput').textContent = "Plaintext: " + plain;
+      document.getElementById('decryptedOutput').style.color = "var(--accent)";
+      document.getElementById('decryptedOutput').style.fontWeight = "700";
+    }
+
+    buildHistogram();
   </script>
 </body>
 </html>
