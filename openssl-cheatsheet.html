@@ -1,0 +1,3725 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenSSL 3.x Master Cheatsheet & Mental Models — Cryptography from Basics</title>
+  <style>
+/* -------------------------------------------------------------
+   CRYPTOGRAPHY FROM BASICS — UNIFIED DESIGN SYSTEM
+   Ergonomic, Minimalist, Cognitive-Friendly, Human-Crafted
+------------------------------------------------------------- */
+
+:root {
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --measure: 700px; /* Optimal reading length */
+  
+  --font-sans: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Charter", "Georgia", "Iowan Old Style", "Newsreader", serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+}
+
+/* 1. WARM PAPER (Default: Focused daylight, zero eye glare) */
+html[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #fbfaf8;
+  --bg-alt: #f3f1ec;
+  --surface: #ffffff;
+  --surface-hover: #f7f5f0;
+  --border: #e6e3dc;
+  --border-focus: #c8c3b8;
+  
+  --text-main: #22252a;      /* Soft charcoal ink */
+  --text-secondary: #5a6069;
+  --text-muted: #8b929c;
+  
+  --accent: #2d6a4f;         /* Forest Sage */
+  --accent-soft: rgba(45, 106, 79, 0.08);
+  --accent-border: rgba(45, 106, 79, 0.25);
+  --accent-text: #1b4332;
+
+  --code-bg: #efece5;
+  --widget-bg: #f5f3ed;
+  --widget-card: #ffffff;
+  --shadow-soft: 0 2px 8px rgba(34, 37, 42, 0.04);
+  --shadow-float: 0 8px 24px rgba(34, 37, 42, 0.08);
+  --progress-color: #2d6a4f;
+}
+
+/* 2. SEPIA (Kindle E-Reader warmth for extended study) */
+html[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --bg-alt: #eae4d8;
+  --surface: #fbf7f0;
+  --surface-hover: #ede6d9;
+  --border: #ddd5c7;
+  --border-focus: #b8ac99;
+  
+  --text-main: #2e2823;
+  --text-secondary: #655b52;
+  --text-muted: #95887b;
+  
+  --accent: #8c5b36;         /* Warm Sienna */
+  --accent-soft: rgba(140, 91, 54, 0.1);
+  --accent-border: rgba(140, 91, 54, 0.25);
+  --accent-text: #603813;
+
+  --code-bg: #e6ded1;
+  --widget-bg: #ede6d9;
+  --widget-card: #fbf7f0;
+  --shadow-soft: 0 2px 8px rgba(46, 40, 35, 0.04);
+  --shadow-float: 0 8px 24px rgba(46, 40, 35, 0.08);
+  --progress-color: #8c5b36;
+}
+
+/* 3. SLATE (Night reading with reduced blue-light) */
+html[data-theme="slate"] {
+  color-scheme: dark;
+  --bg: #141618;
+  --bg-alt: #1a1d20;
+  --surface: #202428;
+  --surface-hover: #262b30;
+  --border: #2c3238;
+  --border-focus: #424a52;
+  
+  --text-main: #e2e4e8;
+  --text-secondary: #9ea5b0;
+  --text-muted: #6a727d;
+  
+  --accent: #52b788;         /* Mint Sage */
+  --accent-soft: rgba(82, 183, 136, 0.12);
+  --accent-border: rgba(82, 183, 136, 0.3);
+  --accent-text: #74c69d;
+
+  --code-bg: #181b1e;
+  --widget-bg: #181b1f;
+  --widget-card: #202428;
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.2);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --progress-color: #52b788;
+}
+
+/* Font Switching */
+html[data-font="sans"] { --font-current: var(--font-sans); }
+html[data-font="serif"] { --font-current: var(--font-serif); }
+
+/* Theme-adaptive Ergonomic Scrollbars */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-focus) var(--bg);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-focus);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-current);
+  background-color: var(--bg);
+  color: var(--text-main);
+  line-height: 1.76;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Scroll progress */
+#readingProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--progress-color);
+  width: 0%;
+  z-index: 9999;
+}
+
+/* Topbar */
+.topbar {
+  height: 58px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-main);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brand-mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.segmented-control {
+  display: flex;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg-btn {
+  background: none;
+  border: none;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.seg-btn.active {
+  background: var(--surface);
+  color: var(--text-main);
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.theme-picker {
+  display: flex;
+  gap: 5px;
+}
+
+.theme-chip {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.theme-chip:hover { border-color: var(--border-focus); color: var(--text-main); }
+.theme-chip.active {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 270px 1fr 220px;
+  min-height: calc(100vh - 58px);
+  max-width: 1420px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 28px 20px;
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+}
+
+.nav-group-title {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 20px 10px 8px 10px;
+}
+
+.nav-list { list-style: none; }
+.nav-item { margin-bottom: 2px; }
+
+.nav-link {
+  display: flex;
+  align-items: baseline;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.12s;
+  font-family: var(--font-sans);
+}
+.nav-link:hover { background: var(--surface-hover); color: var(--text-main); }
+.nav-link.active {
+  background: var(--surface);
+  color: var(--accent-text);
+  font-weight: 600;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.nav-index {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+/* Reading Canvas */
+.reading-canvas {
+  padding: 50px 60px 100px 60px;
+  max-width: calc(var(--measure) + 120px);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.cognitive-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lesson-headline {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  color: var(--text-main);
+}
+
+.lesson-lead {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.62;
+  margin-bottom: 34px;
+}
+
+h2 {
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 44px 0 16px 0;
+  color: var(--text-main);
+}
+
+p {
+  margin-bottom: 20px;
+  color: var(--text-main);
+  opacity: 0.94;
+}
+
+ul, ol {
+  margin: 0 0 22px 24px;
+  color: var(--text-main);
+}
+
+li {
+  margin-bottom: 8px;
+  line-height: 1.65;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  padding: 2px 5px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+}
+
+/* Dilemma Box */
+.dilemma-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  margin: 30px 0;
+}
+
+.dilemma-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.dilemma-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-main);
+  margin-bottom: 0;
+}
+
+/* Analogy Tooltip */
+.analogy-term {
+  border-bottom: 1.5px dotted var(--accent);
+  cursor: help;
+  color: var(--text-main);
+  font-weight: 500;
+  position: relative;
+  display: inline-block;
+}
+
+.analogy-term:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-float);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  width: 260px;
+  border-radius: var(--radius-md);
+  z-index: 1000;
+  font-family: var(--font-sans);
+  font-weight: normal;
+  pointer-events: none;
+}
+
+/* Tactical Widget Container */
+.widget-frame {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.widget-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+
+.widget-caption {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.widget-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-text);
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.widget-content {
+  padding: 24px;
+}
+
+.clean-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 11px 14px;
+  font-family: var(--font-mono);
+  font-size: 14.5px;
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: all 0.15s;
+}
+.clean-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Checkpoint Box */
+.checkpoint-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 40px 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.checkpoint-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.checkpoint-prompt {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+
+.checkpoint-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.choice-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+.choice-btn.selected-correct {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+.feedback-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  display: none;
+}
+
+/* Footer Nav */
+.lesson-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+
+.nav-btn {
+  text-decoration: none;
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+.nav-btn-sub { font-size: 11px; color: var(--text-muted); }
+
+/* Right TOC */
+.toc-panel {
+  padding: 40px 20px;
+  border-left: 1px solid var(--border);
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+  font-family: var(--font-sans);
+}
+
+.toc-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.toc-nav-list { list-style: none; }
+.toc-nav-item { margin-bottom: 8px; }
+.toc-nav-link {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+  line-height: 1.4;
+  display: block;
+}
+.toc-nav-link:hover { color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 1080px) {
+  .layout { grid-template-columns: 240px 1fr; }
+  .toc-panel { display: none; }
+}
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .reading-canvas { padding: 24px 20px; }
+  .top-controls .segmented-control { display: none; }
+}
+
+/* =============================================================
+   VISUAL INFOGRAPHICS & DIAGRAM SUITE
+   ============================================================= */
+.pillar-visual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pillar-visual-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+.pillar-visual-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+.pillar-card-c::before,
+.pillar-card-i::before,
+.pillar-card-a::before,
+.pillar-card-r::before,
+.pillar-card-danger::before,
+.pillar-card-slate::before {
+  background: var(--accent);
+}
+
+.pillar-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.pillar-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+.pillar-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+}
+.pillar-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.pillar-card-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.pillar-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  margin: 0 -20px -20px -20px;
+  padding: 12px 20px;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.pillar-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pillar-meta-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.pillar-meta-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* Channel & Pipeline Architecture Diagrams */
+.channel-diagram {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 28px 0;
+}
+.channel-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+}
+.channel-actor-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  width: 140px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+}
+.channel-wire-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 14px 0;
+}
+.channel-line {
+  width: 100%;
+  height: 2px;
+  background: var(--border-focus);
+  position: relative;
+}
+.channel-line::before {
+  content: '►';
+  position: absolute;
+  right: 0;
+  top: -7px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+.threat-bubble {
+  background: var(--surface);
+  border: 1px dashed #c53030;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 12px;
+  color: var(--text-main);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Flow Ladders & Sequence Boxes */
+.ladder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+.ladder-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+}
+.ladder-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* =============================================================
+   INTERACTIVE PROCESS STEPPERS (FIXES NUMBER RENDERING)
+   ============================================================= */
+.step-stepper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 12px 0 24px 0;
+  padding: 0 14px;
+}
+.step-stepper::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+  transform: translateY(-50%);
+}
+.step-node {
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  transition: all 0.25s ease;
+  user-select: none;
+}
+.step-node.active {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  transform: scale(1.1);
+}
+.step-node.completed {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.process-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin: 16px 0;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sim-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* =============================================================
+   WORKED EXAMPLES (STANDARDIZED EDITORIAL FORMAT)
+   ============================================================= */
+.worked-example {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin: 32px 0;
+  box-shadow: var(--shadow-soft);
+}
+.example-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.example-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.example-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+.example-step {
+  display: flex;
+  gap: 14px;
+  margin: 12px 0;
+  align-items: flex-start;
+}
+.example-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.example-step-content {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.example-math {
+  font-family: var(--font-mono);
+  background: var(--code-bg);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 13px;
+  margin: 6px 0;
+  display: block;
+  overflow-x: auto;
+}
+.example-result {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  color: var(--accent-text);
+  font-weight: 600;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .pillar-visual-grid, .pillar-visual-grid-3 { grid-template-columns: 1fr; }
+  .channel-flow { flex-direction: column; }
+  .channel-actor-box { width: 100%; }
+}
+
+/* =============================================================
+   ATTACK POST-MORTEMS & HISTORIC CATASTROPHES
+   ============================================================= */
+.case-study {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid #c53030;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+}
+.case-study-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.case-study-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9b2c2c;
+  background: rgba(197, 48, 48, 0.08);
+  border: 1px solid rgba(197, 48, 48, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.case-study-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.case-study-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+.case-study-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.case-study-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.case-study-box-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.case-study-box p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.case-study-lesson {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--accent-text);
+  line-height: 1.6;
+}
+
+/* =============================================================
+   DISAMBIGUATION MATRICES & COMPARISON TABLES
+   ============================================================= */
+.disambiguation-matrix {
+  margin: 32px 0;
+  overflow-x: auto;
+}
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.matrix-table th {
+  background: var(--bg-alt);
+  color: var(--text-main);
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.matrix-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  vertical-align: top;
+}
+.matrix-table tr:last-child td {
+  border-bottom: none;
+}
+.matrix-table tr:hover td {
+  background: var(--surface-hover);
+}
+.status-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-broken {
+  background: rgba(197, 48, 48, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(197, 48, 48, 0.25);
+}
+.status-legacy {
+  background: rgba(214, 158, 46, 0.1);
+  color: #b7791f;
+  border: 1px solid rgba(214, 158, 46, 0.25);
+}
+.status-recommended {
+  background: rgba(45, 106, 79, 0.1);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.status-quantum {
+  background: rgba(107, 70, 193, 0.1);
+  color: #6b46c1;
+  border: 1px solid rgba(107, 70, 193, 0.25);
+}
+
+/* =============================================================
+   COMMANDMENTS & GOLDEN RULES
+   ============================================================= */
+.commandment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.commandment-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  gap: 14px;
+  transition: all 0.15s;
+}
+.commandment-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+.commandment-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.commandment-body h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.commandment-body p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.commandment-danger {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #c53030;
+  margin-top: 6px;
+  display: block;
+}
+
+/* =============================================================
+   GRAND UNIFIED PROTOCOL PIPELINE (HOW ALL 12 MODULES CONNECT)
+   ============================================================= */
+.protocol-pipeline {
+  position: relative;
+  margin: 36px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.protocol-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.15s;
+}
+.protocol-stage:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateX(4px);
+}
+.protocol-step-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.protocol-stage-content { flex: 1; }
+.protocol-stage-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+.protocol-stage-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.protocol-module-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* =============================================================
+   CIPHER ARCHITECTURE & MODES SCHEMATICS
+   ============================================================= */
+.cipher-arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.cipher-arch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.schematic-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* MODES SCHEMATICS */
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mode-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram {
+  background: var(--bg-alt);
+  border: 1px dashed var(--border-focus);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin: 10px 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-align: center;
+  color: var(--text-main);
+}
+
+/* =============================================================
+   INTERACTIVE MODES TAMPER LAB
+   ============================================================= */
+.tamper-lab-container {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 32px 0;
+}
+.tamper-mode-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.tamper-mode-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tamper-mode-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+.tamper-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+@media (max-width: 600px) {
+  .tamper-blocks-grid { grid-template-columns: 1fr; }
+}
+.tamper-block {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.tamper-block.corrupted {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.25);
+  animation: pulse-corrupt 0.35s ease;
+}
+.tamper-block.flipped {
+  border-color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+  animation: pulse-flipped 0.35s ease;
+}
+.tamper-block.intact {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+@keyframes pulse-corrupt {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes pulse-flipped {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.sim-btn {
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+.sim-btn-danger {
+  border-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #dc2626 !important;
+}
+.sim-btn-danger:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+.sim-btn-secondary {
+  border-color: var(--border);
+  background: var(--bg-alt);
+  color: var(--text-secondary);
+}
+.sim-btn-secondary:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+/* =============================================================
+   CRYPTOGRAPHY MYTHS VS REALITY
+   ============================================================= */
+.myth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin: 28px 0;
+}
+.myth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.myth-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c53030;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.myth-reality {
+  background: var(--bg-alt);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* =============================================================
+   CATALOG FILTER BUTTONS
+   ============================================================= */
+.catalog-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 24px 0;
+}
+.catalog-filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.catalog-filter-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.catalog-filter-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* =============================================================
+   VISUAL FLOWCHART NODES (PROFESSIONAL RENDERED DIAGRAMS)
+   ============================================================= */
+.flow-diagram-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+.flow-node-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.flow-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.flow-box-highlight {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+.flow-box-danger {
+  border-color: rgba(197, 48, 48, 0.3);
+  background: rgba(197, 48, 48, 0.05);
+}
+.flow-box-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.flow-box-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.flow-box-sub {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+.flow-substeps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.flow-substep-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+}
+.flow-arrow-down {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  height: 20px;
+  font-size: 14px;
+}
+.flow-arrow-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  width: 24px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.flow-operator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* MODE SCHEMATICS GRID & CARDS */
+.modes-visual-schematics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.mode-schematic-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-soft);
+}
+.mode-schematic-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.mode-schematic-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram-canvas {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 12px 0;
+}
+
+
+/* -------------------------------------------------------------
+   GLOBAL SEARCH & QUICK-LAUNCHER (MODAL & TRIGGER)
+------------------------------------------------------------- */
+.search-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-right: 8px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+.search-trigger-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-focus);
+  color: var(--text-main);
+}
+.search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  color: var(--text-muted);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+#searchModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  box-sizing: border-box;
+}
+#searchModalOverlay.active {
+  display: flex;
+}
+#searchModalCard {
+  background: var(--surface);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 640px;
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+  animation: searchCardPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes searchCardPop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+#searchModalHeader {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+#searchModalInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  color: var(--text-main);
+  outline: none;
+  font-family: var(--font-sans);
+}
+#searchModalInput::placeholder {
+  color: var(--text-muted);
+}
+#searchModalClose {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+#searchModalClose:hover {
+  background: var(--bg-alt);
+  color: var(--text-main);
+}
+#searchModalResults {
+  overflow-y: auto;
+  padding: 8px;
+  max-height: 52vh;
+}
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-main);
+  transition: background 0.12s ease;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+.search-result-item:hover,
+.search-result-item.active {
+  background: var(--accent-soft);
+}
+.search-result-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.search-result-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  margin-right: 12px;
+  white-space: nowrap;
+}
+.search-result-text {
+  overflow: hidden;
+}
+.search-result-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-arrow {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-left: 8px;
+  font-family: var(--font-mono);
+}
+#searchModalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+}
+
+/* -------------------------------------------------------------
+   ENVELOPE ENCRYPTION & INCIDENT RESPONSE PLAYBOOK COMPONENTS
+------------------------------------------------------------- */
+.envelope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.envelope-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+.envelope-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.envelope-card-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.envelope-step-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+.runbook-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+}
+.runbook-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-soft);
+}
+.runbook-step-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.runbook-step-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.runbook-step-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.runbook-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+.runbook-checklist li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 6px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+.runbook-checklist li::before {
+  content: "->";
+  position: absolute;
+  left: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hardware-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.hardware-tier-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hardware-tier-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  width: fit-content;
+  margin-bottom: 8px;
+}
+
+
+/* -------------------------------------------------------------
+   TLS 1.2 vs TLS 1.3 SEQUENCE DIAGRAM STYLES
+------------------------------------------------------------- */
+.seq-diagram-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: var(--shadow-soft);
+}
+.seq-diagram-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.seq-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+}
+.seq-protocol-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.seq-protocol-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.seq-protocol-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.badge-legacy {
+  background: rgba(220, 38, 38, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+.badge-modern {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.seq-flow-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.seq-lifelines {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px dashed var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.seq-rtt-section {
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.seq-rtt-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+.seq-flight {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.seq-flight-dir {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 11.5px;
+}
+.seq-flight-arrow-r {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-arrow-l {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-payload {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-main);
+  background: var(--bg-alt);
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+.seq-flight-tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  width: fit-content;
+}
+.tag-plain {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+.tag-enc {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+/* -------------------------------------------------------------
+   SYSTEMS & SECURITY KNOWLEDGE HUB DOMAIN CARDS
+------------------------------------------------------------- */
+.hub-domains-container {
+  margin: 40px 0;
+}
+.hub-domains-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+.hub-domain-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.hub-domain-card.active-domain {
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-float);
+}
+.hub-domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.hub-domain-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+.hub-domain-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.badge-active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.badge-roadmap {
+  background: var(--bg-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.hub-domain-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.hub-domain-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.hub-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.hub-topic-tag {
+  font-size: 11px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+
+/* -------------------------------------------------------------
+   TRACK VIEW TOGGLE & NAVIGATION IN HUB
+------------------------------------------------------------- */
+.track-view-section {
+  display: none;
+  animation: fadeIn 0.15s ease;
+}
+.track-view-section.active {
+  display: block;
+}
+.back-to-tracks-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+.back-to-tracks-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.track-card-clickable {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.track-card-clickable:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+
+
+/* -------------------------------------------------------------
+   WIDE SCREEN UTILIZATION & CHEATSHEET CARDS DIRECTORY
+------------------------------------------------------------- */
+.hub-main-container {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 40px 100px 40px;
+}
+@media (min-width: 1600px) {
+  .hub-main-container {
+    max-width: 1640px;
+    padding: 0 56px 120px 56px;
+  }
+}
+@media (max-width: 768px) {
+  .hub-main-container {
+    padding: 0 20px 80px 20px;
+  }
+}
+
+.hub-cheatsheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  margin-top: 18px;
+}
+.hub-cheatsheet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+}
+.hub-cheatsheet-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+.hub-cheatsheet-card.active-ref {
+  border-left: 4px solid var(--accent);
+}
+.cheatsheet-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cheatsheet-track-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.cheatsheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.cheatsheet-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+</style>
+  <style>
+    .ref-hero {
+      padding: 44px 0 28px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
+    }
+    .ref-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .ref-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 12px;
+    }
+    .ref-subtitle {
+      font-size: 16.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 760px;
+    }
+    .nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 24px 0 40px 0;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-pill-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .nav-pill-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent-text);
+      background: var(--accent-soft);
+    }
+    .cmd-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-soft);
+      transition: border-color 0.2s ease;
+    }
+    .cmd-card:hover {
+      border-color: var(--accent-border);
+    }
+    .cmd-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cmd-title {
+      font-size: 17px;
+      font-weight: 750;
+      color: var(--text-main);
+    }
+    .cmd-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-text);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+    }
+    .cmd-badge-legacy {
+      color: #dc2626;
+      background: rgba(220, 38, 38, 0.1);
+      border-color: rgba(220, 38, 38, 0.3);
+    }
+    .code-block-wrap {
+      position: relative;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin: 12px 0;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-main);
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      font-size: 11px;
+      font-family: var(--font-sans);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .copy-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-main);
+      border-color: var(--border-focus);
+    }
+    .param-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    .param-item {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+    }
+    .param-flag {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 2px;
+    }
+    .param-desc {
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .builder-panel {
+      background: var(--widget-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      margin: 28px 0;
+    }
+    .builder-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .builder-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .builder-select, .builder-input {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .builder-select:focus, .builder-input:focus {
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="index.html" class="brand">
+      <span>SYSTEMS &amp; SECURITY</span> <span class="brand-mark">OPENSSL</span>
+    </a>
+
+    <div class="top-controls">
+      <button type="button" class="search-trigger-btn" onclick="openSearchModal()" title="Search documentation (Ctrl+K)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <span>Search</span>
+        <kbd class="search-kbd">Ctrl K</kbd>
+      </button>
+      <a href="cheatsheet.html" style="font-size: 13px; font-weight: 600; color: var(--text-secondary); text-decoration: none; margin-right: 12px;"> Algorithm Matrix</a>
+      <a href="index.html" style="font-size: 13px; color: var(--text-secondary); text-decoration: none; margin-right: 12px; font-weight: 600;">← All Modules</a>
+      <!-- Font Switcher -->
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+
+      <!-- Theme Switcher -->
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Reference Container -->
+  <main style="max-width: 920px; margin: 0 auto; padding: 0 24px 100px 24px;">
+
+    <!-- Hero -->
+    <section class="ref-hero">
+      <div class="ref-eyebrow">Practical DevOps &amp; Engineering Toolkit</div>
+      <h1 class="ref-title">OpenSSL 3.x Master Cheatsheet &amp; Mental Models</h1>
+      <p class="ref-subtitle">
+        An intuitive, section-by-section engineering guide to core OpenSSL commands. Learn the underlying command grammar, master modern OpenSSL 3.x defaults, avoid legacy security traps, and audit TLS with confidence.
+      </p>
+
+      <div class="nav-pills">
+        <a href="#grammar" class="nav-pill-btn">The OpenSSL Grammar</a>
+        <a href="#symmetric" class="nav-pill-btn">Symmetric Encryption (AEAD)</a>
+        <a href="#hashes" class="nav-pill-btn">Hashes &amp; HMACs</a>
+        <a href="#keys" class="nav-pill-btn">Modern Keys (genpkey)</a>
+        <a href="#signatures" class="nav-pill-btn">Signatures &amp; Verification</a>
+        <a href="#certificates" class="nav-pill-btn">Certificates &amp; PKI (X.509)</a>
+        <a href="#tls-audit" class="nav-pill-btn">TLS Auditing (s_client)</a>
+        <a href="#legacy-wall" class="nav-pill-btn">OpenSSL 3.x Migration &amp; Legacy Wall</a>
+        <a href="#builder" class="nav-pill-btn">Interactive Command Generator</a>
+      </div>
+    </section>
+
+    <!-- SECTION 1: THE OPENSSL GRAMMAR -->
+    <section id="grammar" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">1. The Core Mental Model &amp; Command Grammar</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Why does OpenSSL feel frustrating? Because it was created over 25 years ago by dozens of independent developers. Some tools expect <code>-in</code>, some expect raw arguments; some output human text, others dump binary. Understanding the <strong>Modern OpenSSL 3.x Grammar</strong> makes commands predictable without memorization.
+      </p>
+
+      <div class="dilemma-card" style="margin-bottom: 24px;">
+        <div class="dilemma-label">The Universal Modern OpenSSL Formula</div>
+        <p class="dilemma-text" style="font-family: var(--font-mono); font-size: 14px; color: var(--text-main);">
+          openssl &lt;VERB/SUBCOMMAND&gt; [ALGORITHM] -in &lt;INPUT_FILE&gt; -out &lt;OUTPUT_FILE&gt; [OPTIONS]
+        </p>
+        <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 8px;">
+          Example: <code>openssl enc -aes-256-gcm -pbkdf2 -in file.txt -out file.enc</code>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 24px;">
+        <div class="pillar-visual-card pillar-card-i">
+          <div class="pillar-card-title">1. enc (Encryption)</div>
+          <div class="pillar-card-body" style="margin-top: 8px;">
+            Symmetric file encryption, decryption, and Base64 transcoding. In OpenSSL 3.x, always use with <code>-pbkdf2</code> to derive keys securely.
+          </div>
+        </div>
+        <div class="pillar-visual-card pillar-card-a">
+          <div class="pillar-card-title">2. dgst (Digests)</div>
+          <div class="pillar-card-body" style="margin-top: 8px;">
+            Cryptographic hashing (SHA-256, SHA-3) and Keyed HMAC verification over files and byte streams.
+          </div>
+        </div>
+        <div class="pillar-visual-card pillar-card-c">
+          <div class="pillar-card-title">3. genpkey &amp; pkey (Keys)</div>
+          <div class="pillar-card-body" style="margin-top: 8px;">
+            Universal key generation and key inspection. Replaces obsolete algorithm-specific commands (<code>genrsa</code>, <code>rsa</code>, <code>dsaparam</code>).
+          </div>
+        </div>
+        <div class="pillar-visual-card pillar-card-r">
+          <div class="pillar-card-title">4. req &amp; x509 (Certificates)</div>
+          <div class="pillar-card-body" style="margin-top: 8px;">
+            <code>req</code> generates Certificate Signing Requests (CSRs) and self-signed root certs. <code>x509</code> inspects, parses, and converts certificates.
+          </div>
+        </div>
+        <div class="pillar-visual-card pillar-card-slate">
+          <div class="pillar-card-title">5. s_client (Network TLS)</div>
+          <div class="pillar-card-body" style="margin-top: 8px;">
+            Live network client for connecting to remote servers, auditing cipher suites, and downloading live SSL certificate chains.
+          </div>
+        </div>
+        <div class="pillar-visual-card pillar-card-danger">
+          <div class="pillar-card-title">Golden Rule: -noout</div>
+          <div class="pillar-card-body" style="margin-top: 8px;">
+            When inspecting keys or certs with <code>-text</code>, always add <code>-noout</code>. Otherwise, OpenSSL dumps the entire Base64 block alongside your text!
+          </div>
+        </div>
+      </div>
+
+      <!-- File Formats Cheat -->
+      <table class="deep-table">
+        <thead>
+          <tr>
+            <th>Extension</th>
+            <th>Format Type</th>
+            <th>Visual Clue</th>
+            <th>When It Is Used</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>.pem</code> / <code>.crt</code></td>
+            <td><strong>ASCII Base64</strong> (Privacy Enhanced Mail)</td>
+            <td>Starts with <code>-----BEGIN CERTIFICATE-----</code></td>
+            <td>Standard for Linux servers, Nginx, Apache, and Docker.</td>
+          </tr>
+          <tr>
+            <td><code>.der</code></td>
+            <td><strong>Binary ASN.1</strong></td>
+            <td>Unreadable binary gibberish in text editors</td>
+            <td>Java keystores, Windows PKI, smartcards, and iOS profiles.</td>
+          </tr>
+          <tr>
+            <td><code>.p12</code> / <code>.pfx</code></td>
+            <td><strong>PKCS#12 Archive</strong></td>
+            <td>Password-encrypted binary bundle</td>
+            <td>Bundles private key + server certificate + CA chain into one portable file.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 2: SYMMETRIC ENCRYPTION -->
+    <section id="symmetric" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">2. Symmetric Encryption &amp; AEAD (openssl enc)</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Use symmetric encryption to protect backups, files, and database exports. In OpenSSL 3.x, legacy single-iteration MD5 key derivation has been superseded by PBKDF2.
+      </p>
+
+      <!-- Card 1: AES-256-GCM File Encryption -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Encrypt a File with AES-256-GCM (Modern Standard)</div>
+          <div class="cmd-badge">AES-256-GCM (AEAD)</div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 10px;">
+          Guarantees confidentiality and tampering protection in a single authenticated pass. Prompts interactively for a strong passphrase:
+        </p>
+        <div class="code-block-wrap">
+          <code>openssl enc -aes-256-gcm -pbkdf2 -iter 100000 -in document.pdf -out document.pdf.enc</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <div class="param-list">
+          <div class="param-item">
+            <div class="param-flag">-aes-256-gcm</div>
+            <div class="param-desc">Galois/Counter Mode. Authenticated Encryption with 256-bit key.</div>
+          </div>
+          <div class="param-item">
+            <div class="param-flag">-pbkdf2</div>
+            <div class="param-desc">Mandatory in OpenSSL 3.x. Derives key via standard PBKDF2 instead of vulnerable MD5.</div>
+          </div>
+          <div class="param-item">
+            <div class="param-flag">-iter 100000</div>
+            <div class="param-desc">Forces 100,000 hashing rounds to thwart GPU brute-force cracking.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Decrypt File -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Decrypt an AES-256-GCM File</div>
+          <div class="cmd-badge">Decryption</div>
+        </div>
+        <div class="code-block-wrap">
+          <code>openssl enc -d -aes-256-gcm -pbkdf2 -iter 100000 -in document.pdf.enc -out document.pdf</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <p style="font-size: 12.5px; color: var(--text-secondary); margin-top: 8px;">
+          <strong>Note:</strong> If the password is wrong OR if the file was modified by even 1 single bit in transit, OpenSSL prints <code>bad decrypt</code> and drops the payload immediately.
+        </p>
+      </div>
+
+      <!-- Card 3: ChaCha20-Poly1305 -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Encrypt with ChaCha20-Poly1305 (Ultra-Fast for ARM &amp; Mobile)</div>
+          <div class="cmd-badge">ChaCha20-Poly1305</div>
+        </div>
+        <div class="code-block-wrap">
+          <code>openssl enc -chacha20-poly1305 -pbkdf2 -iter 100000 -in backup.tar.gz -out backup.enc</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 4: Base64 Encoding -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Base64 Encode &amp; Decode Raw Data</div>
+          <div class="cmd-badge">Encoding Utility</div>
+        </div>
+        <div class="code-block-wrap">
+          <code># Encode binary to ASCII:
+openssl base64 -in image.png -out image.b64
+
+# Decode ASCII back to binary:
+openssl base64 -d -in image.b64 -out image.png</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: HASHES & HMACS -->
+    <section id="hashes" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">3. Cryptographic Hashes &amp; HMACs (openssl dgst)</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Generate checksums to verify downloads, build tamper-evident audit logs, and compute keyed HMAC tokens.
+      </p>
+
+      <!-- Card 1: Hashing -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Compute File Hash (SHA-256 &amp; SHA-3)</div>
+          <div class="cmd-badge">One-Way Fingerprints</div>
+        </div>
+        <div class="code-block-wrap">
+          <code># Standard SHA-256 Checksum:
+openssl dgst -sha256 release.iso
+
+# High-Security SHA-512 Checksum:
+openssl dgst -sha512 release.iso
+
+# Modern SHA-3 (Keccak) Checksum:
+openssl dgst -sha3-256 release.iso
+
+# Output only the raw hex hash (clean for bash scripting):
+openssl dgst -sha256 -r release.iso | awk '{print $1}'</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 2: HMAC -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Generate Keyed HMAC (API Authentication Token)</div>
+          <div class="cmd-badge">HMAC-SHA256</div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 10px;">
+          Authenticates that a webhook or payload originated from a trusted partner holding the shared secret key:
+        </p>
+        <div class="code-block-wrap">
+          <code>openssl dgst -sha256 -hmac "your-secret-api-key" payload.json</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 3: Random Bytes -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Generate Cryptographically Secure Random Keys &amp; Passwords</div>
+          <div class="cmd-badge">CSPRNG</div>
+        </div>
+        <div class="code-block-wrap">
+          <code># Generate 32 cryptographically random bytes as 64 hex characters (perfect for 256-bit keys):
+openssl rand -hex 32
+
+# Generate 32 bytes as URL-safe Base64:
+openssl rand -base64 32</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: MODERN ASYMMETRIC KEYS -->
+    <section id="keys" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">4. Modern Asymmetric Key Management (genpkey &amp; pkey)</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        <strong>Important OpenSSL 3.x Upgrade:</strong> The old algorithm-specific tools (<code>genrsa</code>, <code>dsaparam</code>) are deprecated. Use <code>openssl genpkey</code> for all keypair generation.
+      </p>
+
+      <!-- Card 1: Ed25519 -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Generate Ed25519 Keypair (Modern Standard for Signatures)</div>
+          <div class="cmd-badge">Ed25519 (Recommended)</div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 10px;">
+          Generates tiny 32-byte keys that are completely immune to cache-timing attacks with ultra-fast verification:
+        </p>
+        <div class="code-block-wrap">
+          <code># 1. Generate Private Key:
+openssl genpkey -algorithm ed25519 -out ed25519_key.pem
+
+# 2. Extract Matching Public Key:
+openssl pkey -in ed25519_key.pem -pubout -out ed25519_pub.pem
+
+# 3. View Key Details in Plain Text:
+openssl pkey -in ed25519_key.pem -text -noout</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 2: X25519 -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Generate X25519 Keypair (Diffie-Hellman Key Exchange)</div>
+          <div class="cmd-badge">X25519 (ECDH)</div>
+        </div>
+        <div class="code-block-wrap">
+          <code>openssl genpkey -algorithm x25519 -out x25519_key.pem
+openssl pkey -in x25519_key.pem -pubout -out x25519_pub.pem</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 3: Modern RSA-4096 -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Generate RSA-4096 Keypair (Legacy Enterprise Compatibility)</div>
+          <div class="cmd-badge">RSA-4096 (Modern Syntax)</div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 10px;">
+          Notice the modern <code>genpkey</code> command with <code>-pkeyopt</code> rather than obsolete <code>genrsa</code>:
+        </p>
+        <div class="code-block-wrap">
+          <code># Generate unencrypted private key:
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out rsa4096_key.pem
+
+# Generate password-protected private key (AES-256 encrypted):
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -aes-256-cbc -out rsa4096_enc.pem
+
+# Extract Public Key:
+openssl pkey -in rsa4096_key.pem -pubout -out rsa4096_pub.pem</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 4: ECDSA P-256 -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Generate NIST ECDSA P-256 / P-384 Keypair</div>
+          <div class="cmd-badge">ECDSA (NIST Curves)</div>
+        </div>
+        <div class="code-block-wrap">
+          <code>openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out ecdsa_p256.pem
+openssl pkey -in ecdsa_p256.pem -pubout -out ecdsa_p256_pub.pem</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: SIGNATURES & VERIFICATION -->
+    <section id="signatures" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">5. Digital Signatures &amp; Verification (pkeyutl &amp; dgst)</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Sign software releases, legal agreements, and audit manifests so anyone can prove they were not modified in transit.
+      </p>
+
+      <!-- Card 1: Ed25519 Signing -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Sign &amp; Verify with Ed25519 (Fastest &amp; Safest)</div>
+          <div class="cmd-badge">Ed25519 Signature</div>
+        </div>
+        <div class="code-block-wrap">
+          <code># 1. Sign a file (Alice produces document.sig using her private key):
+openssl pkeyutl -sign -inkey ed25519_key.pem -in contract.pdf -out contract.sig
+
+# 2. Verify signature (Bob verifies using Alice's public key):
+openssl pkeyutl -verify -pubin -inkey ed25519_pub.pem -in contract.pdf -sigfile contract.sig</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 8px;">
+          If valid, OpenSSL prints <code>Signature Verified Successfully</code>. If even 1 byte was altered, it outputs a verification failure.
+        </p>
+      </div>
+
+      <!-- Card 2: RSA-PSS Signing -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Sign &amp; Verify with RSA-PSS (Modern RSA Padding)</div>
+          <div class="cmd-badge">RSA-PSS (Safe Padding)</div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 10px;">
+          Never use old PKCS#1 v1.5 padding for new signatures. Always enforce <code>rsa_padding_mode:pss</code>:
+        </p>
+        <div class="code-block-wrap">
+          <code># 1. Sign:
+openssl dgst -sha256 -sigopt rsa_padding_mode:pss -sign rsa4096_key.pem -out update.sig update.tar.gz
+
+# 2. Verify:
+openssl dgst -sha256 -sigopt rsa_padding_mode:pss -verify rsa4096_pub.pem -signature update.sig update.tar.gz</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: CERTIFICATES & PKI -->
+    <section id="certificates" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">6. Certificates &amp; PKI (openssl req &amp; x509)</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Manage X.509 SSL/TLS certificates, Certificate Signing Requests (CSRs), expiration dates, and CA verification chains.
+      </p>
+
+      <!-- Card 1: 1-Line Self-Signed Cert with SAN -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">1-Line Self-Signed HTTPS Certificate (Modern SAN Included)</div>
+          <div class="cmd-badge">Self-Signed Dev Cert</div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 10px;">
+          Modern web browsers (Chrome, Edge, Safari) reject certificates without a <strong>Subject Alternative Name (SAN)</strong>. This one-liner generates an Ed25519 key and self-signed certificate valid for 1 year with localhost and IP SAN:
+        </p>
+        <div class="code-block-wrap">
+          <code>openssl req -x509 -newkey ed25519 -keyout server.key -out server.crt -days 365 -nodes \
+  -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <div class="param-list">
+          <div class="param-item">
+            <div class="param-flag">-nodes</div>
+            <div class="param-desc">No DES passphrase on private key; allows Nginx/Node.js to boot automatically.</div>
+          </div>
+          <div class="param-item">
+            <div class="param-flag">-addext "subjectAltName=..."</div>
+            <div class="param-desc">Fulfills modern browser security requirements; prevents "Invalid SAN" red error screens.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Production CSR -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Generate CSR (Certificate Signing Request) for Let's Encrypt / DigiCert</div>
+          <div class="cmd-badge">Production CSR</div>
+        </div>
+        <div class="code-block-wrap">
+          <code>openssl req -new -newkey ed25519 -keyout production.key -out production.csr -nodes \
+  -subj "/CN=example.com" -addext "subjectAltName=DNS:example.com,DNS:www.example.com"</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 3: Inspect Certificate in Plain English -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Inspect Any Certificate in Plain English (No Giant Base64 Dump)</div>
+          <div class="cmd-badge">x509 Audit</div>
+        </div>
+        <div class="code-block-wrap">
+          <code># Dump full readable text (Subject, Issuer, SANs, Validity):
+openssl x509 -in cert.pem -text -noout
+
+# Check Expiration Date only:
+openssl x509 -in cert.pem -noout -enddate
+
+# Check who issued the certificate:
+openssl x509 -in cert.pem -noout -issuer -subject
+
+# Check SHA-256 Fingerprint:
+openssl x509 -in cert.pem -noout -fingerprint -sha256</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 4: Verify Chain -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Verify Certificate Chain against a Root CA</div>
+          <div class="cmd-badge">PKI Verification</div>
+        </div>
+        <div class="code-block-wrap">
+          <code>openssl verify -CAfile ca_bundle.crt server.crt</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 5: Format Conversion -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Convert Between Certificate Formats (PEM, DER, PKCS#12)</div>
+          <div class="cmd-badge">Format Transcoding</div>
+        </div>
+        <div class="code-block-wrap">
+          <code># Convert PEM (ASCII) to DER (Binary):
+openssl x509 -in cert.pem -outform DER -out cert.der
+
+# Convert DER (Binary) to PEM (ASCII):
+openssl x509 -in cert.der -inform DER -out cert.pem
+
+# Bundle Private Key + Cert + CA into a PKCS#12 (.pfx / .p12) for Windows / IIS / Java:
+openssl pkcs12 -export -out bundle.pfx -inkey server.key -in server.crt -certfile ca_chain.crt</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: TLS AUDITING & DEBUGGING -->
+    <section id="tls-audit" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">7. TLS Auditing &amp; Remote Debugging (openssl s_client)</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        <code>openssl s_client</code> is the ultimate network diagnostic tool for inspecting remote TLS handshakes, checking negotiated cipher suites, and downloading certificate chains.
+      </p>
+
+      <!-- Card 1: Standard TLS Handshake -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Test Live HTTPS Connection with SNI</div>
+          <div class="cmd-badge">TLS Diagnostic</div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 10px;">
+          <strong>Vital:</strong> Always pass <code>-servername</code>. Without Server Name Indication (SNI), cloud proxies like Cloudflare or AWS ALB cannot know which virtual host certificate to send you!
+        </p>
+        <div class="code-block-wrap">
+          <code>openssl s_client -connect example.com:443 -servername example.com</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 2: Force TLS 1.3 / Test Weak TLS -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Audit Protocol Versions (Force TLS 1.3 vs Detect Insecure TLS 1.0)</div>
+          <div class="cmd-badge">Protocol Audit</div>
+        </div>
+        <div class="code-block-wrap">
+          <code># Verify the server accepts modern TLS 1.3:
+openssl s_client -connect example.com:443 -servername example.com -tls1_3
+
+# Security Audit: Test if server dangerously still supports broken TLS 1.0:
+openssl s_client -connect example.com:443 -servername example.com -tls1
+# (A secure server MUST reject this with a handshake failure!)</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 3: Download Remote Cert Chain -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Download Remote Server's Full Certificate Chain to Disk</div>
+          <div class="cmd-badge">Cert Extraction</div>
+        </div>
+        <div class="code-block-wrap">
+          <code>openssl s_client -showcerts -connect example.com:443 -servername example.com &lt;/dev/null &gt; fullchain.pem</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <!-- Card 4: ALPN & STARTTLS -->
+      <div class="cmd-card">
+        <div class="cmd-head">
+          <div class="cmd-title">Check HTTP/2 Negotiation (ALPN) &amp; Mail Servers (STARTTLS)</div>
+          <div class="cmd-badge">Network Protocols</div>
+        </div>
+        <div class="code-block-wrap">
+          <code># Check if server supports HTTP/2 (ALPN protocol negotiation):
+openssl s_client -connect example.com:443 -servername example.com -alpn h2,http/1.1 &lt;/dev/null | grep "ALPN"
+
+# Test STARTTLS encrypted session on an SMTP mail server:
+openssl s_client -connect smtp.gmail.com:587 -starttls smtp</code>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8: OPENSSL 3.X MIGRATION & LEGACY WALL -->
+    <section id="legacy-wall" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">8. The OpenSSL 3.x Migration &amp; Legacy Wall</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        OpenSSL 3.0 was a monumental release that completely re-architected how cryptographic primitives are loaded. Obsolete ciphers and commands are now sequestered behind the <strong>Legacy Provider</strong>.
+      </p>
+
+      <div class="dilemma-card" style="margin-bottom: 24px;">
+        <div class="dilemma-label">Why Did My Old Script Break in OpenSSL 3.x?</div>
+        <p class="dilemma-text">
+          In OpenSSL 3.x, insecure legacy algorithms (RC4, DES, 3DES, Blowfish, CAST, MD2, MD4, MD5) are completely removed from the default provider. If you try to run <code>openssl enc -rc4</code> or <code>openssl enc -des</code>, OpenSSL throws:
+          <br><br>
+          <code style="color:#ef4444; background:var(--code-bg); padding:4px 8px; border-radius:4px;">Error setting cipher ... unsupported cipher algorithm</code>
+          <br><br>
+          <strong>Emergency Recovery Only:</strong> To decrypt an ancient archive from 2005, you must explicitly enable the legacy provider alongside default:
+          <br>
+          <code style="color:var(--text-main); background:var(--code-bg); padding:4px 8px; border-radius:4px; margin-top:6px; display:inline-block;">openssl enc -provider legacy -provider default -des -d -in old.enc -out old.txt</code>
+        </p>
+      </div>
+
+      <table class="deep-table">
+        <thead>
+          <tr>
+            <th>[No] Deprecated Legacy Command</th>
+            <th>[Yes] Modern OpenSSL 3.x Equivalent</th>
+            <th>Why the Change Was Made</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>openssl genrsa 2048</code></td>
+            <td><code>openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096</code></td>
+            <td>Unified key generation architecture; defaults to modern 4096-bit length.</td>
+          </tr>
+          <tr>
+            <td><code>openssl rsa -in key.pem -pubout</code></td>
+            <td><code>openssl pkey -in key.pem -pubout</code></td>
+            <td>Algorithm-agnostic key management for RSA, EC, Ed25519, and X25519.</td>
+          </tr>
+          <tr>
+            <td><code>openssl dsa / dsaparam</code></td>
+            <td><code>openssl genpkey -algorithm ed25519</code></td>
+            <td>Classical DSA is permanently broken; replaced by Edwards-curve signatures.</td>
+          </tr>
+          <tr>
+            <td><code>openssl rsautl -sign</code></td>
+            <td><code>openssl pkeyutl -sign</code></td>
+            <td><code>rsautl</code> had dangerous padding vulnerabilities; replaced by safe <code>pkeyutl</code>.</td>
+          </tr>
+          <tr>
+            <td><code>openssl enc -aes-256-cbc</code> (no KDF)</td>
+            <td><code>openssl enc -aes-256-gcm -pbkdf2 -iter 100000</code></td>
+            <td>Old OpenSSL derived keys using 1 round of MD5! PBKDF2 with 100,000 iterations is mandatory.</td>
+          </tr>
+          <tr>
+            <td><code>openssl md5 file.iso</code></td>
+            <td><code>openssl dgst -sha256 file.iso</code></td>
+            <td>MD5 is broken by collision attacks; standalone hash commands deprecated in favor of <code>dgst</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 9: INTERACTIVE COMMAND BUILDER -->
+    <section id="builder" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">9. Interactive OpenSSL Command Generator</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Pick your objective below to generate the exact, modern OpenSSL 3.x command with every flag explained:
+      </p>
+
+      <div class="builder-panel">
+        <div class="builder-row">
+          <label class="builder-label" for="taskSelect">What is your cryptographic goal?</label>
+          <select id="taskSelect" class="builder-select" onchange="updateGeneratedCommand()">
+            <option value="dev-cert">Generate Self-Signed HTTPS Dev Certificate (with SAN)</option>
+            <option value="prod-csr">Generate Production CSR &amp; Private Key (Let's Encrypt)</option>
+            <option value="enc-file">Encrypt a File with AES-256-GCM (AEAD &amp; PBKDF2)</option>
+            <option value="dec-file">Decrypt an AES-256-GCM File</option>
+            <option value="ed25519-key">Generate Modern Ed25519 Keypair (Signatures)</option>
+            <option value="sign-file">Sign Document with Ed25519</option>
+            <option value="verify-sig">Verify Document Signature with Ed25519</option>
+            <option value="test-tls">Audit Remote Server TLS &amp; Download Certificates</option>
+            <option value="sha256-hash">Compute SHA-256 Checksum for a File</option>
+          </select>
+        </div>
+
+        <div class="builder-row" id="domainRow">
+          <label class="builder-label" for="domainInput">Domain Name / Hostname:</label>
+          <input type="text" id="domainInput" class="builder-input" value="localhost" oninput="updateGeneratedCommand()">
+        </div>
+
+        <div class="builder-row" id="fileRow" style="display:none;">
+          <label class="builder-label" for="fileInput">Target Filename:</label>
+          <input type="text" id="fileInput" class="builder-input" value="data.pdf" oninput="updateGeneratedCommand()">
+        </div>
+
+        <div style="margin-top: 20px;">
+          <div style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Generated OpenSSL 3.x Command:</div>
+          <div class="code-block-wrap" style="background: var(--surface);">
+            <code id="generatedCode" style="color: var(--accent-text); font-weight: 700;"></code>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+        </div>
+
+        <div id="commandBreakdown" style="font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-top: 14px; background: var(--bg-alt); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+/* -------------------------------------------------------------
+   CRYPTOGRAPHY FROM BASICS — SHARED CORE JAVASCRIPT
+   Theme, Typography, Reading Progress, Checkpoints, & Global Search
+------------------------------------------------------------- */
+
+(function () {
+  let savedTheme = 'paper';
+  let savedFont = 'sans';
+  try {
+    savedTheme = localStorage.getItem('crypto_theme') || 'paper';
+  } catch (e) {}
+  try {
+    savedFont = localStorage.getItem('crypto_font') || 'sans';
+  } catch (e) {}
+
+  setTheme(savedTheme, false);
+  setFont(savedFont, false);
+
+  // Setup Scroll Progress Bar
+  window.addEventListener('scroll', updateReadingProgress);
+
+  // DOM Ready Initializations
+  document.addEventListener('DOMContentLoaded', () => {
+    highlightActiveNavLink();
+    updateThemeUI(savedTheme);
+    updateFontUI(savedFont);
+    initGlobalSearch();
+  });
+})();
+
+// Reading Progress
+function updateReadingProgress() {
+  const progressBar = document.getElementById('readingProgress');
+  if (!progressBar) return;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  if (docHeight <= 0) {
+    progressBar.style.width = '0%';
+    return;
+  }
+  const scrolled = (window.scrollY / docHeight) * 100;
+  progressBar.style.width = Math.min(100, Math.max(0, scrolled)) + '%';
+}
+
+// Theme Switcher
+function setTheme(themeName, persist = true) {
+  document.documentElement.setAttribute('data-theme', themeName);
+  if (persist) {
+    try {
+      localStorage.setItem('crypto_theme', themeName);
+    } catch (e) {}
+  }
+  updateThemeUI(themeName);
+}
+
+function updateThemeUI(themeName) {
+  document.querySelectorAll('.theme-chip').forEach(chip => chip.classList.remove('active'));
+  const activeBtn = document.getElementById('theme' + themeName.charAt(0).toUpperCase() + themeName.slice(1));
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+// Font Switcher
+function setFont(fontType, persist = true) {
+  document.documentElement.setAttribute('data-font', fontType);
+  if (persist) {
+    try {
+      localStorage.setItem('crypto_font', fontType);
+    } catch (e) {}
+  }
+  updateFontUI(fontType);
+}
+
+function updateFontUI(fontType) {
+  const btnSans = document.getElementById('btnSans');
+  const btnSerif = document.getElementById('btnSerif');
+  if (btnSans && btnSerif) {
+    btnSans.classList.toggle('active', fontType === 'sans');
+    btnSerif.classList.toggle('active', fontType === 'serif');
+  }
+}
+
+// Sidebar Active Page Matcher
+function highlightActiveNavLink() {
+  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && href.endsWith(currentPath)) {
+      link.classList.add('active');
+    }
+  });
+}
+
+// Universal Checkpoint Quiz Engine
+function handleQuiz(button, isCorrect, explanationText) {
+  const parentCard = button.closest('.checkpoint-card') || button.parentElement.parentElement;
+  const feedback = parentCard.querySelector('.feedback-note');
+  const allButtons = parentCard.querySelectorAll('.choice-btn');
+
+  allButtons.forEach(btn => {
+    btn.style.opacity = '0.45';
+    btn.disabled = true;
+  });
+
+  button.style.opacity = '1';
+  if (feedback) {
+    feedback.style.display = 'block';
+    if (isCorrect) {
+      button.classList.add('selected-correct');
+      feedback.style.background = 'var(--accent-soft)';
+      feedback.style.color = 'var(--accent-text)';
+      feedback.style.border = '1px solid var(--accent-border)';
+      feedback.innerHTML = '<strong>Correct.</strong> ' + explanationText;
+    } else {
+      button.style.borderColor = '#c53030';
+      feedback.style.background = 'rgba(197, 48, 48, 0.08)';
+      feedback.style.color = '#c53030';
+      feedback.style.border = '1px solid rgba(197, 48, 48, 0.2)';
+      feedback.innerHTML = '<strong>Not quite.</strong> ' + explanationText;
+    }
+  }
+}
+
+/* -------------------------------------------------------------
+   UNIVERSAL CRYPTOGRAPHIC SEARCH & QUICK LAUNCHER (CTRL+K)
+------------------------------------------------------------- */
+const SEARCH_INDEX = [
+  // Foundations
+  { title: "CIA Triad & Non-Repudiation (CIA-R)", badge: "M01 Foundations", desc: "Confidentiality, Integrity, Availability, and Non-Repudiation pillars", path: "modules/m01-foundations.html#cia-triad", keywords: "cia confidentiality integrity availability non-repudiation triad pillars" },
+  { title: "Kerckhoffs's Principle & Shannon Maxim", badge: "M01 Foundations", desc: "Why security through obscurity fails: the enemy knows the system", path: "modules/m01-foundations.html#kerckhoffs", keywords: "kerckhoffs shannon obscurity open design enemy knows system" },
+  { title: "Threat Models & Cryptographic Adversaries", badge: "M01 Foundations", desc: "Ciphertext-only, Known-Plaintext, Chosen-Plaintext, Chosen-Ciphertext attacks", path: "modules/m01-foundations.html#threat-models", keywords: "adversary attack coa kpa cpa cca mitm passive active" },
+  
+  // Bits & Encoding
+  { title: "Bits, Bytes, Hexadecimal & ASCII", badge: "M02 Encoding", desc: "Foundational computer representations and binary conversions", path: "modules/m02-bits-and-encoding.html#bits-hex", keywords: "bits bytes binary hex hexadecimal ascii nibble base16" },
+  { title: "Base64 Encoding & 6-Bit Chunking", badge: "M02 Encoding", desc: "Representing raw binary data over 7-bit ASCII channels with padding", path: "modules/m02-bits-and-encoding.html#base64", keywords: "base64 encoding padding mime pem binary to text chunking" },
+  { title: "XOR (Exclusive OR) Cryptographic Properties", badge: "M02 Encoding", desc: "Self-inversion, commutativity, and the backbone of all modern ciphers", path: "modules/m02-bits-and-encoding.html#xor-properties", keywords: "xor exclusive or self-inverse bitwise stream cipher reversibility" },
+  
+  // Steganography
+  { title: "Steganography vs Encryption", badge: "M03 Steganography", desc: "Hiding data existence vs hiding data meaning", path: "modules/m03-steganography.html#steg-vs-crypto", keywords: "steganography hiding cover covert channel carrier" },
+  { title: "LSB (Least Significant Bit) Image Injection", badge: "M03 Steganography", desc: "Modifying lowest-order color bits to conceal secret byte payloads", path: "modules/m03-steganography.html#lsb-deep", keywords: "lsb least significant bit pixel color rgb carrier steganalysis payload" },
+
+  // Randomness
+  { title: "Entropy, PRNGs & CSPRNGs", badge: "M04 Randomness", desc: "True entropy sources vs deterministic pseudo-random generators", path: "modules/m04-randomness-entropy.html#entropy-sources", keywords: "entropy randomness prng csprng urandom seed unpredictability trng" },
+  { title: "The Dual-EC-DRBG Backdoor & Seed Compromise", badge: "M04 Randomness", desc: "How kleptographic backdoors and low entropy destroy key secrecy", path: "modules/m04-randomness-entropy.html#csprng-failures", keywords: "dual-ec-drbg backdoor nsa seed compromise debian openssl bug debian" },
+
+  // Classical Ciphers
+  { title: "Caesar & Vigenère Ciphers", badge: "M05 Classical", desc: "Monoalphabetic shifts and polyalphabetic keystreams", path: "modules/m05-classical-ciphers.html#caesar-vigenere", keywords: "caesar vigenere substitution shift polyalphabetic kasiski tabula recta" },
+  { title: "Frequency Analysis & Cryptanalysis", badge: "M05 Classical", desc: "Cracking classical ciphers using letter frequency distributions", path: "modules/m05-classical-ciphers.html#frequency-analysis", keywords: "frequency analysis cryptanalysis etaoin shrdlu letter distribution index coincidence" },
+  { title: "One-Time Pad (OTP) & Perfect Secrecy", badge: "M05 Classical", desc: "Information-theoretic security: key length >= message, truly random, never reused", path: "modules/m05-classical-ciphers.html#one-time-pad", keywords: "one time pad otp vernam perfect secrecy shannon unconditional vernam cipher" },
+
+  // Symmetric & AES
+  { title: "Block Ciphers vs Stream Ciphers", badge: "M06 Symmetric", desc: "Fixed 128-bit blocks vs continuous pseudo-random keystream XOR", path: "modules/m06-symmetric-aes.html#block-vs-stream", keywords: "block cipher stream cipher aes chacha20 keystream salsa20" },
+  { title: "AES (Advanced Encryption Standard) Round Architecture", badge: "M06 Symmetric", desc: "SubBytes (S-Box confusion), ShiftRows & MixColumns (diffusion), AddRoundKey", path: "modules/m06-symmetric-aes.html#aes-internals", keywords: "aes rijndael subbytes shiftrows mixcolumns addroundkey sbox confusion diffusion 128 192 256" },
+  { title: "Block Cipher Modes: ECB, CBC, CTR & GCM", badge: "M06 Symmetric", desc: "Why ECB is forbidden, CBC error propagation, and modern AEAD GCM", path: "modules/m06-symmetric-aes.html#block-modes-deep", keywords: "ecb cbc ctr gcm aead modes initialization vector iv authentication tag ghash" },
+  { title: "Interactive Tamper Simulator Lab", badge: "M06 Symmetric", desc: "Hands-on experiment: flip 1 ciphertext bit and watch error propagation across modes", path: "modules/m06-symmetric-aes.html#tamper-simulator", keywords: "tamper simulator lab bit-flip malleability authentication tag dropped error propagation" },
+
+  // Hashing & Integrity
+  { title: "Cryptographic Hash Functions: SHA-256, SHA-3, BLAKE3", badge: "M07 Hashing", desc: "Pre-image resistance, collision resistance, and the avalanche effect", path: "modules/m07-hashing-integrity.html#hash-properties", keywords: "sha256 sha3 keccak blake3 avalanche collision pre-image digest md5 sha1 sha2" },
+  { title: "HMAC (Keyed-Hash Message Authentication Code)", badge: "M07 Hashing", desc: "Why simple Hash(Key || Message) is vulnerable to Length Extension Attacks", path: "modules/m07-hashing-integrity.html#hmac-deep", keywords: "hmac length extension attack hash mac integrity authenticity secret key ipad opad" },
+  { title: "Merkle Trees & Lightweight Cryptographic Proofs", badge: "M07 Hashing", desc: "How Git and distributed systems verify 1 file out of 100,000 using 32-byte hashes", path: "modules/m07-hashing-integrity.html#merkle-trees", keywords: "merkle tree merkle root proof git commit integrity distributed blockchain" },
+
+  // Asymmetric & Public-Key
+  { title: "Diffie-Hellman Key Exchange (DH & ECDH)", badge: "M08 Asymmetric", desc: "Establishing a shared secret over an insecure channel without transmitting the key", path: "modules/m08-asymmetric-diffie-hellman.html#diffie-hellman", keywords: "diffie hellman ecdh discrete log public key shared secret x25519 color mixing" },
+  { title: "RSA Cryptosystem & Prime Factorization", badge: "M08 Asymmetric", desc: "Trapdoor one-way functions, Euler's totient, modular exponentiation", path: "modules/m08-asymmetric-diffie-hellman.html#rsa-deep", keywords: "rsa prime factorization modular exponentiation public private key euler totient trapdoor" },
+  { title: "Elliptic Curve Cryptography (ECC & Curve25519)", badge: "M08 Asymmetric", desc: "Point multiplication on Weierstrass and Montgomery curves for smaller, faster keys", path: "modules/m08-asymmetric-diffie-hellman.html#ecc-deep", keywords: "elliptic curve ecc curve25519 p256 point addition scalar multiplication secp256k1" },
+
+  // Signatures & PKI
+  { title: "Digital Signatures: Ed25519 & ECDSA", badge: "M09 Signatures", desc: "Authenticity and non-repudiation: sign with private key, verify with public key", path: "modules/m09-signatures-pki.html#digital-signatures", keywords: "digital signatures ed25519 ecdsa rsa sign verify signature signature verification" },
+  { title: "Public Key Infrastructure (PKI) & X.509", badge: "M09 Signatures", desc: "Certificate Authorities, trust chains, Root CAs, and Subject Alternative Names", path: "modules/m09-signatures-pki.html#pki-deep", keywords: "pki x509 certificate authority root ca intermediate chain san csr cert pem" },
+  { title: "Certificate Revocation: CRL, OCSP & OCSP Stapling", badge: "M09 Signatures", desc: "How browsers detect compromised certificates without privacy leaks or latency", path: "modules/m09-signatures-pki.html#revocation-deep", keywords: "revocation crl ocsp stapling letsencrypt compromised certificate crl distribution" },
+
+  // Key Vaults, KMS & Incident Response
+  { title: "Key Derivation Functions: Argon2id, bcrypt, PBKDF2", badge: "M10 Key Vaults", desc: "Memory-hard password hashing to neutralize GPU, FPGA, and ASIC brute-force", path: "modules/m10-key-vaults-kdfs.html#kdf-simulator", keywords: "argon2id bcrypt pbkdf2 password hashing salt pepper cost factor scrypt kdf" },
+  { title: "Hardware Security: HSMs, TPMs & Secure Enclaves", badge: "M10 Key Vaults", desc: "FIPS 140-3 physical silicon trust, Measured Boot, and zeroization circuits", path: "modules/m10-key-vaults-kdfs.html#hardware-security-deep", keywords: "hsm tpm secure enclave titan fips 140-3 measured boot zeroization hardware vault" },
+  { title: "Cloud KMS & Envelope Encryption Architecture", badge: "M10 Key Vaults", desc: "DEKs (Data Encryption Keys) + KEKs (Key Encryption Keys) for petabyte-scale encryption", path: "modules/m10-key-vaults-kdfs.html#envelope-encryption", keywords: "envelope encryption kms kek dek aws kms hashicorp vault key management google cloud kms" },
+  { title: "Cryptographic Incident Response & Key Compromise Playbook", badge: "M10 Key Vaults", desc: "Production triage, zero-downtime dual-key migration, and secret revocation runbook", path: "modules/m10-key-vaults-kdfs.html#incident-response-playbook", keywords: "incident response key compromise leak rotation playbook zero-downtime rekeying triage" },
+  { title: "Seed Phrases & BIP-39 Derivation Trees", badge: "M10 Key Vaults", desc: "Master seed phrases, checksums, and hierarchical deterministic key generation", path: "modules/m10-key-vaults-kdfs.html#seed-phrases", keywords: "bip39 seed phrase mnemonic hierarchical deterministic wallet recovery bip44" },
+
+  // Applied Protocols
+  { title: "TLS 1.3 Handshake Protocol & Forward Secrecy", badge: "M11 Applied", desc: "1-RTT encrypted handshake, ephemeral Diffie-Hellman, and zero-round-trip resumption", path: "modules/m11-applied-https-tokens.html#tls-handshake", keywords: "tls 1.3 https handshake forward secrecy pfs session resumption sni cipher suite" },
+  { title: "Token Authentication: JWT vs PASETO", badge: "M11 Applied", desc: "Why 'alg: none' ruined JWT, and how PASETO enforces cryptographic security", path: "modules/m11-applied-https-tokens.html#tokens-deep", keywords: "jwt paseto tokens alg none signature authorization bearer claims jws jwe" },
+  { title: "SSH & WireGuard Cryptographic Architecture", badge: "M11 Applied", desc: "Noise protocol, modern ChaCha20-Poly1305 tunnels, and Ed25519 identity", path: "modules/m11-applied-https-tokens.html#wireguard-ssh", keywords: "ssh wireguard noise protocol vpn authorized_keys tunneling modern crypto" },
+
+  // Quantum & ZKP
+  { title: "Post-Quantum Cryptography: NIST Standards (ML-KEM & ML-DSA)", badge: "M12 Quantum & ZKP", desc: "Shor's algorithm threat and lattice-based post-quantum cryptography (Kyber & Dilithium)", path: "modules/m12-zkp-quantum-era.html#pqc-deep", keywords: "post quantum pqc shor grover ml-kem kyber ml-dsa dilithium lattice nist quantum era" },
+  { title: "Zero-Knowledge Proofs: zk-SNARKs & zk-STARKs Intuition", badge: "M12 Quantum & ZKP", desc: "Proving knowledge of a secret without revealing the secret itself", path: "modules/m12-zkp-quantum-era.html#zkp-deep", keywords: "zero knowledge zkp snark stark proof prover verifier succinct rollups" },
+
+  // Module 13: Connected Topics & Public-Key Anatomy
+  { title: "Anatomy of an X.509 Certificate (RFC 5280)", badge: "M13 Connected Topics", desc: "TBSCertificate dissection, Subject Alternative Name (SAN), Basic Constraints, and Key Usage", path: "modules/m13-misc-topics.html#x509-anatomy", keywords: "x509 certificate rfc 5280 san subject alternative name tbscertificate basic constraints eku" },
+  { title: "Certificate Formats & Keystores: PEM, DER, PKCS#12, PKCS#7", badge: "M13 Connected Topics", desc: "Comparing Base64 PEM, raw binary DER, PKCS#7 chains, and password-encrypted PKCS#12 archives", path: "modules/m13-misc-topics.html#cert-formats", keywords: "pem der pkcs12 pfx pkcs7 p7b keystore jks certificate format conversion" },
+  { title: "Cryptographic Serialization & Canonical Encodings (ASN.1 & DER)", badge: "M13 Connected Topics", desc: "Why non-deterministic JSON fails signature checks and how ASN.1 DER and CBOR guarantee unique bitstreams", path: "modules/m13-misc-topics.html#canonical-serialization", keywords: "asn1 der cbor serialization canonical encoding tlv distinguished encoding rules json" },
+  { title: "Cryptographic Time: NTP Vulnerabilities, NTS & RFC 3161 TSP", badge: "M13 Connected Topics", desc: "Network Time Security (NTS) authenticated time and Timestamp Authorities for legal non-repudiation", path: "modules/m13-misc-topics.html#crypto-time", keywords: "time ntp nts network time security rfc 3161 tsp timestamp authority clock drift" },
+
+  // Systems & Security Engineering Tracks
+  { title: "Track 2: Operating System Fundamentals", badge: "Hub Track 02", desc: "Process lifecycles, virtual memory paging, CPU schedulers, file system inodes, and POSIX syscalls", path: "index.html#track-os-basics", keywords: "operating systems os processes threads virtual memory paging scheduling inodes syscalls ipc" },
+  { title: "Track 3: OS Internals & Kernel Security", badge: "Hub Track 03", desc: "Ring 0 vs Ring 3, memory corruption, ASLR, DEP/NX, Linux capabilities, and eBPF tracing", path: "index.html#track-os-internals", keywords: "os internals kernel security ring 0 aslr dep nx buffer overflow ebpf selinux apparmor" },
+  { title: "Track 4: Computer Networking & Protocols", badge: "Hub Track 04", desc: "TCP/IP stack, 3-way handshakes, congestion control, BGP routing, DNS, and WireGuard tunnels", path: "index.html#track-networking", keywords: "networking protocols tcp ip handshake bgp dns wireguard sockets congestion control" },
+  { title: "Track 5: Hardware Architecture & Silicon", badge: "Hub Track 05", desc: "CPU instruction pipelines, branch prediction, L1/L2/L3 caches, MESI coherence, and MMU page tables", path: "index.html#track-hardware", keywords: "hardware architecture cpu pipeline cache mesi mmu page table uefi dma interrupts" },
+  { title: "Track 6: Hardware Security & Silicon Trust", badge: "Hub Track 06", desc: "Spectre, Meltdown, Rowhammer, fault injection, voltage glitching, TPM 2.0, and Secure Enclaves", path: "index.html#track-hw-security", keywords: "hardware security spectre meltdown rowhammer fault injection tpm secure enclave glitching" },
+  { title: "Track 7: Cloud Infrastructure Security", badge: "Hub Track 07", desc: "Zero-Trust architecture, Cloud IAM least privilege, VPC peering, container isolation, and Vault", path: "index.html#track-cloud-sec", keywords: "cloud security zero trust iam vpc container kubernetes vault mtls service mesh" },
+
+  // Cheatsheets
+  { title: "When to Use What — Master Decision Matrix", badge: "Cheatsheet", desc: "Head-to-head algorithm comparisons, NIST lifetime matrix, and the 10 Golden Rules", path: "cheatsheet.html", keywords: "cheatsheet decision matrix recommendations comparison golden rules when to use what" },
+  { title: "OpenSSL 3.x Modern Command Handbook", badge: "OpenSSL", desc: "Intuitive command patterns for keys, certificates, HMACs, encryption, and TLS inspection", path: "openssl-cheatsheet.html", keywords: "openssl openssl 3 command cheatsheet req x509 genpkey dgst enc s_client s_server" }
+];
+
+let searchModalEl = null;
+let searchInputEl = null;
+let searchResultsEl = null;
+let activeResultIndex = -1;
+let filteredResults = [];
+
+function initGlobalSearch() {
+  if (!document.getElementById('searchModalOverlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'searchModalOverlay';
+    overlay.innerHTML = `
+      <div id="searchModalCard" onclick="event.stopPropagation()">
+        <div id="searchModalHeader">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchModalInput" placeholder="Search algorithms, ciphers, RFCs, tools, or concepts..." autocomplete="off">
+          <button id="searchModalClose" type="button" onclick="closeSearchModal()" title="Close (Esc)">&times;</button>
+        </div>
+        <div id="searchModalResults"></div>
+        <div id="searchModalFooter">
+          <span>Navigate with <kbd class="search-kbd">↑</kbd> <kbd class="search-kbd">↓</kbd></span>
+          <span>Select <kbd class="search-kbd">Enter</kbd></span>
+          <span>Close <kbd class="search-kbd">Esc</kbd></span>
+        </div>
+      </div>
+    `;
+    overlay.addEventListener('click', closeSearchModal);
+    document.body.appendChild(overlay);
+  }
+
+  searchModalEl = document.getElementById('searchModalOverlay');
+  searchInputEl = document.getElementById('searchModalInput');
+  searchResultsEl = document.getElementById('searchModalResults');
+
+  if (searchInputEl) {
+    searchInputEl.addEventListener('input', handleSearchInput);
+    searchInputEl.addEventListener('keydown', handleSearchKeydown);
+  }
+
+  // Keyboard shortcut listener
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      toggleSearchModal();
+    }
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      openSearchModal();
+    }
+    if (e.key === 'Escape' && searchModalEl && searchModalEl.classList.contains('active')) {
+      closeSearchModal();
+    }
+  });
+
+  renderSearchResults('');
+}
+
+function openSearchModal() {
+  if (!searchModalEl) initGlobalSearch();
+  searchModalEl.classList.add('active');
+  if (searchInputEl) {
+    searchInputEl.value = '';
+    renderSearchResults('');
+    setTimeout(() => searchInputEl.focus(), 50);
+  }
+}
+
+function closeSearchModal() {
+  if (searchModalEl) {
+    searchModalEl.classList.remove('active');
+  }
+}
+
+function toggleSearchModal() {
+  if (searchModalEl && searchModalEl.classList.contains('active')) {
+    closeSearchModal();
+  } else {
+    openSearchModal();
+  }
+}
+
+function handleSearchInput(e) {
+  renderSearchResults(e.target.value);
+}
+
+function handleSearchKeydown(e) {
+  if (!filteredResults.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex + 1) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex - 1 + filteredResults.length) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (activeResultIndex >= 0 && activeResultIndex < filteredResults.length) {
+      navigateToSearchResult(filteredResults[activeResultIndex]);
+    }
+  }
+}
+
+function updateActiveResultUI() {
+  const items = searchResultsEl.querySelectorAll('.search-result-item');
+  items.forEach((item, idx) => {
+    if (idx === activeResultIndex) {
+      item.classList.add('active');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+function renderSearchResults(query) {
+  if (!searchResultsEl) return;
+  const q = query.trim().toLowerCase();
+  
+  if (!q) {
+    filteredResults = SEARCH_INDEX.slice(0, 8);
+  } else {
+    const scored = [];
+    SEARCH_INDEX.forEach(item => {
+      const titleLower = item.title.toLowerCase();
+      const descLower = item.desc.toLowerCase();
+      const badgeLower = item.badge.toLowerCase();
+      const kwLower = item.keywords.toLowerCase();
+      
+      let score = 0;
+      if (titleLower === q) score += 200;
+      else if (titleLower.startsWith(q)) score += 150;
+      else if (titleLower.includes(' ' + q) || titleLower.includes('(' + q)) score += 120;
+      else if (titleLower.includes(q)) score += 40;
+
+      if (kwLower.includes(q)) score += 60;
+      if (descLower.includes(q)) score += 20;
+      if (badgeLower.includes(q)) score += 20;
+
+      if (score > 0) {
+        scored.push({ item, score });
+      }
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    filteredResults = scored.map(s => s.item);
+  }
+
+  activeResultIndex = filteredResults.length > 0 ? 0 : -1;
+
+  if (filteredResults.length === 0) {
+    searchResultsEl.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13.5px;">No cryptographic concepts found matching "<strong>' + escapeHtml(query) + '</strong>".</div>';
+    return;
+  }
+
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+
+  let html = '';
+  filteredResults.forEach((item, idx) => {
+    let resolvedPath = item.path;
+    if (isInsideModules) {
+      if (resolvedPath.startsWith('modules/')) {
+        resolvedPath = resolvedPath.replace('modules/', '');
+      } else {
+        resolvedPath = '../' + resolvedPath;
+      }
+    } else {
+      resolvedPath = item.path;
+    }
+
+    const isActive = idx === activeResultIndex ? ' active' : '';
+    html += `
+      <a href="${resolvedPath}" class="search-result-item${isActive}" onclick="closeSearchModal()">
+        <div class="search-result-left">
+          <span class="search-result-badge">${item.badge}</span>
+          <div class="search-result-text">
+            <div class="search-result-title">${escapeHtml(item.title)}</div>
+            <div class="search-result-desc">${escapeHtml(item.desc)}</div>
+          </div>
+        </div>
+        <span class="search-result-arrow">→</span>
+      </a>
+    `;
+  });
+
+  searchResultsEl.innerHTML = html;
+}
+
+function navigateToSearchResult(item) {
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+  let resolvedPath = item.path;
+  if (isInsideModules) {
+    if (resolvedPath.startsWith('modules/')) {
+      resolvedPath = resolvedPath.replace('modules/', '');
+    } else {
+      resolvedPath = '../' + resolvedPath;
+    }
+  }
+  closeSearchModal();
+  window.location.href = resolvedPath;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+</script>
+  <script>
+    // Copy code snippet helper
+    function copyCode(btn) {
+      const codeBlock = btn.parentElement.querySelector('code');
+      if (!codeBlock) return;
+      navigator.clipboard.writeText(codeBlock.textContent.trim()).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.borderColor = 'var(--accent)';
+        btn.style.color = 'var(--accent-text)';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.borderColor = '';
+          btn.style.color = '';
+        }, 2000);
+      });
+    }
+
+    // Interactive Command Generator
+    function updateGeneratedCommand() {
+      const task = document.getElementById('taskSelect').value;
+      const domain = document.getElementById('domainInput').value.trim() || 'localhost';
+      const file = document.getElementById('fileInput').value.trim() || 'data.pdf';
+
+      const domainRow = document.getElementById('domainRow');
+      const fileRow = document.getElementById('fileRow');
+      const codeEl = document.getElementById('generatedCode');
+      const breakdownEl = document.getElementById('commandBreakdown');
+
+      if (['dev-cert', 'prod-csr', 'test-tls'].includes(task)) {
+        domainRow.style.display = 'flex';
+        fileRow.style.display = 'none';
+      } else if (['enc-file', 'dec-file', 'sign-file', 'verify-sig', 'sha256-hash'].includes(task)) {
+        domainRow.style.display = 'none';
+        fileRow.style.display = 'flex';
+      } else {
+        domainRow.style.display = 'none';
+        fileRow.style.display = 'none';
+      }
+
+      let cmd = '';
+      let breakdown = '';
+
+      switch (task) {
+        case 'dev-cert':
+          cmd = `openssl req -x509 -newkey ed25519 -keyout server.key -out server.crt -days 365 -nodes -subj "/CN=${domain}" -addext "subjectAltName=DNS:${domain},IP:127.0.0.1"`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>-x509</code>: Output a self-signed certificate directly instead of a certificate request.<br>
+          • <code>-newkey ed25519</code>: Generate a fresh, high-speed 32-byte Ed25519 private key.<br>
+          • <code>-nodes</code>: Do not encrypt the private key (enables automatic web server reboots).<br>
+          • <code>-days 365</code>: Valid for exactly 1 calendar year.<br>
+          • <code>-addext "subjectAltName=..."</code>: Fulfills modern browser security requirements (no "Missing SAN" warning).`;
+          break;
+
+        case 'prod-csr':
+          cmd = `openssl req -new -newkey ed25519 -keyout ${domain}.key -out ${domain}.csr -nodes -subj "/CN=${domain}" -addext "subjectAltName=DNS:${domain},DNS:www.${domain}"`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>-new</code>: Create a fresh Certificate Signing Request (CSR).<br>
+          • <code>-keyout</code>: Saves the new private key securely (never send this to the CA!).<br>
+          • <code>-out</code>: The CSR file you upload to Let's Encrypt or your SSL vendor.`;
+          break;
+
+        case 'enc-file':
+          cmd = `openssl enc -aes-256-gcm -pbkdf2 -iter 100000 -in ${file} -out ${file}.enc`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>-aes-256-gcm</code>: 256-bit Authenticated Encryption (confidentiality + integrity).<br>
+          • <code>-pbkdf2</code>: Derives symmetric key using cryptographic PBKDF2.<br>
+          • <code>-iter 100000</code>: 100,000 hashing rounds protects your password against GPU password cracking.`;
+          break;
+
+        case 'dec-file':
+          cmd = `openssl enc -d -aes-256-gcm -pbkdf2 -iter 100000 -in ${file}.enc -out ${file}`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>-d</code>: Decrypt mode.<br>
+          • <code>-aes-256-gcm</code>: Verifies GHASH tag; drops corrupted or tampered data instantly.`;
+          break;
+
+        case 'ed25519-key':
+          cmd = `openssl genpkey -algorithm ed25519 -out ed25519_key.pem && openssl pkey -in ed25519_key.pem -pubout -out ed25519_pub.pem`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>genpkey</code>: OpenSSL 3.x universal key generator.<br>
+          • <code>-algorithm ed25519</code>: Post-Snowden safe Edwards-curve keypair.<br>
+          • <code>openssl pkey -pubout</code>: Extracts public key from private key file.`;
+          break;
+
+        case 'sign-file':
+          cmd = `openssl pkeyutl -sign -inkey ed25519_key.pem -in ${file} -out ${file}.sig`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>pkeyutl -sign</code>: Modern cryptographic signature utility.<br>
+          • <code>-inkey</code>: Signs using your private key.`;
+          break;
+
+        case 'verify-sig':
+          cmd = `openssl pkeyutl -verify -pubin -inkey ed25519_pub.pem -in ${file} -sigfile ${file}.sig`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>-verify -pubin</code>: Verifies signature using public key only.<br>
+          • Outputs <code>Signature Verified Successfully</code> on success.`;
+          break;
+
+        case 'test-tls':
+          cmd = `openssl s_client -connect ${domain}:443 -servername ${domain} -showcerts </dev/null`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>-connect</code>: Remote host and port.<br>
+          • <code>-servername</code>: Passes SNI so the server delivers the right virtual host certificate.<br>
+          • <code>-showcerts</code>: Dumps all intermediate and root certificates in the chain.`;
+          break;
+
+        case 'sha256-hash':
+          cmd = `openssl dgst -sha256 ${file}`;
+          breakdown = `<strong>What each flag does:</strong><br>
+          • <code>dgst -sha256</code>: Computes the 256-bit collision-resistant SHA-2 hash of the file.`;
+          break;
+      }
+
+      codeEl.textContent = cmd;
+      breakdownEl.innerHTML = breakdown;
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', updateGeneratedCommand);
+  </script>
+</body>
+</html>
