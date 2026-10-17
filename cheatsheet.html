@@ -1,0 +1,3933 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>When to Use What — Master Cryptographic Decision Matrix & Cheatsheet</title>
+  <style>
+/* -------------------------------------------------------------
+   CRYPTOGRAPHY FROM BASICS — UNIFIED DESIGN SYSTEM
+   Ergonomic, Minimalist, Cognitive-Friendly, Human-Crafted
+------------------------------------------------------------- */
+
+:root {
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --measure: 700px; /* Optimal reading length */
+  
+  --font-sans: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Charter", "Georgia", "Iowan Old Style", "Newsreader", serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+}
+
+/* 1. WARM PAPER (Default: Focused daylight, zero eye glare) */
+html[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #fbfaf8;
+  --bg-alt: #f3f1ec;
+  --surface: #ffffff;
+  --surface-hover: #f7f5f0;
+  --border: #e6e3dc;
+  --border-focus: #c8c3b8;
+  
+  --text-main: #22252a;      /* Soft charcoal ink */
+  --text-secondary: #5a6069;
+  --text-muted: #8b929c;
+  
+  --accent: #2d6a4f;         /* Forest Sage */
+  --accent-soft: rgba(45, 106, 79, 0.08);
+  --accent-border: rgba(45, 106, 79, 0.25);
+  --accent-text: #1b4332;
+
+  --code-bg: #efece5;
+  --widget-bg: #f5f3ed;
+  --widget-card: #ffffff;
+  --shadow-soft: 0 2px 8px rgba(34, 37, 42, 0.04);
+  --shadow-float: 0 8px 24px rgba(34, 37, 42, 0.08);
+  --progress-color: #2d6a4f;
+}
+
+/* 2. SEPIA (Kindle E-Reader warmth for extended study) */
+html[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --bg-alt: #eae4d8;
+  --surface: #fbf7f0;
+  --surface-hover: #ede6d9;
+  --border: #ddd5c7;
+  --border-focus: #b8ac99;
+  
+  --text-main: #2e2823;
+  --text-secondary: #655b52;
+  --text-muted: #95887b;
+  
+  --accent: #8c5b36;         /* Warm Sienna */
+  --accent-soft: rgba(140, 91, 54, 0.1);
+  --accent-border: rgba(140, 91, 54, 0.25);
+  --accent-text: #603813;
+
+  --code-bg: #e6ded1;
+  --widget-bg: #ede6d9;
+  --widget-card: #fbf7f0;
+  --shadow-soft: 0 2px 8px rgba(46, 40, 35, 0.04);
+  --shadow-float: 0 8px 24px rgba(46, 40, 35, 0.08);
+  --progress-color: #8c5b36;
+}
+
+/* 3. SLATE (Night reading with reduced blue-light) */
+html[data-theme="slate"] {
+  color-scheme: dark;
+  --bg: #141618;
+  --bg-alt: #1a1d20;
+  --surface: #202428;
+  --surface-hover: #262b30;
+  --border: #2c3238;
+  --border-focus: #424a52;
+  
+  --text-main: #e2e4e8;
+  --text-secondary: #9ea5b0;
+  --text-muted: #6a727d;
+  
+  --accent: #52b788;         /* Mint Sage */
+  --accent-soft: rgba(82, 183, 136, 0.12);
+  --accent-border: rgba(82, 183, 136, 0.3);
+  --accent-text: #74c69d;
+
+  --code-bg: #181b1e;
+  --widget-bg: #181b1f;
+  --widget-card: #202428;
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.2);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --progress-color: #52b788;
+}
+
+/* Font Switching */
+html[data-font="sans"] { --font-current: var(--font-sans); }
+html[data-font="serif"] { --font-current: var(--font-serif); }
+
+/* Theme-adaptive Ergonomic Scrollbars */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-focus) var(--bg);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-focus);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-current);
+  background-color: var(--bg);
+  color: var(--text-main);
+  line-height: 1.76;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Scroll progress */
+#readingProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--progress-color);
+  width: 0%;
+  z-index: 9999;
+}
+
+/* Topbar */
+.topbar {
+  height: 58px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-main);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brand-mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.segmented-control {
+  display: flex;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg-btn {
+  background: none;
+  border: none;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.seg-btn.active {
+  background: var(--surface);
+  color: var(--text-main);
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.theme-picker {
+  display: flex;
+  gap: 5px;
+}
+
+.theme-chip {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.theme-chip:hover { border-color: var(--border-focus); color: var(--text-main); }
+.theme-chip.active {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 270px 1fr 220px;
+  min-height: calc(100vh - 58px);
+  max-width: 1420px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 28px 20px;
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+}
+
+.nav-group-title {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 20px 10px 8px 10px;
+}
+
+.nav-list { list-style: none; }
+.nav-item { margin-bottom: 2px; }
+
+.nav-link {
+  display: flex;
+  align-items: baseline;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.12s;
+  font-family: var(--font-sans);
+}
+.nav-link:hover { background: var(--surface-hover); color: var(--text-main); }
+.nav-link.active {
+  background: var(--surface);
+  color: var(--accent-text);
+  font-weight: 600;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.nav-index {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+/* Reading Canvas */
+.reading-canvas {
+  padding: 50px 60px 100px 60px;
+  max-width: calc(var(--measure) + 120px);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.cognitive-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lesson-headline {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  color: var(--text-main);
+}
+
+.lesson-lead {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.62;
+  margin-bottom: 34px;
+}
+
+h2 {
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 44px 0 16px 0;
+  color: var(--text-main);
+}
+
+p {
+  margin-bottom: 20px;
+  color: var(--text-main);
+  opacity: 0.94;
+}
+
+ul, ol {
+  margin: 0 0 22px 24px;
+  color: var(--text-main);
+}
+
+li {
+  margin-bottom: 8px;
+  line-height: 1.65;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  padding: 2px 5px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+}
+
+/* Dilemma Box */
+.dilemma-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  margin: 30px 0;
+}
+
+.dilemma-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.dilemma-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-main);
+  margin-bottom: 0;
+}
+
+/* Analogy Tooltip */
+.analogy-term {
+  border-bottom: 1.5px dotted var(--accent);
+  cursor: help;
+  color: var(--text-main);
+  font-weight: 500;
+  position: relative;
+  display: inline-block;
+}
+
+.analogy-term:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-float);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  width: 260px;
+  border-radius: var(--radius-md);
+  z-index: 1000;
+  font-family: var(--font-sans);
+  font-weight: normal;
+  pointer-events: none;
+}
+
+/* Tactical Widget Container */
+.widget-frame {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.widget-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+
+.widget-caption {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.widget-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-text);
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.widget-content {
+  padding: 24px;
+}
+
+.clean-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 11px 14px;
+  font-family: var(--font-mono);
+  font-size: 14.5px;
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: all 0.15s;
+}
+.clean-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Checkpoint Box */
+.checkpoint-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 40px 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.checkpoint-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.checkpoint-prompt {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+
+.checkpoint-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.choice-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+.choice-btn.selected-correct {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+.feedback-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  display: none;
+}
+
+/* Footer Nav */
+.lesson-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+
+.nav-btn {
+  text-decoration: none;
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+.nav-btn-sub { font-size: 11px; color: var(--text-muted); }
+
+/* Right TOC */
+.toc-panel {
+  padding: 40px 20px;
+  border-left: 1px solid var(--border);
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+  font-family: var(--font-sans);
+}
+
+.toc-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.toc-nav-list { list-style: none; }
+.toc-nav-item { margin-bottom: 8px; }
+.toc-nav-link {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+  line-height: 1.4;
+  display: block;
+}
+.toc-nav-link:hover { color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 1080px) {
+  .layout { grid-template-columns: 240px 1fr; }
+  .toc-panel { display: none; }
+}
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .reading-canvas { padding: 24px 20px; }
+  .top-controls .segmented-control { display: none; }
+}
+
+/* =============================================================
+   VISUAL INFOGRAPHICS & DIAGRAM SUITE
+   ============================================================= */
+.pillar-visual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pillar-visual-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+.pillar-visual-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+.pillar-card-c::before,
+.pillar-card-i::before,
+.pillar-card-a::before,
+.pillar-card-r::before,
+.pillar-card-danger::before,
+.pillar-card-slate::before {
+  background: var(--accent);
+}
+
+.pillar-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.pillar-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+.pillar-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+}
+.pillar-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.pillar-card-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.pillar-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  margin: 0 -20px -20px -20px;
+  padding: 12px 20px;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.pillar-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pillar-meta-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.pillar-meta-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* Channel & Pipeline Architecture Diagrams */
+.channel-diagram {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 28px 0;
+}
+.channel-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+}
+.channel-actor-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  width: 140px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+}
+.channel-wire-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 14px 0;
+}
+.channel-line {
+  width: 100%;
+  height: 2px;
+  background: var(--border-focus);
+  position: relative;
+}
+.channel-line::before {
+  content: '►';
+  position: absolute;
+  right: 0;
+  top: -7px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+.threat-bubble {
+  background: var(--surface);
+  border: 1px dashed #c53030;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 12px;
+  color: var(--text-main);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Flow Ladders & Sequence Boxes */
+.ladder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+.ladder-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+}
+.ladder-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* =============================================================
+   INTERACTIVE PROCESS STEPPERS (FIXES NUMBER RENDERING)
+   ============================================================= */
+.step-stepper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 12px 0 24px 0;
+  padding: 0 14px;
+}
+.step-stepper::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+  transform: translateY(-50%);
+}
+.step-node {
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  transition: all 0.25s ease;
+  user-select: none;
+}
+.step-node.active {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  transform: scale(1.1);
+}
+.step-node.completed {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.process-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin: 16px 0;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sim-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* =============================================================
+   WORKED EXAMPLES (STANDARDIZED EDITORIAL FORMAT)
+   ============================================================= */
+.worked-example {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin: 32px 0;
+  box-shadow: var(--shadow-soft);
+}
+.example-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.example-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.example-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+.example-step {
+  display: flex;
+  gap: 14px;
+  margin: 12px 0;
+  align-items: flex-start;
+}
+.example-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.example-step-content {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.example-math {
+  font-family: var(--font-mono);
+  background: var(--code-bg);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 13px;
+  margin: 6px 0;
+  display: block;
+  overflow-x: auto;
+}
+.example-result {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  color: var(--accent-text);
+  font-weight: 600;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .pillar-visual-grid, .pillar-visual-grid-3 { grid-template-columns: 1fr; }
+  .channel-flow { flex-direction: column; }
+  .channel-actor-box { width: 100%; }
+}
+
+/* =============================================================
+   ATTACK POST-MORTEMS & HISTORIC CATASTROPHES
+   ============================================================= */
+.case-study {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid #c53030;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+}
+.case-study-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.case-study-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9b2c2c;
+  background: rgba(197, 48, 48, 0.08);
+  border: 1px solid rgba(197, 48, 48, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.case-study-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.case-study-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+.case-study-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.case-study-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.case-study-box-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.case-study-box p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.case-study-lesson {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--accent-text);
+  line-height: 1.6;
+}
+
+/* =============================================================
+   DISAMBIGUATION MATRICES & COMPARISON TABLES
+   ============================================================= */
+.disambiguation-matrix {
+  margin: 32px 0;
+  overflow-x: auto;
+}
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.matrix-table th {
+  background: var(--bg-alt);
+  color: var(--text-main);
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.matrix-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  vertical-align: top;
+}
+.matrix-table tr:last-child td {
+  border-bottom: none;
+}
+.matrix-table tr:hover td {
+  background: var(--surface-hover);
+}
+.status-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-broken {
+  background: rgba(197, 48, 48, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(197, 48, 48, 0.25);
+}
+.status-legacy {
+  background: rgba(214, 158, 46, 0.1);
+  color: #b7791f;
+  border: 1px solid rgba(214, 158, 46, 0.25);
+}
+.status-recommended {
+  background: rgba(45, 106, 79, 0.1);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.status-quantum {
+  background: rgba(107, 70, 193, 0.1);
+  color: #6b46c1;
+  border: 1px solid rgba(107, 70, 193, 0.25);
+}
+
+/* =============================================================
+   COMMANDMENTS & GOLDEN RULES
+   ============================================================= */
+.commandment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.commandment-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  gap: 14px;
+  transition: all 0.15s;
+}
+.commandment-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+.commandment-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.commandment-body h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.commandment-body p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.commandment-danger {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #c53030;
+  margin-top: 6px;
+  display: block;
+}
+
+/* =============================================================
+   GRAND UNIFIED PROTOCOL PIPELINE (HOW ALL 12 MODULES CONNECT)
+   ============================================================= */
+.protocol-pipeline {
+  position: relative;
+  margin: 36px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.protocol-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.15s;
+}
+.protocol-stage:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateX(4px);
+}
+.protocol-step-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.protocol-stage-content { flex: 1; }
+.protocol-stage-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+.protocol-stage-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.protocol-module-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* =============================================================
+   CIPHER ARCHITECTURE & MODES SCHEMATICS
+   ============================================================= */
+.cipher-arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.cipher-arch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.schematic-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* MODES SCHEMATICS */
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mode-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram {
+  background: var(--bg-alt);
+  border: 1px dashed var(--border-focus);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin: 10px 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-align: center;
+  color: var(--text-main);
+}
+
+/* =============================================================
+   INTERACTIVE MODES TAMPER LAB
+   ============================================================= */
+.tamper-lab-container {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 32px 0;
+}
+.tamper-mode-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.tamper-mode-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tamper-mode-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+.tamper-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+@media (max-width: 600px) {
+  .tamper-blocks-grid { grid-template-columns: 1fr; }
+}
+.tamper-block {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.tamper-block.corrupted {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.25);
+  animation: pulse-corrupt 0.35s ease;
+}
+.tamper-block.flipped {
+  border-color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+  animation: pulse-flipped 0.35s ease;
+}
+.tamper-block.intact {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+@keyframes pulse-corrupt {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes pulse-flipped {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.sim-btn {
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+.sim-btn-danger {
+  border-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #dc2626 !important;
+}
+.sim-btn-danger:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+.sim-btn-secondary {
+  border-color: var(--border);
+  background: var(--bg-alt);
+  color: var(--text-secondary);
+}
+.sim-btn-secondary:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+/* =============================================================
+   CRYPTOGRAPHY MYTHS VS REALITY
+   ============================================================= */
+.myth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin: 28px 0;
+}
+.myth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.myth-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c53030;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.myth-reality {
+  background: var(--bg-alt);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* =============================================================
+   CATALOG FILTER BUTTONS
+   ============================================================= */
+.catalog-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 24px 0;
+}
+.catalog-filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.catalog-filter-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.catalog-filter-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* =============================================================
+   VISUAL FLOWCHART NODES (PROFESSIONAL RENDERED DIAGRAMS)
+   ============================================================= */
+.flow-diagram-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+.flow-node-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.flow-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.flow-box-highlight {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+.flow-box-danger {
+  border-color: rgba(197, 48, 48, 0.3);
+  background: rgba(197, 48, 48, 0.05);
+}
+.flow-box-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.flow-box-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.flow-box-sub {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+.flow-substeps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.flow-substep-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+}
+.flow-arrow-down {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  height: 20px;
+  font-size: 14px;
+}
+.flow-arrow-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  width: 24px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.flow-operator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* MODE SCHEMATICS GRID & CARDS */
+.modes-visual-schematics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.mode-schematic-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-soft);
+}
+.mode-schematic-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.mode-schematic-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram-canvas {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 12px 0;
+}
+
+
+/* -------------------------------------------------------------
+   GLOBAL SEARCH & QUICK-LAUNCHER (MODAL & TRIGGER)
+------------------------------------------------------------- */
+.search-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-right: 8px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+.search-trigger-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-focus);
+  color: var(--text-main);
+}
+.search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  color: var(--text-muted);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+#searchModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  box-sizing: border-box;
+}
+#searchModalOverlay.active {
+  display: flex;
+}
+#searchModalCard {
+  background: var(--surface);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 640px;
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+  animation: searchCardPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes searchCardPop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+#searchModalHeader {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+#searchModalInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  color: var(--text-main);
+  outline: none;
+  font-family: var(--font-sans);
+}
+#searchModalInput::placeholder {
+  color: var(--text-muted);
+}
+#searchModalClose {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+#searchModalClose:hover {
+  background: var(--bg-alt);
+  color: var(--text-main);
+}
+#searchModalResults {
+  overflow-y: auto;
+  padding: 8px;
+  max-height: 52vh;
+}
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-main);
+  transition: background 0.12s ease;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+.search-result-item:hover,
+.search-result-item.active {
+  background: var(--accent-soft);
+}
+.search-result-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.search-result-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  margin-right: 12px;
+  white-space: nowrap;
+}
+.search-result-text {
+  overflow: hidden;
+}
+.search-result-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-arrow {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-left: 8px;
+  font-family: var(--font-mono);
+}
+#searchModalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+}
+
+/* -------------------------------------------------------------
+   ENVELOPE ENCRYPTION & INCIDENT RESPONSE PLAYBOOK COMPONENTS
+------------------------------------------------------------- */
+.envelope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.envelope-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+.envelope-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.envelope-card-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.envelope-step-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+.runbook-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+}
+.runbook-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-soft);
+}
+.runbook-step-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.runbook-step-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.runbook-step-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.runbook-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+.runbook-checklist li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 6px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+.runbook-checklist li::before {
+  content: "->";
+  position: absolute;
+  left: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hardware-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.hardware-tier-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hardware-tier-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  width: fit-content;
+  margin-bottom: 8px;
+}
+
+
+/* -------------------------------------------------------------
+   TLS 1.2 vs TLS 1.3 SEQUENCE DIAGRAM STYLES
+------------------------------------------------------------- */
+.seq-diagram-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: var(--shadow-soft);
+}
+.seq-diagram-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.seq-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+}
+.seq-protocol-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.seq-protocol-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.seq-protocol-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.badge-legacy {
+  background: rgba(220, 38, 38, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+.badge-modern {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.seq-flow-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.seq-lifelines {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px dashed var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.seq-rtt-section {
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.seq-rtt-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+.seq-flight {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.seq-flight-dir {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 11.5px;
+}
+.seq-flight-arrow-r {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-arrow-l {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-payload {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-main);
+  background: var(--bg-alt);
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+.seq-flight-tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  width: fit-content;
+}
+.tag-plain {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+.tag-enc {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+/* -------------------------------------------------------------
+   SYSTEMS & SECURITY KNOWLEDGE HUB DOMAIN CARDS
+------------------------------------------------------------- */
+.hub-domains-container {
+  margin: 40px 0;
+}
+.hub-domains-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+.hub-domain-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.hub-domain-card.active-domain {
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-float);
+}
+.hub-domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.hub-domain-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+.hub-domain-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.badge-active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.badge-roadmap {
+  background: var(--bg-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.hub-domain-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.hub-domain-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.hub-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.hub-topic-tag {
+  font-size: 11px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+
+/* -------------------------------------------------------------
+   TRACK VIEW TOGGLE & NAVIGATION IN HUB
+------------------------------------------------------------- */
+.track-view-section {
+  display: none;
+  animation: fadeIn 0.15s ease;
+}
+.track-view-section.active {
+  display: block;
+}
+.back-to-tracks-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+.back-to-tracks-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.track-card-clickable {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.track-card-clickable:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+
+
+/* -------------------------------------------------------------
+   WIDE SCREEN UTILIZATION & CHEATSHEET CARDS DIRECTORY
+------------------------------------------------------------- */
+.hub-main-container {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 40px 100px 40px;
+}
+@media (min-width: 1600px) {
+  .hub-main-container {
+    max-width: 1640px;
+    padding: 0 56px 120px 56px;
+  }
+}
+@media (max-width: 768px) {
+  .hub-main-container {
+    padding: 0 20px 80px 20px;
+  }
+}
+
+.hub-cheatsheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  margin-top: 18px;
+}
+.hub-cheatsheet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+}
+.hub-cheatsheet-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+.hub-cheatsheet-card.active-ref {
+  border-left: 4px solid var(--accent);
+}
+.cheatsheet-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cheatsheet-track-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.cheatsheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.cheatsheet-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+</style>
+  <style>
+    .ref-hero {
+      padding: 44px 0 28px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
+    }
+    .ref-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .ref-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 12px;
+    }
+    .ref-subtitle {
+      font-size: 16.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 760px;
+    }
+    .nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 24px 0 40px 0;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-pill-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .nav-pill-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent-text);
+      background: var(--accent-soft);
+    }
+    .decision-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-soft);
+    }
+    .decision-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .decision-usecase {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .decision-choice {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--accent-text);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+    }
+    .decision-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      font-size: 13.5px;
+    }
+    .decision-box {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+    }
+    .decision-box-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="index.html" class="brand">
+      <span>SYSTEMS &amp; SECURITY</span> <span class="brand-mark">MATRIX</span>
+    </a>
+
+    <div class="top-controls">
+      <button type="button" class="search-trigger-btn" onclick="openSearchModal()" title="Search documentation (Ctrl+K)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <span>Search</span>
+        <kbd class="search-kbd">Ctrl K</kbd>
+      </button>
+      <a href="openssl-cheatsheet.html" style="font-size: 13px; font-weight: 600; color: var(--accent-text); background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 5px 11px; border-radius: var(--radius-sm); text-decoration: none; margin-right: 10px;">OpenSSL 3.x Cheatsheet</a>
+      <a href="index.html" style="font-size: 13px; color: var(--text-secondary); text-decoration: none; margin-right: 12px; font-weight: 600;">← All Modules</a>
+      <!-- Font Switcher -->
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+
+      <!-- Theme Switcher -->
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Reference Container -->
+  <main style="max-width: 900px; margin: 0 auto; padding: 0 24px 100px 24px;">
+
+    <!-- Hero -->
+    <section class="ref-hero">
+      <div class="ref-eyebrow">Practical Engineering Reference & Guidelines</div>
+      <h1 class="ref-title">When to Use What</h1>
+      <p class="ref-subtitle">
+        A battle-tested decision guide for engineers and students. Stop guessing between algorithms: here are the definitive modern defaults, head-to-head trade-offs, security lifetimes, and the 10 Golden Commandments of applied cryptography.
+      </p>
+
+      <div class="nav-pills">
+        <a href="#decision-matrix" class="nav-pill-btn">Decision Matrix</a>
+        <a href="#comparisons" class="nav-pill-btn">Head-to-Head Comparisons</a>
+        <a href="#security-lifetimes" class="nav-pill-btn">Security Lifetimes &amp; NIST</a>
+        <a href="#commandments" class="nav-pill-btn">The 10 Commandments</a>
+        <a href="#protocol-flow" class="nav-pill-btn">The Protocol Pipeline</a>
+        <a href="#master-catalog" class="nav-pill-btn">Master Algorithm Catalog</a>
+        <a href="#attack-taxonomy" class="nav-pill-btn">Attacker's Playbook</a>
+        <a href="#myths-vs-reality" class="nav-pill-btn">Myths vs. Reality</a>
+        <a href="#disambiguation" class="nav-pill-btn">Disambiguation</a>
+        <a href="#enterprise-kms-playbook" class="nav-pill-btn">KMS & Incident Playbook</a>
+        <a href="openssl-cheatsheet.html" class="nav-pill-btn" style="border-color:var(--accent); color:var(--accent-text); font-weight:700;">OpenSSL 3.x Cheatsheet →</a>
+      </div>
+    </section>
+
+    <!-- SECTION 1: DECISION MATRIX -->
+    <section id="decision-matrix" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">1. The Practical Decision Matrix</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Choose the exact task you are solving in software design to find the recommended cryptographic primitive and safe parameter defaults.
+      </p>
+
+      <!-- Card 1: Bulk Encryption -->
+      <div class="decision-card">
+        <div class="decision-head">
+          <div class="decision-usecase">Encrypting Files, Databases, or Data at Rest</div>
+          <div class="decision-choice">AES-256-GCM or XChaCha20-Poly1305</div>
+        </div>
+        <div class="decision-detail-grid">
+          <div class="decision-box">
+            <div class="decision-box-label">When to pick which</div>
+            <div>Use <strong>AES-256-GCM</strong> on servers and laptops with hardware acceleration (AES-NI). Use <strong>XChaCha20-Poly1305</strong> on mobile devices, embedded chips, or when 192-bit nonces are needed to eliminate nonce reuse risks.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Key & Nonce Requirements</div>
+            <div>Key: <strong>256-bit (32 bytes)</strong> random secret.<br>Nonce/IV: <strong>96-bit (AES-GCM)</strong> or <strong>192-bit (XChaCha20)</strong>. Must NEVER be reused with the same key.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Forbidden Anti-Patterns</div>
+            <div><span class="status-pill status-broken">FORBIDDEN</span> ECB mode (leaks plaintext patterns), CBC mode without HMAC (padding oracle vulnerability), hardcoded static IVs.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Password Storage -->
+      <div class="decision-card">
+        <div class="decision-head">
+          <div class="decision-usecase">Storing User Authentication Passwords in a Database</div>
+          <div class="decision-choice">Argon2id (Fallback: bcrypt)</div>
+        </div>
+        <div class="decision-detail-grid">
+          <div class="decision-box">
+            <div class="decision-box-label">Why Argon2id?</div>
+            <div>Argon2id combines memory-hardness (defeats GPU/ASIC cracking arrays) with resistance to side-channel cache timing attacks. Winner of the Password Hashing Competition.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Recommended Production Parameters</div>
+            <div>Memory: <strong>64 MB</strong> (minimum 19 MB), Iterations: <strong>3 passes</strong>, Parallelism: <strong>1 to 4 threads</strong>. Per-user unique 128-bit salt.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Forbidden Anti-Patterns</div>
+            <div><span class="status-pill status-broken">FATAL</span> SHA-256, MD5, SHA-1, or plain HMAC. General-purpose hashes run billions of times per second on GPUs, making dictionary attacks trivial.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: API Request Signing -->
+      <div class="decision-card">
+        <div class="decision-head">
+          <div class="decision-usecase">Authenticating Webhooks & API Requests Between Known Parties</div>
+          <div class="decision-choice">HMAC-SHA256</div>
+        </div>
+        <div class="decision-detail-grid">
+          <div class="decision-box">
+            <div class="decision-box-label">How it works</div>
+            <div>Both parties share a secret API key. The sender hashes <code>HMAC(apiKey, payload + timestamp)</code>. The receiver computes the same HMAC and compares it in constant-time.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Key Parameters</div>
+            <div>Key: Minimum <strong>256-bit (32 bytes)</strong> cryptographically random secret. Include a UNIX timestamp in the signed payload to prevent replay attacks.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Forbidden Anti-Patterns</div>
+            <div>Naive prefix hashing <code>hash(key + message)</code> (vulnerable to Length Extension Attacks!). Standard non-constant-time equality operators like <code>===</code> (vulnerable to timing attacks).</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Digital Signatures & Code Signing -->
+      <div class="decision-card">
+        <div class="decision-head">
+          <div class="decision-usecase">Signing Documents, Software Updates, or Identity Tokens</div>
+          <div class="decision-choice">Ed25519 (Edwards-curve Digital Signature)</div>
+        </div>
+        <div class="decision-detail-grid">
+          <div class="decision-box">
+            <div class="decision-box-label">Why Ed25519?</div>
+            <div>Tiny 32-byte public keys and compact 64-byte signatures. Immune to side-channel cache timing attacks. Fast verification and deterministic nonce generation (no Sony PS3-style RNG failure possible).</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Legacy Fallback</div>
+            <div>If legacy compliance requires RSA, use <strong>RSA-PSS with 3072-bit or 4096-bit keys</strong> and SHA-256. Never use old RSA PKCS#1 v1.5 padding for new software.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Forbidden Anti-Patterns</div>
+            <div><span class="status-pill status-broken">BROKEN</span> RSA-1024, DSA, ECDSA with reused or predictable nonces <em>k</em>.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Secure Key Exchange -->
+      <div class="decision-card">
+        <div class="decision-head">
+          <div class="decision-usecase">Establishing an Encrypted Session Between Two Strangers</div>
+          <div class="decision-choice">X25519 (ECDH) or TLS 1.3 Handshake</div>
+        </div>
+        <div class="decision-detail-grid">
+          <div class="decision-box">
+            <div class="decision-box-label">Why Ephemeral Diffie-Hellman?</div>
+            <div>Generating a fresh keypair per session guarantees <strong>Forward Secrecy</strong>: even if a server's long-term master private key is stolen 5 years later, previously recorded traffic cannot be decrypted.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Key Parameters</div>
+            <div>Curve25519 (128-bit security level) or NIST P-256. Followed by HKDF (HMAC-based Extract-and-Expand Key Derivation) to derive symmetric session keys.</div>
+          </div>
+          <div class="decision-box">
+            <div class="decision-box-label">Forbidden Anti-Patterns</div>
+            <div>Static RSA key exchange (RSA encryption without ephemeral DH lacks forward secrecy and was permanently removed in TLS 1.3).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: HEAD TO HEAD COMPARISONS -->
+    <section id="comparisons" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">2. Head-to-Head Comparisons</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Detailed technical trade-offs between competing modern cryptographic primitives.
+      </p>
+
+      <!-- Match 1: AES-GCM vs ChaCha20-Poly1305 -->
+      <div class="concept-card" style="margin-bottom: 24px;">
+        <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">Comparison: AES-256-GCM vs. ChaCha20-Poly1305</h3>
+        <div class="disambiguation-matrix">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>AES-256-GCM</th>
+                <th>ChaCha20-Poly1305</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cipher Category</strong></td>
+                <td>Block Cipher (128-bit block, Galois Counter Mode)</td>
+                <td>Stream Cipher (ARX design: Add, Rotate, XOR)</td>
+              </tr>
+              <tr>
+                <td><strong>Hardware Performance</strong></td>
+                <td><strong>Blazing fast</strong> on x86/ARM CPUs with dedicated AES-NI hardware instructions (&gt;5 GB/s).</td>
+                <td>Consistent high performance in pure software without needing specialized hardware.</td>
+              </tr>
+              <tr>
+                <td><strong>Mobile / Embedded Devices</strong></td>
+                <td>Slower and burns more battery on cheap chips lacking AES hardware silicon.</td>
+                <td><strong>Winner on Mobile &amp; IoT</strong>. 3× to 4× faster than AES on platforms without hardware acceleration.</td>
+              </tr>
+              <tr>
+                <td><strong>Nonce Reuse Danger</strong></td>
+                <td><strong>Catastrophic</strong>: Reusing a 96-bit nonce destroys the GCM authentication key <em>H</em>, allowing total forgery.</td>
+                <td><strong>Catastrophic</strong> in 96-bit mode, but <strong>XChaCha20</strong> extends nonces to 192 bits, making random generation safe.</td>
+              </tr>
+              <tr>
+                <td><strong>Recommended Choice</strong></td>
+                <td>Standard default for servers, databases, and high-throughput microservices.</td>
+                <td>Default for mobile apps, IoT, WireGuard VPN, and systems using random nonces.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Match 2: Ed25519 vs RSA-4096 -->
+      <div class="concept-card" style="margin-bottom: 24px;">
+        <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">Comparison: Ed25519 vs. RSA-4096 vs. ECDSA P-256</h3>
+        <div class="disambiguation-matrix">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Ed25519 (Edwards Curve)</th>
+                <th>ECDSA P-256 (NIST Curve)</th>
+                <th>RSA-4096 (Integer Factorization)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Public Key Size</strong></td>
+                <td><strong>32 bytes</strong> (compact string)</td>
+                <td>64 bytes (uncompressed)</td>
+                <td><strong>512 bytes</strong> (massive overhead)</td>
+              </tr>
+              <tr>
+                <td><strong>Signature Size</strong></td>
+                <td><strong>64 bytes</strong></td>
+                <td>64 bytes</td>
+                <td><strong>512 bytes</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Verification Speed</strong></td>
+                <td>Extremely fast (~70,000 ops/sec)</td>
+                <td>Moderate (~25,000 ops/sec)</td>
+                <td>Fast verification, but <em>painfully slow signing</em>.</td>
+              </tr>
+              <tr>
+                <td><strong>RNG Vulnerability</strong></td>
+                <td><strong>Deterministic</strong> (no RNG needed during signing; immune to nonce reuse bugs).</td>
+                <td><strong>High Risk</strong>: Reusing or leaking single nonce <em>k</em> reveals private key (e.g. Sony PS3 hack).</td>
+                <td>Vulnerable to poor prime generation and timing side-channels.</td>
+              </tr>
+              <tr>
+                <td><strong>Verdict</strong></td>
+                <td><span class="status-pill status-recommended">MODERN WINNER</span> Ideal for SSH, Git, JWTs, WebAuthn.</td>
+                <td><span class="status-pill status-legacy">COMPLIANCE ONLY</span> Required by older government FIPS specs.</td>
+                <td><span class="status-pill status-legacy">LEGACY RETIRING</span> Avoid in new projects; high network payload.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Match 3: Argon2id vs PBKDF2 vs bcrypt -->
+      <div class="concept-card">
+        <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">Comparison: Argon2id vs. bcrypt vs. PBKDF2</h3>
+        <div class="disambiguation-matrix">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Argon2id</th>
+                <th>bcrypt</th>
+                <th>PBKDF2</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Memory Hardness</strong></td>
+                <td><strong>Configurable RAM (e.g. 64 MB)</strong>. Fills cache and throttles GPU/ASIC parallelization.</td>
+                <td>Fixed 4 KB memory footprint. Good against early GPUs, but weak against modern custom ASICs.</td>
+                <td><strong>Zero memory hardness</strong>. Only CPU intensive. Highly vulnerable to parallel GPU cracking!</td>
+              </tr>
+              <tr>
+                <td><strong>Password Truncation</strong></td>
+                <td>No practical password length limit.</td>
+                <td><strong>Silently truncates at 72 bytes!</strong> Any characters after byte 72 are completely ignored.</td>
+                <td>No length limit.</td>
+              </tr>
+              <tr>
+                <td><strong>Standard Status</strong></td>
+                <td>Winner of the Password Hashing Competition; IETF RFC 9106.</td>
+                <td>De-facto industry standard from 1999 (OpenBSD); still safe for moderate threat models.</td>
+                <td>Legacy NIST standard; required only for legacy FIPS-140 compliance.</td>
+              </tr>
+              <tr>
+                <td><strong>Verdict</strong></td>
+                <td><span class="status-pill status-recommended">TOP CHOICE</span> Use for all new password storage in 2026+.</td>
+                <td><span class="status-pill status-legacy">ACCEPTABLE</span> Safe fallback if Argon2id C-bindings unavailable.</td>
+                <td><span class="status-pill status-broken">DEPRECATED</span> Do not use for user passwords if you can avoid it.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: SECURITY LIFETIMES & NIST LEVELS -->
+    <section id="security-lifetimes" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">3. Cryptographic Lifetimes & Security Strengths</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Cryptographic algorithms expire as computing power grows. Align your architecture with the international NIST & ECRYPT security equivalence standards:
+      </p>
+
+      <div class="disambiguation-matrix">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Security Level</th>
+              <th>Status & Deprecation</th>
+              <th>Symmetric & Hashes</th>
+              <th>Asymmetric & Signatures</th>
+              <th>Recommended Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>&lt; 80 bits</strong></td>
+              <td><span class="status-pill status-broken">BROKEN & FORBIDDEN</span></td>
+              <td>DES, 3DES, MD5, SHA-1, RC4</td>
+              <td>RSA-1024, Diffie-Hellman 1024</td>
+              <td>Immediately migrate. Can be cracked by hobbyists or cloud clusters in minutes to hours.</td>
+            </tr>
+            <tr>
+              <td><strong>112 bits</strong></td>
+              <td><span class="status-pill status-legacy">LEGACY / PHASE OUT</span></td>
+              <td>3-Key Triple-DES, SHA-224</td>
+              <td>RSA-2048, DH-2048</td>
+              <td>Phased out by NIST after 2030. Unsuitable for long-lived archival data requiring 10+ year confidentiality.</td>
+            </tr>
+            <tr>
+              <td><strong>128 bits</strong></td>
+              <td><span class="status-pill status-recommended">CURRENT GOLD STANDARD</span></td>
+              <td>AES-128, ChaCha20, SHA-256, BLAKE3</td>
+              <td>Ed25519, Curve25519, NIST P-256, RSA-3072</td>
+              <td>The universal global baseline. Safe against all classical computers for the foreseeable future.</td>
+            </tr>
+            <tr>
+              <td><strong>256 bits (Post-Quantum)</strong></td>
+              <td><span class="status-pill status-quantum">QUANTUM RESILIENT</span></td>
+              <td>AES-256, SHA-384, SHA-512, SHA-3</td>
+              <td>ML-KEM (Kyber-768/1024), ML-DSA (Dilithium), Ed448</td>
+              <td>Protects against Grover's quantum search algorithm (which halves symmetric key strength from 256 to 128 bits).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 4: THE 10 GOLDEN COMMANDMENTS -->
+    <section id="commandments" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">4. The 10 Golden Commandments of Applied Cryptography</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Core principles distilled from four decades of catastrophic real-world implementation failures:
+      </p>
+
+      <div class="commandment-grid">
+        <div class="commandment-card">
+          <div class="commandment-num">1</div>
+          <div class="commandment-body">
+            <h4>Never Roll Your Own Cryptography</h4>
+            <p>Creating your own encryption algorithm or implementing math primitives from scratch guarantees fatal vulnerabilities. Always use peer-reviewed, battle-tested cryptographic libraries.</p>
+            <span class="commandment-danger">Penalty: Inevitable mathematical holes & subtle side-channel leaks.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">2</div>
+          <div class="commandment-body">
+            <h4>Never Reuse a Nonce Under AEAD</h4>
+            <p>Under AES-GCM or ChaCha20-Poly1305, encrypting two different messages with the same key and the same nonce destroys confidentiality and allows attackers to forge messages.</p>
+            <span class="commandment-danger">Penalty: Total recovery of authentication key and keystream xor.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">3</div>
+          <div class="commandment-body">
+            <h4>Always Use Authenticated Encryption (AEAD)</h4>
+            <p>Encryption provides confidentiality, NOT integrity. If ciphertext is unauthenticated, attackers can flip bits (malleability) or craft padding oracle attacks to decrypt without the key.</p>
+            <span class="commandment-danger">Penalty: Bit-flipping attacks & CBC padding oracle decryption.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">4</div>
+          <div class="commandment-body">
+            <h4>Fast Hashes are Fatal for Passwords</h4>
+            <p>SHA-256 and MD5 are built to hash gigabytes per second on disk. Storing passwords with fast hashes lets attackers test 50 billion guesses per second on consumer GPUs. Use Argon2id.</p>
+            <span class="commandment-danger">Penalty: Instant offline dictionary & rainbow table cracking.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">5</div>
+          <div class="commandment-body">
+            <h4>Always Compare Secrets in Constant Time</h4>
+            <p>Never use standard string comparison (<code>if (userToken == secretToken)</code>). Early exits leak timing microsecond deltas per byte, allowing attackers to guess secrets byte-by-byte.</p>
+            <span class="commandment-danger">Penalty: Remote timing side-channel key extraction.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">6</div>
+          <div class="commandment-body">
+            <h4>Generate Randomness Exclusively from CSPRNGs</h4>
+            <p>Standard pseudo-random functions like <code>Math.random()</code> or C's <code>rand()</code> are deterministic PRNGs designed for games, not security. Use OS-backed CSPRNGs (e.g. <code>/dev/urandom</code>).</p>
+            <span class="commandment-danger">Penalty: Completely predictable session tokens and encryption keys.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">7</div>
+          <div class="commandment-body">
+            <h4>Salts Must Be Unique; Nonces Must Be Fresh</h4>
+            <p>A salt prevents rainbow table reuse across multiple users. A nonce prevents replay attacks and keystream overlap. Never hardcode salts or nonces as constants.</p>
+            <span class="commandment-danger">Penalty: Sony PS3 private key leak & batch hash precomputation.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">8</div>
+          <div class="commandment-body">
+            <h4>Ensure Forward Secrecy by Default</h4>
+            <p>Always use Ephemeral Diffie-Hellman (ECDHE/X25519) key exchange. If an attacker records encrypted traffic today, stealing the server's private key tomorrow must not let them decrypt past traffic.</p>
+            <span class="commandment-danger">Penalty: Retrospective bulk decryption of years of recorded traffic.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">9</div>
+          <div class="commandment-body">
+            <h4>Keys Are Not Passwords; Passwords Are Not Keys</h4>
+            <p>A password is short, biased, low-entropy human text. A cryptographic key must be uniformly random and high entropy. Never use a raw password as an AES key; always pass through a KDF.</p>
+            <span class="commandment-danger">Penalty: Low-entropy keyspace cracked in milliseconds.</span>
+          </div>
+        </div>
+
+        <div class="commandment-card">
+          <div class="commandment-num">10</div>
+          <div class="commandment-body">
+            <h4>Design for Cryptographic Agility</h4>
+            <p>No algorithm remains unbroken forever. Store algorithm identifiers alongside your ciphertexts and hashes (e.g., <code>$argon2id$v=19$...</code>) so you can upgrade primitives without breaking legacy data.</p>
+            <span class="commandment-danger">Penalty: Catastrophic database migration gridlock when ciphers break.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: DISAMBIGUATION (COMMON CONFUSIONS) -->
+    <section id="disambiguation" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">5. Disambiguation: Clearing Up Common Confusions</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Quick-reference comparison guides for terminology that constantly confuses engineers:
+      </p>
+
+      <!-- Matrix 1: Nonce vs Salt vs IV -->
+      <div class="concept-card" style="margin-bottom: 24px;">
+        <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;"> The Trinity: Nonce vs. Salt vs. Initialization Vector (IV)</h3>
+        <div class="disambiguation-matrix">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Primitive</th>
+                <th>Primary Purpose</th>
+                <th>Must it be Unique?</th>
+                <th>Must it be Secret?</th>
+                <th>Where is it Used?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Nonce</strong> (Number used Once)</td>
+                <td>Guarantees freshness; prevents replay attacks and keystream reuse across multiple messages.</td>
+                <td><strong>Strictly Yes</strong>. Must never repeat under the same key.</td>
+                <td><strong>No</strong>. Sent publicly alongside ciphertext or handshake packets.</td>
+                <td>TLS handshakes, AES-GCM, ChaCha20, authentication challenges.</td>
+              </tr>
+              <tr>
+                <td><strong>Salt</strong></td>
+                <td>Introduces unique random divergence to prevent batch precomputed attacks (rainbow tables).</td>
+                <td><strong>Yes per user</strong>. Two users with identical passwords get different hashes.</td>
+                <td><strong>No</strong>. Stored directly alongside the password hash in the database.</td>
+                <td>Password hashing (Argon2id, bcrypt, PBKDF2), Key Derivation (HKDF).</td>
+              </tr>
+              <tr>
+                <td><strong>IV</strong> (Init Vector)</td>
+                <td>Ensures that identical plaintext blocks do not produce identical ciphertexts in block ciphers.</td>
+                <td><strong>Strictly Yes</strong>. Must be unpredictable (CSPRNG random).</td>
+                <td><strong>No</strong>. Prepended in plaintext to the ciphertext transmission.</td>
+                <td>Block cipher modes (CBC mode, CTR mode, CFB mode).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Matrix 2: Encoding vs Encryption vs Hashing -->
+      <div class="concept-card">
+        <h3 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;"> Encoding vs. Encryption vs. Hashing vs. Obfuscation</h3>
+        <div class="disambiguation-matrix">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Mechanism</th>
+                <th>Goal</th>
+                <th>Requires a Secret Key?</th>
+                <th>Reversible?</th>
+                <th>Example Technologies</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Encoding</strong></td>
+                <td>Transform data into a safe transmission format (ASCII, URL safe, bytes to text).</td>
+                <td><strong>No key</strong> (Public algorithm).</td>
+                <td><strong>Fully Reversible</strong> by anyone.</td>
+                <td>Base64, Hexadecimal, UTF-8, ASCII.</td>
+              </tr>
+              <tr>
+                <td><strong>Encryption</strong></td>
+                <td>Provide confidentiality; ensure only authorized key holders can read content.</td>
+                <td><strong>Yes</strong> (Symmetric secret or Asymmetric private key).</td>
+                <td><strong>Reversible</strong> only with the correct secret key.</td>
+                <td>AES-256-GCM, ChaCha20, RSA-OAEP.</td>
+              </tr>
+              <tr>
+                <td><strong>Hashing</strong></td>
+                <td>Provide unique one-way digital fingerprint for integrity and verification.</td>
+                <td><strong>No key</strong> (Unless using keyed HMAC or KDF).</td>
+                <td><strong>Strictly One-Way</strong> (Mathematically irreversible).</td>
+                <td>SHA-256, BLAKE3, SHA-3.</td>
+              </tr>
+              <tr>
+                <td><strong>Obfuscation</strong></td>
+                <td>Make source code or binaries difficult for humans to inspect or reverse-engineer.</td>
+                <td><strong>No key</strong> (Security through obscurity).</td>
+                <td><strong>Reversible</strong> with sufficient debugger analysis.</td>
+                <td>Minifiers, JavaScript scramblers, packing tools.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    
+    <!-- SECTION: THE GRAND UNIFIED SECURITY PROTOCOL -->
+    <section id="protocol-flow" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+        The Grand Unified Security Protocol: How All 12 Modules Connect
+      </h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        When you open your banking app on your smartphone, how do the 12 individual topics of this course work together in a single 200-millisecond handshake?
+      </p>
+
+      <div class="protocol-pipeline">
+        <!-- Stage 1 -->
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">STAGE 1 • IDENTITY</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Verifying the Bank's Identity (PKI &amp; Root CAs)</div>
+            <div class="protocol-stage-desc">
+              Before sending secrets, the phone asks: <em>"Are you really my bank?"</em> The server presents an X.509 certificate. The phone traverses the cryptographic chain of trust up to an embedded Root CA to verify the bank's digital signature.
+            </div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 09 (Digital Signatures &amp; PKI)</strong></div>
+          </div>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">STAGE 2 • KEY AGREEMENT</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Ephemeral Diffie-Hellman Key Agreement (Forward Secrecy)</div>
+            <div class="protocol-stage-desc">
+              Phone and server generate one-time ephemeral private keys (Curve25519) and exchange public coordinates across the public Wi-Fi. They independently calculate the identical 256-bit shared master secret without any eavesdropper being able to calculate it.
+            </div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 08 (Public-Key Revolution &amp; Diffie-Hellman)</strong></div>
+          </div>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">STAGE 3 • DERIVATION</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Master Key Expansion via HKDF</div>
+            <div class="protocol-stage-desc">
+              The raw shared secret is passed through HKDF (HMAC-based Key Derivation Function) with handshake nonces to securely extract and expand distinct symmetric keys: Client Write Key, Server Write Key, and IV vectors.
+            </div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 10 (Key Vaults &amp; KDFs)</strong></div>
+          </div>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">STAGE 4 • TRANSMISSION</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Authenticated Bulk Encryption (AES-GCM / ChaCha20-Poly1305)</div>
+            <div class="protocol-stage-desc">
+              All financial transactions and account balances are transmitted in 16-byte blocks using AES-256-GCM. The attached 128-bit GHASH tag guarantees that any packet modification by an attacker on the Wi-Fi causes instant rejection.
+            </div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 06 (Symmetric AES)</strong> &amp; <strong>Module 07 (Hashing &amp; HMAC)</strong></div>
+          </div>
+        </div>
+
+        <!-- Stage 5 -->
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">STAGE 5 • CREDENTIALS</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">User Authentication &amp; Hardware Secure Enclaves (Argon2 / Passkeys)</div>
+            <div class="protocol-stage-desc">
+              Inside the encrypted tunnel, the user authenticates. If using a password, the bank hashes it with memory-hard Argon2id. If using a modern Passkey, the phone's biometric Secure Enclave signs a challenge with an on-device private key.
+            </div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 10 (Key Vaults)</strong> &amp; <strong>Module 11 (Applied HTTPS &amp; Tokens)</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- SECTION: COMPREHENSIVE MASTER ALGORITHM CATALOG -->
+    <section id="master-catalog" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+        The Master Cryptographic Algorithm Catalog (All 6 Families)
+      </h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 16px;">
+        An exhaustive, categorized taxonomy of modern and historical cryptographic primitives. Use the filter pills below to isolate specific mathematical families:
+      </p>
+
+      <!-- Category Filter Buttons -->
+      <div class="catalog-filter-bar">
+        <button class="catalog-filter-btn active" onclick="filterCatalog('all', this)">All Primitives (30+)</button>
+        <button class="catalog-filter-btn" onclick="filterCatalog('sym-block', this)">Symmetric Block Ciphers</button>
+        <button class="catalog-filter-btn" onclick="filterCatalog('sym-stream', this)">Symmetric Stream Ciphers</button>
+        <button class="catalog-filter-btn" onclick="filterCatalog('asym', this)">Asymmetric &amp; PKI</button>
+        <button class="catalog-filter-btn" onclick="filterCatalog('hash', this)">Cryptographic Hashes</button>
+        <button class="catalog-filter-btn" onclick="filterCatalog('mac', this)">MACs &amp; Integrity</button>
+        <button class="catalog-filter-btn" onclick="filterCatalog('kdf', this)">Password KDFs</button>
+        <button class="catalog-filter-btn" onclick="filterCatalog('pqc', this)">Post-Quantum (PQC)</button>
+      </div>
+
+      <div class="disambiguation-matrix">
+        <table class="matrix-table" id="catalogTable">
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>Family</th>
+              <th>Key / Block Size</th>
+              <th>Status</th>
+              <th>Primary Real-World Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Symmetric Block -->
+            <tr data-cat="sym-block">
+              <td><strong>AES</strong> (Rijndael)</td>
+              <td>Symmetric Block</td>
+              <td>Key: 128/192/256b • Block: 128b</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>Universal standard. TLS 1.3, disk encryption (BitLocker), database tables, Wi-Fi WPA3.</td>
+            </tr>
+            <tr data-cat="sym-block">
+              <td><strong>3DES</strong> (Triple-DES)</td>
+              <td>Symmetric Block</td>
+              <td>Key: 112/168b • Block: 64b</td>
+              <td><span class="status-pill status-legacy">DEPRECATED</span></td>
+              <td>Legacy banking ATMs and chip cards. Slow; 64-bit blocks vulnerable to Sweet32 birthday attacks.</td>
+            </tr>
+            <tr data-cat="sym-block">
+              <td><strong>DES</strong></td>
+              <td>Symmetric Block</td>
+              <td>Key: 56b • Block: 64b</td>
+              <td><span class="status-pill status-broken">BROKEN</span></td>
+              <td>1977 IBM standard. 56-bit key can be brute-forced in under 24 hours on a cloud GPU.</td>
+            </tr>
+            <tr data-cat="sym-block">
+              <td><strong>Blowfish</strong></td>
+              <td>Symmetric Block</td>
+              <td>Key: 32–448b • Block: 64b</td>
+              <td><span class="status-pill status-legacy">LEGACY</span></td>
+              <td>Created by Bruce Schneier in 1993. Replaced by Twofish and AES due to 64-bit block limit.</td>
+            </tr>
+            <tr data-cat="sym-block">
+              <td><strong>Twofish</strong></td>
+              <td>Symmetric Block</td>
+              <td>Key: 128/192/256b • Block: 128b</td>
+              <td><span class="status-pill status-recommended">SECURE</span></td>
+              <td>AES finalist. Highly secure, unpatented, popular in OpenPGP and VeraCrypt.</td>
+            </tr>
+            <tr data-cat="sym-block">
+              <td><strong>Camellia</strong></td>
+              <td>Symmetric Block</td>
+              <td>Key: 128/192/256b • Block: 128b</td>
+              <td><span class="status-pill status-recommended">SECURE</span></td>
+              <td>Japanese NTT/Mitsubishi standard. Endorsed by ISO/IEC and EU NESSIE alongside AES.</td>
+            </tr>
+
+            <!-- Symmetric Stream -->
+            <tr data-cat="sym-stream">
+              <td><strong>ChaCha20</strong></td>
+              <td>Symmetric Stream</td>
+              <td>Key: 256b • Nonce: 96/192b</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>Designed by Dan Bernstein. Default in WireGuard VPN, Android TLS, and mobile SSH.</td>
+            </tr>
+            <tr data-cat="sym-stream">
+              <td><strong>RC4</strong> (Rivest Cipher 4)</td>
+              <td>Symmetric Stream</td>
+              <td>Key: 40–2048b</td>
+              <td><span class="status-pill status-broken">BROKEN &amp; BANNED</span></td>
+              <td>Used in early WEP and SSL. Biased keystream bytes allow plaintext recovery. Banned in IETF RFC 7465.</td>
+            </tr>
+
+            <!-- Asymmetric & PKI -->
+            <tr data-cat="asym">
+              <td><strong>Ed25519</strong> (Edwards Curve)</td>
+              <td>Asymmetric Signature</td>
+              <td>Pub: 32B • Sig: 64B (128b sec)</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>Modern standard for OpenSSH keys, Git commit signing, WebAuthn, Signal, and cryptocurrency.</td>
+            </tr>
+            <tr data-cat="asym">
+              <td><strong>X25519</strong> (Curve25519)</td>
+              <td>Asymmetric Key Exchange</td>
+              <td>Key: 32B (128b sec)</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>Diffie-Hellman ephemeral key agreement. Standard in TLS 1.3 handshakes and Tor onion routing.</td>
+            </tr>
+            <tr data-cat="asym">
+              <td><strong>RSA-4096 / RSA-PSS</strong></td>
+              <td>Asymmetric Enc/Sig</td>
+              <td>Key: 4096b • Modulus math</td>
+              <td><span class="status-pill status-legacy">LEGACY ACTIVE</span></td>
+              <td>Legacy SSL certificates, corporate PKI, enterprise code signing. Slowly migrating to ECC.</td>
+            </tr>
+            <tr data-cat="asym">
+              <td><strong>ECDSA P-256</strong> (secp256r1)</td>
+              <td>Asymmetric Signature</td>
+              <td>Pub: 64B • Sig: 64B</td>
+              <td><span class="status-pill status-legacy">COMPLIANCE ONLY</span></td>
+              <td>NIST standardized curve. Required by FIPS government specs; vulnerable to bad nonces (PS3 bug).</td>
+            </tr>
+            <tr data-cat="asym">
+              <td><strong>Diffie-Hellman (DH-3072)</strong></td>
+              <td>Asymmetric Key Exchange</td>
+              <td>Key: 3072b finite field</td>
+              <td><span class="status-pill status-legacy">LEGACY</span></td>
+              <td>Classic discrete logarithm key exchange. Replaced by Elliptic Curve Diffie-Hellman (ECDH).</td>
+            </tr>
+
+            <!-- Hash Functions -->
+            <tr data-cat="hash">
+              <td><strong>SHA-256 / SHA-512</strong></td>
+              <td>Cryptographic Hash</td>
+              <td>Digest: 256 / 512 bits</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>Universal backbone: Bitcoin mining, TLS certificate hashes, Git SHA-256, package signatures.</td>
+            </tr>
+            <tr data-cat="hash">
+              <td><strong>BLAKE3</strong></td>
+              <td>Tree Hash Function</td>
+              <td>Digest: 256 bits (extendable)</td>
+              <td><span class="status-pill status-recommended">NEXT-GEN</span></td>
+              <td>Blazing fast (5× faster than SHA-256) via tree hashing. Immune to length extension. Great for files.</td>
+            </tr>
+            <tr data-cat="hash">
+              <td><strong>SHA-3</strong> (Keccak)</td>
+              <td>Sponge Hash Function</td>
+              <td>Digest: 224/256/384/512 bits</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>NIST winner designed from completely different mathematics (sponge function). Immune to length extension.</td>
+            </tr>
+            <tr data-cat="hash">
+              <td><strong>SHA-1</strong></td>
+              <td>Cryptographic Hash</td>
+              <td>Digest: 160 bits</td>
+              <td><span class="status-pill status-broken">BROKEN</span></td>
+              <td>Google SHAttered collision in 2017. Banned in TLS certificates and modern Git repositories.</td>
+            </tr>
+            <tr data-cat="hash">
+              <td><strong>MD5</strong></td>
+              <td>Cryptographic Hash</td>
+              <td>Digest: 128 bits</td>
+              <td><span class="status-pill status-broken">FATALLY BROKEN</span></td>
+              <td>Collisions produced in seconds on laptops. Never use for security (used only for checksums against accidental disk errors).</td>
+            </tr>
+
+            <!-- MACs -->
+            <tr data-cat="mac">
+              <td><strong>HMAC-SHA256</strong></td>
+              <td>Message Auth Code</td>
+              <td>Tag: 256 bits • Key: 256b+</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>Authenticating REST APIs, AWS S3 request signatures, GitHub webhooks, session tokens.</td>
+            </tr>
+            <tr data-cat="mac">
+              <td><strong>Poly1305</strong></td>
+              <td>One-Time Authenticator</td>
+              <td>Tag: 128 bits • Key: 256b</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>High-speed mathematical MAC designed for pairing with ChaCha20. Powers mobile and WireGuard VPN auth.</td>
+            </tr>
+            <tr data-cat="mac">
+              <td><strong>KMAC</strong> (Keccak MAC)</td>
+              <td>Sponge-Based MAC</td>
+              <td>Custom output length</td>
+              <td><span class="status-pill status-recommended">MODERN</span></td>
+              <td>NIST SP 800-185 standard. Cleaner than HMAC; native sponge construction requires no inner/outer key padding.</td>
+            </tr>
+
+            <!-- KDFs -->
+            <tr data-cat="kdf">
+              <td><strong>Argon2id</strong></td>
+              <td>Memory-Hard KDF</td>
+              <td>Configurable RAM (e.g. 64MB)</td>
+              <td><span class="status-pill status-recommended">TOP CHOICE</span></td>
+              <td>IETF RFC 9106. Standard for user password hashing. Resists both GPU clusters and cache timing attacks.</td>
+            </tr>
+            <tr data-cat="kdf">
+              <td><strong>bcrypt</strong></td>
+              <td>Key Derivation / Hash</td>
+              <td>Cost factor 12+</td>
+              <td><span class="status-pill status-legacy">ACCEPTABLE</span></td>
+              <td>1999 OpenBSD standard. Battle-tested; safe fallback, but beware of silent 72-byte truncation.</td>
+            </tr>
+            <tr data-cat="kdf">
+              <td><strong>HKDF</strong> (HMAC-based KDF)</td>
+              <td>Key Expansion KDF</td>
+              <td>Extract &amp; Expand (RFC 5869)</td>
+              <td><span class="status-pill status-recommended">GOLD STANDARD</span></td>
+              <td>Takes a raw master secret (e.g. from Diffie-Hellman) and expands it into distinct encryption, IV, and auth keys.</td>
+            </tr>
+            <tr data-cat="kdf">
+              <td><strong>PBKDF2</strong></td>
+              <td>Password KDF</td>
+              <td>Iterations: 600,000+</td>
+              <td><span class="status-pill status-legacy">PHASING OUT</span></td>
+              <td>FIPS compliant, but zero memory hardness. GPUs can parallelize guesses millions of times faster than Argon2.</td>
+            </tr>
+
+            <!-- Post-Quantum -->
+            <tr data-cat="pqc">
+              <td><strong>ML-KEM</strong> (Crystals-Kyber)</td>
+              <td>Post-Quantum KEM</td>
+              <td>Kyber-768 / Kyber-1024</td>
+              <td><span class="status-pill status-quantum">NIST STANDARD (2024)</span></td>
+              <td>Module-Lattice key encapsulation. Replaces Diffie-Hellman/RSA in Post-Quantum TLS 1.3 (FIPS 203).</td>
+            </tr>
+            <tr data-cat="pqc">
+              <td><strong>ML-DSA</strong> (Crystals-Dilithium)</td>
+              <td>Post-Quantum Signature</td>
+              <td>Dilithium-3 / Dilithium-5</td>
+              <td><span class="status-pill status-quantum">NIST STANDARD (2024)</span></td>
+              <td>Primary general-purpose digital signature standard for post-quantum PKI and certificates (FIPS 204).</td>
+            </tr>
+            <tr data-cat="pqc">
+              <td><strong>SLH-DSA</strong> (SPHINCS+)</td>
+              <td>Stateless Hash Signature</td>
+              <td>Hash-tree based</td>
+              <td><span class="status-pill status-quantum">NIST STANDARD (2024)</span></td>
+              <td>Relies solely on hash functions; immune to lattice-breaking breakthroughs. Conservative backup (FIPS 205).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <!-- SECTION: THE ATTACKER'S PLAYBOOK -->
+    <section id="attack-taxonomy" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+        The Attacker's Playbook: Cryptographic Attack Taxonomy
+      </h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Modern ciphers are rarely broken by cracking the underlying mathematical equations. Instead, attackers exploit structural, operational, and side-channel flaws:
+      </p>
+
+      <div class="disambiguation-matrix">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Attack Class</th>
+              <th>How the Attacker Operates</th>
+              <th>Real-World Example</th>
+              <th>Cryptographic Defense</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Passive Eavesdropping</strong></td>
+              <td>Snooping raw network packets without modifying them to observe secrets or metadata.</td>
+              <td>Sniffing plaintext Wi-Fi traffic in coffee shops or tapping undersea optical cables.</td>
+              <td>Strong bulk symmetric encryption (AES-256, ChaCha20) + Traffic padding.</td>
+            </tr>
+            <tr>
+              <td><strong>Man-in-the-Middle (MitM)</strong></td>
+              <td>Intercepting the communication channel and impersonating both parties simultaneously.</td>
+              <td>Rogue Wi-Fi routers injecting fake SSL certificates (e.g. Apple "goto fail" bug).</td>
+              <td>X.509 Digital Certificates + Public Key Infrastructure (PKI) + Certificate Pinning.</td>
+            </tr>
+            <tr>
+              <td><strong>Ciphertext Malleability</strong></td>
+              <td>Modifying specific bytes in ciphertext so the decrypted plaintext changes predictably without key.</td>
+              <td>Flipping a bit in CBC mode to change account number or wire amount from $100 to $900.</td>
+              <td>Authenticated Encryption with Associated Data (AEAD: AES-GCM or Encrypt-then-MAC).</td>
+            </tr>
+            <tr>
+              <td><strong>Replay Attacks</strong></td>
+              <td>Recording a valid encrypted message (e.g. "Transfer $1,000") and resending it 50 times.</td>
+              <td>Repeating automotive keyless entry remote signals or replaying valid API webhook calls.</td>
+              <td>Cryptographic Nonces, Session Handshakes, and UNIX Timestamp validation windows.</td>
+            </tr>
+            <tr>
+              <td><strong>Timing Side-Channels</strong></td>
+              <td>Measuring the microsecond execution time of a comparison function to guess secret bytes.</td>
+              <td>Exploiting standard <code>if (token == secret)</code> to guess API keys byte-by-byte.</td>
+              <td>Constant-time comparison functions (<code>crypto.timingSafeEqual</code>).</td>
+            </tr>
+            <tr>
+              <td><strong>Birthday / Collision Attacks</strong></td>
+              <td>Exploiting the Birthday Paradox to find two distinct inputs with identical hash digests.</td>
+              <td>Generating MD5 Chosen-Prefix Collisions to forge Microsoft code-signing certs (Flame).</td>
+              <td>Use hash digests with at least 256 bits of output space (SHA-256, SHA-3, BLAKE3).</td>
+            </tr>
+            <tr>
+              <td><strong>Length Extension Attacks</strong></td>
+              <td>Resuming the Merkle-Damgård internal state of SHA-256 to append malicious data.</td>
+              <td>Forging API authorization cookies when signatures are built via <code>hash(secret + data)</code>.</td>
+              <td>Use keyed HMAC (RFC 2104) or sponge hashes (SHA-3, BLAKE3) which are immune.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <!-- SECTION: CRYPTOGRAPHY MYTHS VS REALITY -->
+    <section id="myths-vs-reality" style="margin-bottom: 60px;">
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+        Cryptography Myths vs. Mathematical Reality
+      </h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); margin-bottom: 20px;">
+        Pervasive misconceptions that routinely mislead developers and architects:
+      </p>
+
+      <div class="myth-grid">
+        <!-- Myth 1 -->
+        <div class="myth-card">
+          <div class="myth-header">
+            <span>[No]</span>
+            <span>Myth: "256-bit encryption is twice as strong as 128-bit."</span>
+          </div>
+          <div class="myth-reality">
+            <strong>The Mathematical Reality:</strong> Key strength scales exponentially, not linearly! Every additional bit doubles the keyspace. 256-bit encryption is <strong>2<sup>128</sup> times harder</strong> to crack than 128-bit. That is a factor of 3.4 × 10<sup>38</sup> times more difficult—a number so vast that all computers on Earth running for billions of years cannot test even a fraction of the keyspace.
+          </div>
+        </div>
+
+        <!-- Myth 2 -->
+        <div class="myth-card">
+          <div class="myth-header">
+            <span>[No]</span>
+            <span>Myth: "Quantum computers will break all existing encryption."</span>
+          </div>
+          <div class="myth-reality">
+            <strong>The Mathematical Reality:</strong> Quantum computers run <strong>Shor's Algorithm</strong>, which shatters asymmetric algorithms based on factoring and discrete logs (RSA, Diffie-Hellman, ECC). However, against symmetric ciphers, quantum computers must use <strong>Grover's Algorithm</strong>, which only provides a quadratic speedup. AES-256 is reduced to 128 bits of quantum security—which is still mathematically impenetrable!
+          </div>
+        </div>
+
+        <!-- Myth 3 -->
+        <div class="myth-card">
+          <div class="myth-header">
+            <span>[No]</span>
+            <span>Myth: "Private / Incognito browsing encrypts your web traffic."</span>
+          </div>
+          <div class="myth-reality">
+            <strong>The Mathematical Reality:</strong> Incognito mode only prevents your local web browser from saving cookies, browsing history, and form data to your local hard drive. Every packet transmitted across your router, ISP, and cellular tower is completely visible unless protected by standard HTTPS/TLS encryption.
+          </div>
+        </div>
+
+        <!-- Myth 4 -->
+        <div class="myth-card">
+          <div class="myth-header">
+            <span>[No]</span>
+            <span>Myth: "Encrypting data automatically prevents tampering."</span>
+          </div>
+          <div class="myth-reality">
+            <strong>The Mathematical Reality:</strong> Encryption provides Confidentiality (secrecy), NOT Integrity (tamper detection). In fact, under unauthenticated modes like CBC or CTR, attackers can surgically flip specific bits in the ciphertext and predictably alter numbers in the decrypted plaintext without ever knowing the secret key! Always use AEAD (Authenticated Encryption).
+          </div>
+        </div>
+
+        <!-- Myth 5 -->
+        <div class="myth-card">
+          <div class="myth-header">
+            <span>[No]</span>
+            <span>Myth: "Proprietary, secret algorithms are safer than open standards."</span>
+          </div>
+          <div class="myth-reality">
+            <strong>The Mathematical Reality:</strong> <strong>Kerckhoffs's Principle</strong> states that a cryptosystem must remain secure even if everything about it is public, except the key. Every proprietary "secret algorithm" in history (from DVD CSS to cellular A5/1) was reverse-engineered and broken in days. Open standards like AES withstand decades of continuous attacks by the world's greatest mathematicians.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. Enterprise Key Architecture & Incident Response Playbook -->
+    <section id="enterprise-kms-playbook" style="margin-bottom: 60px;">
+      <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 6px;">Enterprise Operations</div>
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">10. Key Architecture & Incident Response Playbook</h2>
+      <p style="font-size: 14.5px; color: var(--text-secondary); max-width: var(--measure); margin-bottom: 24px;">
+        When cryptography moves into production clouds and enterprise infrastructure, algorithms matter less than key boundaries and operational runbooks.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 28px;">
+        <!-- Envelope Encryption Pattern -->
+        <div class="matrix-card">
+          <div class="matrix-head">
+            <span class="matrix-category">Architecture Pattern</span>
+            <span class="matrix-badge">Scale & Safety</span>
+          </div>
+          <h3 class="matrix-title">Envelope Encryption (KMS + DEK)</h3>
+          <p class="matrix-desc">
+            Never stream gigabytes of raw data to an HSM. Generate a random 256-bit <strong>Data Encryption Key (DEK)</strong> per object, encrypt the payload locally in milliseconds via AES-256-GCM, and store the encrypted DEK (sealed under the master KEK) directly alongside the ciphertext.
+          </p>
+          <div style="background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-top: 14px; font-size: 12.5px; line-height: 1.6;">
+            <strong>Golden Rule:</strong> Storage admins have S3/DB access but NO KMS decrypt rights. KMS admins manage policies but have NO storage access. Neither group can decrypt alone.
+          </div>
+        </div>
+
+        <!-- Zero-Downtime Key Rotation -->
+        <div class="matrix-card">
+          <div class="matrix-head">
+            <span class="matrix-category">Production Migration</span>
+            <span class="matrix-badge">Zero Downtime</span>
+          </div>
+          <h3 class="matrix-title">4-Stage Key Rotation Protocol</h3>
+          <p class="matrix-desc">
+            How to rotate production database keys without downtime or decrypt failures:
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 12px;">
+            <div style="background: var(--bg-alt); padding: 8px 10px; border-radius: 4px; border: 1px solid var(--border);"><strong>1. Dual-Read, Old-Write:</strong> Deploy new Key 2. Service decrypts with (K1 OR K2), writes with K1.</div>
+            <div style="background: var(--bg-alt); padding: 8px 10px; border-radius: 4px; border: 1px solid var(--border);"><strong>2. Dual-Read, New-Write:</strong> Flip write pointer. Service encrypts strictly with K2; reads legacy K1.</div>
+            <div style="background: var(--bg-alt); padding: 8px 10px; border-radius: 4px; border: 1px solid var(--border);"><strong>3. Background Re-encrypt:</strong> Asynchronous batch job re-encrypts old DB rows from K1 to K2.</div>
+            <div style="background: var(--bg-alt); padding: 8px 10px; border-radius: 4px; border: 1px solid var(--border);"><strong>4. Retire Old Key:</strong> Confirm 0 records remain under K1, then permanently delete K1.</div>
+          </div>
+        </div>
+
+        <!-- Key Leak Rapid Triage -->
+        <div class="matrix-card">
+          <div class="matrix-head">
+            <span class="matrix-category">Incident Response</span>
+            <span class="matrix-badge">Triage</span>
+          </div>
+          <h3 class="matrix-title">Key Leak Rapid Triage Checklist</h3>
+          <p class="matrix-desc">
+            Actions to execute within the first 15 minutes of a reported credential or key exposure:
+          </p>
+          <ul style="padding-left: 18px; margin-top: 10px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;">
+            <li><strong>Evaluate PFS:</strong> If the leaked key was a TLS private key and ephemeral Diffie-Hellman (ECDHE) was used, past captured sessions cannot be decrypted.</li>
+            <li><strong>Disable via KMS API:</strong> Execute <code>aws kms disable-key</code> immediately to prevent further unauthorized cryptographic operations.</li>
+            <li><strong>Revoke X.509 Certificate:</strong> Submit CA revocation with reason code <code>keyCompromise</code> for CRL/OCSP broadcast.</li>
+            <li><strong>Fleet Flush:</strong> Automatically purge compromised keys from <code>~/.ssh/authorized_keys</code> across all cloud instances.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Footer -->
+    <div style="border-top: 1px solid var(--border); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+      <a href="index.html" class="button" style="text-decoration: none;">← Return to All Modules</a>
+      <a href="modules/m01-foundations.html" class="button button-primary" style="text-decoration: none;">Start Module 01 →</a>
+    </div>
+
+  </main>
+
+  <script>
+/* -------------------------------------------------------------
+   CRYPTOGRAPHY FROM BASICS — SHARED CORE JAVASCRIPT
+   Theme, Typography, Reading Progress, Checkpoints, & Global Search
+------------------------------------------------------------- */
+
+(function () {
+  let savedTheme = 'paper';
+  let savedFont = 'sans';
+  try {
+    savedTheme = localStorage.getItem('crypto_theme') || 'paper';
+  } catch (e) {}
+  try {
+    savedFont = localStorage.getItem('crypto_font') || 'sans';
+  } catch (e) {}
+
+  setTheme(savedTheme, false);
+  setFont(savedFont, false);
+
+  // Setup Scroll Progress Bar
+  window.addEventListener('scroll', updateReadingProgress);
+
+  // DOM Ready Initializations
+  document.addEventListener('DOMContentLoaded', () => {
+    highlightActiveNavLink();
+    updateThemeUI(savedTheme);
+    updateFontUI(savedFont);
+    initGlobalSearch();
+  });
+})();
+
+// Reading Progress
+function updateReadingProgress() {
+  const progressBar = document.getElementById('readingProgress');
+  if (!progressBar) return;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  if (docHeight <= 0) {
+    progressBar.style.width = '0%';
+    return;
+  }
+  const scrolled = (window.scrollY / docHeight) * 100;
+  progressBar.style.width = Math.min(100, Math.max(0, scrolled)) + '%';
+}
+
+// Theme Switcher
+function setTheme(themeName, persist = true) {
+  document.documentElement.setAttribute('data-theme', themeName);
+  if (persist) {
+    try {
+      localStorage.setItem('crypto_theme', themeName);
+    } catch (e) {}
+  }
+  updateThemeUI(themeName);
+}
+
+function updateThemeUI(themeName) {
+  document.querySelectorAll('.theme-chip').forEach(chip => chip.classList.remove('active'));
+  const activeBtn = document.getElementById('theme' + themeName.charAt(0).toUpperCase() + themeName.slice(1));
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+// Font Switcher
+function setFont(fontType, persist = true) {
+  document.documentElement.setAttribute('data-font', fontType);
+  if (persist) {
+    try {
+      localStorage.setItem('crypto_font', fontType);
+    } catch (e) {}
+  }
+  updateFontUI(fontType);
+}
+
+function updateFontUI(fontType) {
+  const btnSans = document.getElementById('btnSans');
+  const btnSerif = document.getElementById('btnSerif');
+  if (btnSans && btnSerif) {
+    btnSans.classList.toggle('active', fontType === 'sans');
+    btnSerif.classList.toggle('active', fontType === 'serif');
+  }
+}
+
+// Sidebar Active Page Matcher
+function highlightActiveNavLink() {
+  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && href.endsWith(currentPath)) {
+      link.classList.add('active');
+    }
+  });
+}
+
+// Universal Checkpoint Quiz Engine
+function handleQuiz(button, isCorrect, explanationText) {
+  const parentCard = button.closest('.checkpoint-card') || button.parentElement.parentElement;
+  const feedback = parentCard.querySelector('.feedback-note');
+  const allButtons = parentCard.querySelectorAll('.choice-btn');
+
+  allButtons.forEach(btn => {
+    btn.style.opacity = '0.45';
+    btn.disabled = true;
+  });
+
+  button.style.opacity = '1';
+  if (feedback) {
+    feedback.style.display = 'block';
+    if (isCorrect) {
+      button.classList.add('selected-correct');
+      feedback.style.background = 'var(--accent-soft)';
+      feedback.style.color = 'var(--accent-text)';
+      feedback.style.border = '1px solid var(--accent-border)';
+      feedback.innerHTML = '<strong>Correct.</strong> ' + explanationText;
+    } else {
+      button.style.borderColor = '#c53030';
+      feedback.style.background = 'rgba(197, 48, 48, 0.08)';
+      feedback.style.color = '#c53030';
+      feedback.style.border = '1px solid rgba(197, 48, 48, 0.2)';
+      feedback.innerHTML = '<strong>Not quite.</strong> ' + explanationText;
+    }
+  }
+}
+
+/* -------------------------------------------------------------
+   UNIVERSAL CRYPTOGRAPHIC SEARCH & QUICK LAUNCHER (CTRL+K)
+------------------------------------------------------------- */
+const SEARCH_INDEX = [
+  // Foundations
+  { title: "CIA Triad & Non-Repudiation (CIA-R)", badge: "M01 Foundations", desc: "Confidentiality, Integrity, Availability, and Non-Repudiation pillars", path: "modules/m01-foundations.html#cia-triad", keywords: "cia confidentiality integrity availability non-repudiation triad pillars" },
+  { title: "Kerckhoffs's Principle & Shannon Maxim", badge: "M01 Foundations", desc: "Why security through obscurity fails: the enemy knows the system", path: "modules/m01-foundations.html#kerckhoffs", keywords: "kerckhoffs shannon obscurity open design enemy knows system" },
+  { title: "Threat Models & Cryptographic Adversaries", badge: "M01 Foundations", desc: "Ciphertext-only, Known-Plaintext, Chosen-Plaintext, Chosen-Ciphertext attacks", path: "modules/m01-foundations.html#threat-models", keywords: "adversary attack coa kpa cpa cca mitm passive active" },
+  
+  // Bits & Encoding
+  { title: "Bits, Bytes, Hexadecimal & ASCII", badge: "M02 Encoding", desc: "Foundational computer representations and binary conversions", path: "modules/m02-bits-and-encoding.html#bits-hex", keywords: "bits bytes binary hex hexadecimal ascii nibble base16" },
+  { title: "Base64 Encoding & 6-Bit Chunking", badge: "M02 Encoding", desc: "Representing raw binary data over 7-bit ASCII channels with padding", path: "modules/m02-bits-and-encoding.html#base64", keywords: "base64 encoding padding mime pem binary to text chunking" },
+  { title: "XOR (Exclusive OR) Cryptographic Properties", badge: "M02 Encoding", desc: "Self-inversion, commutativity, and the backbone of all modern ciphers", path: "modules/m02-bits-and-encoding.html#xor-properties", keywords: "xor exclusive or self-inverse bitwise stream cipher reversibility" },
+  
+  // Steganography
+  { title: "Steganography vs Encryption", badge: "M03 Steganography", desc: "Hiding data existence vs hiding data meaning", path: "modules/m03-steganography.html#steg-vs-crypto", keywords: "steganography hiding cover covert channel carrier" },
+  { title: "LSB (Least Significant Bit) Image Injection", badge: "M03 Steganography", desc: "Modifying lowest-order color bits to conceal secret byte payloads", path: "modules/m03-steganography.html#lsb-deep", keywords: "lsb least significant bit pixel color rgb carrier steganalysis payload" },
+
+  // Randomness
+  { title: "Entropy, PRNGs & CSPRNGs", badge: "M04 Randomness", desc: "True entropy sources vs deterministic pseudo-random generators", path: "modules/m04-randomness-entropy.html#entropy-sources", keywords: "entropy randomness prng csprng urandom seed unpredictability trng" },
+  { title: "The Dual-EC-DRBG Backdoor & Seed Compromise", badge: "M04 Randomness", desc: "How kleptographic backdoors and low entropy destroy key secrecy", path: "modules/m04-randomness-entropy.html#csprng-failures", keywords: "dual-ec-drbg backdoor nsa seed compromise debian openssl bug debian" },
+
+  // Classical Ciphers
+  { title: "Caesar & Vigenère Ciphers", badge: "M05 Classical", desc: "Monoalphabetic shifts and polyalphabetic keystreams", path: "modules/m05-classical-ciphers.html#caesar-vigenere", keywords: "caesar vigenere substitution shift polyalphabetic kasiski tabula recta" },
+  { title: "Frequency Analysis & Cryptanalysis", badge: "M05 Classical", desc: "Cracking classical ciphers using letter frequency distributions", path: "modules/m05-classical-ciphers.html#frequency-analysis", keywords: "frequency analysis cryptanalysis etaoin shrdlu letter distribution index coincidence" },
+  { title: "One-Time Pad (OTP) & Perfect Secrecy", badge: "M05 Classical", desc: "Information-theoretic security: key length >= message, truly random, never reused", path: "modules/m05-classical-ciphers.html#one-time-pad", keywords: "one time pad otp vernam perfect secrecy shannon unconditional vernam cipher" },
+
+  // Symmetric & AES
+  { title: "Block Ciphers vs Stream Ciphers", badge: "M06 Symmetric", desc: "Fixed 128-bit blocks vs continuous pseudo-random keystream XOR", path: "modules/m06-symmetric-aes.html#block-vs-stream", keywords: "block cipher stream cipher aes chacha20 keystream salsa20" },
+  { title: "AES (Advanced Encryption Standard) Round Architecture", badge: "M06 Symmetric", desc: "SubBytes (S-Box confusion), ShiftRows & MixColumns (diffusion), AddRoundKey", path: "modules/m06-symmetric-aes.html#aes-internals", keywords: "aes rijndael subbytes shiftrows mixcolumns addroundkey sbox confusion diffusion 128 192 256" },
+  { title: "Block Cipher Modes: ECB, CBC, CTR & GCM", badge: "M06 Symmetric", desc: "Why ECB is forbidden, CBC error propagation, and modern AEAD GCM", path: "modules/m06-symmetric-aes.html#block-modes-deep", keywords: "ecb cbc ctr gcm aead modes initialization vector iv authentication tag ghash" },
+  { title: "Interactive Tamper Simulator Lab", badge: "M06 Symmetric", desc: "Hands-on experiment: flip 1 ciphertext bit and watch error propagation across modes", path: "modules/m06-symmetric-aes.html#tamper-simulator", keywords: "tamper simulator lab bit-flip malleability authentication tag dropped error propagation" },
+
+  // Hashing & Integrity
+  { title: "Cryptographic Hash Functions: SHA-256, SHA-3, BLAKE3", badge: "M07 Hashing", desc: "Pre-image resistance, collision resistance, and the avalanche effect", path: "modules/m07-hashing-integrity.html#hash-properties", keywords: "sha256 sha3 keccak blake3 avalanche collision pre-image digest md5 sha1 sha2" },
+  { title: "HMAC (Keyed-Hash Message Authentication Code)", badge: "M07 Hashing", desc: "Why simple Hash(Key || Message) is vulnerable to Length Extension Attacks", path: "modules/m07-hashing-integrity.html#hmac-deep", keywords: "hmac length extension attack hash mac integrity authenticity secret key ipad opad" },
+  { title: "Merkle Trees & Lightweight Cryptographic Proofs", badge: "M07 Hashing", desc: "How Git and distributed systems verify 1 file out of 100,000 using 32-byte hashes", path: "modules/m07-hashing-integrity.html#merkle-trees", keywords: "merkle tree merkle root proof git commit integrity distributed blockchain" },
+
+  // Asymmetric & Public-Key
+  { title: "Diffie-Hellman Key Exchange (DH & ECDH)", badge: "M08 Asymmetric", desc: "Establishing a shared secret over an insecure channel without transmitting the key", path: "modules/m08-asymmetric-diffie-hellman.html#diffie-hellman", keywords: "diffie hellman ecdh discrete log public key shared secret x25519 color mixing" },
+  { title: "RSA Cryptosystem & Prime Factorization", badge: "M08 Asymmetric", desc: "Trapdoor one-way functions, Euler's totient, modular exponentiation", path: "modules/m08-asymmetric-diffie-hellman.html#rsa-deep", keywords: "rsa prime factorization modular exponentiation public private key euler totient trapdoor" },
+  { title: "Elliptic Curve Cryptography (ECC & Curve25519)", badge: "M08 Asymmetric", desc: "Point multiplication on Weierstrass and Montgomery curves for smaller, faster keys", path: "modules/m08-asymmetric-diffie-hellman.html#ecc-deep", keywords: "elliptic curve ecc curve25519 p256 point addition scalar multiplication secp256k1" },
+
+  // Signatures & PKI
+  { title: "Digital Signatures: Ed25519 & ECDSA", badge: "M09 Signatures", desc: "Authenticity and non-repudiation: sign with private key, verify with public key", path: "modules/m09-signatures-pki.html#digital-signatures", keywords: "digital signatures ed25519 ecdsa rsa sign verify signature signature verification" },
+  { title: "Public Key Infrastructure (PKI) & X.509", badge: "M09 Signatures", desc: "Certificate Authorities, trust chains, Root CAs, and Subject Alternative Names", path: "modules/m09-signatures-pki.html#pki-deep", keywords: "pki x509 certificate authority root ca intermediate chain san csr cert pem" },
+  { title: "Certificate Revocation: CRL, OCSP & OCSP Stapling", badge: "M09 Signatures", desc: "How browsers detect compromised certificates without privacy leaks or latency", path: "modules/m09-signatures-pki.html#revocation-deep", keywords: "revocation crl ocsp stapling letsencrypt compromised certificate crl distribution" },
+
+  // Key Vaults, KMS & Incident Response
+  { title: "Key Derivation Functions: Argon2id, bcrypt, PBKDF2", badge: "M10 Key Vaults", desc: "Memory-hard password hashing to neutralize GPU, FPGA, and ASIC brute-force", path: "modules/m10-key-vaults-kdfs.html#kdf-simulator", keywords: "argon2id bcrypt pbkdf2 password hashing salt pepper cost factor scrypt kdf" },
+  { title: "Hardware Security: HSMs, TPMs & Secure Enclaves", badge: "M10 Key Vaults", desc: "FIPS 140-3 physical silicon trust, Measured Boot, and zeroization circuits", path: "modules/m10-key-vaults-kdfs.html#hardware-security-deep", keywords: "hsm tpm secure enclave titan fips 140-3 measured boot zeroization hardware vault" },
+  { title: "Cloud KMS & Envelope Encryption Architecture", badge: "M10 Key Vaults", desc: "DEKs (Data Encryption Keys) + KEKs (Key Encryption Keys) for petabyte-scale encryption", path: "modules/m10-key-vaults-kdfs.html#envelope-encryption", keywords: "envelope encryption kms kek dek aws kms hashicorp vault key management google cloud kms" },
+  { title: "Cryptographic Incident Response & Key Compromise Playbook", badge: "M10 Key Vaults", desc: "Production triage, zero-downtime dual-key migration, and secret revocation runbook", path: "modules/m10-key-vaults-kdfs.html#incident-response-playbook", keywords: "incident response key compromise leak rotation playbook zero-downtime rekeying triage" },
+  { title: "Seed Phrases & BIP-39 Derivation Trees", badge: "M10 Key Vaults", desc: "Master seed phrases, checksums, and hierarchical deterministic key generation", path: "modules/m10-key-vaults-kdfs.html#seed-phrases", keywords: "bip39 seed phrase mnemonic hierarchical deterministic wallet recovery bip44" },
+
+  // Applied Protocols
+  { title: "TLS 1.3 Handshake Protocol & Forward Secrecy", badge: "M11 Applied", desc: "1-RTT encrypted handshake, ephemeral Diffie-Hellman, and zero-round-trip resumption", path: "modules/m11-applied-https-tokens.html#tls-handshake", keywords: "tls 1.3 https handshake forward secrecy pfs session resumption sni cipher suite" },
+  { title: "Token Authentication: JWT vs PASETO", badge: "M11 Applied", desc: "Why 'alg: none' ruined JWT, and how PASETO enforces cryptographic security", path: "modules/m11-applied-https-tokens.html#tokens-deep", keywords: "jwt paseto tokens alg none signature authorization bearer claims jws jwe" },
+  { title: "SSH & WireGuard Cryptographic Architecture", badge: "M11 Applied", desc: "Noise protocol, modern ChaCha20-Poly1305 tunnels, and Ed25519 identity", path: "modules/m11-applied-https-tokens.html#wireguard-ssh", keywords: "ssh wireguard noise protocol vpn authorized_keys tunneling modern crypto" },
+
+  // Quantum & ZKP
+  { title: "Post-Quantum Cryptography: NIST Standards (ML-KEM & ML-DSA)", badge: "M12 Quantum & ZKP", desc: "Shor's algorithm threat and lattice-based post-quantum cryptography (Kyber & Dilithium)", path: "modules/m12-zkp-quantum-era.html#pqc-deep", keywords: "post quantum pqc shor grover ml-kem kyber ml-dsa dilithium lattice nist quantum era" },
+  { title: "Zero-Knowledge Proofs: zk-SNARKs & zk-STARKs Intuition", badge: "M12 Quantum & ZKP", desc: "Proving knowledge of a secret without revealing the secret itself", path: "modules/m12-zkp-quantum-era.html#zkp-deep", keywords: "zero knowledge zkp snark stark proof prover verifier succinct rollups" },
+
+  // Module 13: Connected Topics & Public-Key Anatomy
+  { title: "Anatomy of an X.509 Certificate (RFC 5280)", badge: "M13 Connected Topics", desc: "TBSCertificate dissection, Subject Alternative Name (SAN), Basic Constraints, and Key Usage", path: "modules/m13-misc-topics.html#x509-anatomy", keywords: "x509 certificate rfc 5280 san subject alternative name tbscertificate basic constraints eku" },
+  { title: "Certificate Formats & Keystores: PEM, DER, PKCS#12, PKCS#7", badge: "M13 Connected Topics", desc: "Comparing Base64 PEM, raw binary DER, PKCS#7 chains, and password-encrypted PKCS#12 archives", path: "modules/m13-misc-topics.html#cert-formats", keywords: "pem der pkcs12 pfx pkcs7 p7b keystore jks certificate format conversion" },
+  { title: "Cryptographic Serialization & Canonical Encodings (ASN.1 & DER)", badge: "M13 Connected Topics", desc: "Why non-deterministic JSON fails signature checks and how ASN.1 DER and CBOR guarantee unique bitstreams", path: "modules/m13-misc-topics.html#canonical-serialization", keywords: "asn1 der cbor serialization canonical encoding tlv distinguished encoding rules json" },
+  { title: "Cryptographic Time: NTP Vulnerabilities, NTS & RFC 3161 TSP", badge: "M13 Connected Topics", desc: "Network Time Security (NTS) authenticated time and Timestamp Authorities for legal non-repudiation", path: "modules/m13-misc-topics.html#crypto-time", keywords: "time ntp nts network time security rfc 3161 tsp timestamp authority clock drift" },
+
+  // Systems & Security Engineering Tracks
+  { title: "Track 2: Operating System Fundamentals", badge: "Hub Track 02", desc: "Process lifecycles, virtual memory paging, CPU schedulers, file system inodes, and POSIX syscalls", path: "index.html#track-os-basics", keywords: "operating systems os processes threads virtual memory paging scheduling inodes syscalls ipc" },
+  { title: "Track 3: OS Internals & Kernel Security", badge: "Hub Track 03", desc: "Ring 0 vs Ring 3, memory corruption, ASLR, DEP/NX, Linux capabilities, and eBPF tracing", path: "index.html#track-os-internals", keywords: "os internals kernel security ring 0 aslr dep nx buffer overflow ebpf selinux apparmor" },
+  { title: "Track 4: Computer Networking & Protocols", badge: "Hub Track 04", desc: "TCP/IP stack, 3-way handshakes, congestion control, BGP routing, DNS, and WireGuard tunnels", path: "index.html#track-networking", keywords: "networking protocols tcp ip handshake bgp dns wireguard sockets congestion control" },
+  { title: "Track 5: Hardware Architecture & Silicon", badge: "Hub Track 05", desc: "CPU instruction pipelines, branch prediction, L1/L2/L3 caches, MESI coherence, and MMU page tables", path: "index.html#track-hardware", keywords: "hardware architecture cpu pipeline cache mesi mmu page table uefi dma interrupts" },
+  { title: "Track 6: Hardware Security & Silicon Trust", badge: "Hub Track 06", desc: "Spectre, Meltdown, Rowhammer, fault injection, voltage glitching, TPM 2.0, and Secure Enclaves", path: "index.html#track-hw-security", keywords: "hardware security spectre meltdown rowhammer fault injection tpm secure enclave glitching" },
+  { title: "Track 7: Cloud Infrastructure Security", badge: "Hub Track 07", desc: "Zero-Trust architecture, Cloud IAM least privilege, VPC peering, container isolation, and Vault", path: "index.html#track-cloud-sec", keywords: "cloud security zero trust iam vpc container kubernetes vault mtls service mesh" },
+
+  // Cheatsheets
+  { title: "When to Use What — Master Decision Matrix", badge: "Cheatsheet", desc: "Head-to-head algorithm comparisons, NIST lifetime matrix, and the 10 Golden Rules", path: "cheatsheet.html", keywords: "cheatsheet decision matrix recommendations comparison golden rules when to use what" },
+  { title: "OpenSSL 3.x Modern Command Handbook", badge: "OpenSSL", desc: "Intuitive command patterns for keys, certificates, HMACs, encryption, and TLS inspection", path: "openssl-cheatsheet.html", keywords: "openssl openssl 3 command cheatsheet req x509 genpkey dgst enc s_client s_server" }
+];
+
+let searchModalEl = null;
+let searchInputEl = null;
+let searchResultsEl = null;
+let activeResultIndex = -1;
+let filteredResults = [];
+
+function initGlobalSearch() {
+  if (!document.getElementById('searchModalOverlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'searchModalOverlay';
+    overlay.innerHTML = `
+      <div id="searchModalCard" onclick="event.stopPropagation()">
+        <div id="searchModalHeader">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchModalInput" placeholder="Search algorithms, ciphers, RFCs, tools, or concepts..." autocomplete="off">
+          <button id="searchModalClose" type="button" onclick="closeSearchModal()" title="Close (Esc)">&times;</button>
+        </div>
+        <div id="searchModalResults"></div>
+        <div id="searchModalFooter">
+          <span>Navigate with <kbd class="search-kbd">↑</kbd> <kbd class="search-kbd">↓</kbd></span>
+          <span>Select <kbd class="search-kbd">Enter</kbd></span>
+          <span>Close <kbd class="search-kbd">Esc</kbd></span>
+        </div>
+      </div>
+    `;
+    overlay.addEventListener('click', closeSearchModal);
+    document.body.appendChild(overlay);
+  }
+
+  searchModalEl = document.getElementById('searchModalOverlay');
+  searchInputEl = document.getElementById('searchModalInput');
+  searchResultsEl = document.getElementById('searchModalResults');
+
+  if (searchInputEl) {
+    searchInputEl.addEventListener('input', handleSearchInput);
+    searchInputEl.addEventListener('keydown', handleSearchKeydown);
+  }
+
+  // Keyboard shortcut listener
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      toggleSearchModal();
+    }
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      openSearchModal();
+    }
+    if (e.key === 'Escape' && searchModalEl && searchModalEl.classList.contains('active')) {
+      closeSearchModal();
+    }
+  });
+
+  renderSearchResults('');
+}
+
+function openSearchModal() {
+  if (!searchModalEl) initGlobalSearch();
+  searchModalEl.classList.add('active');
+  if (searchInputEl) {
+    searchInputEl.value = '';
+    renderSearchResults('');
+    setTimeout(() => searchInputEl.focus(), 50);
+  }
+}
+
+function closeSearchModal() {
+  if (searchModalEl) {
+    searchModalEl.classList.remove('active');
+  }
+}
+
+function toggleSearchModal() {
+  if (searchModalEl && searchModalEl.classList.contains('active')) {
+    closeSearchModal();
+  } else {
+    openSearchModal();
+  }
+}
+
+function handleSearchInput(e) {
+  renderSearchResults(e.target.value);
+}
+
+function handleSearchKeydown(e) {
+  if (!filteredResults.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex + 1) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex - 1 + filteredResults.length) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (activeResultIndex >= 0 && activeResultIndex < filteredResults.length) {
+      navigateToSearchResult(filteredResults[activeResultIndex]);
+    }
+  }
+}
+
+function updateActiveResultUI() {
+  const items = searchResultsEl.querySelectorAll('.search-result-item');
+  items.forEach((item, idx) => {
+    if (idx === activeResultIndex) {
+      item.classList.add('active');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+function renderSearchResults(query) {
+  if (!searchResultsEl) return;
+  const q = query.trim().toLowerCase();
+  
+  if (!q) {
+    filteredResults = SEARCH_INDEX.slice(0, 8);
+  } else {
+    const scored = [];
+    SEARCH_INDEX.forEach(item => {
+      const titleLower = item.title.toLowerCase();
+      const descLower = item.desc.toLowerCase();
+      const badgeLower = item.badge.toLowerCase();
+      const kwLower = item.keywords.toLowerCase();
+      
+      let score = 0;
+      if (titleLower === q) score += 200;
+      else if (titleLower.startsWith(q)) score += 150;
+      else if (titleLower.includes(' ' + q) || titleLower.includes('(' + q)) score += 120;
+      else if (titleLower.includes(q)) score += 40;
+
+      if (kwLower.includes(q)) score += 60;
+      if (descLower.includes(q)) score += 20;
+      if (badgeLower.includes(q)) score += 20;
+
+      if (score > 0) {
+        scored.push({ item, score });
+      }
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    filteredResults = scored.map(s => s.item);
+  }
+
+  activeResultIndex = filteredResults.length > 0 ? 0 : -1;
+
+  if (filteredResults.length === 0) {
+    searchResultsEl.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13.5px;">No cryptographic concepts found matching "<strong>' + escapeHtml(query) + '</strong>".</div>';
+    return;
+  }
+
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+
+  let html = '';
+  filteredResults.forEach((item, idx) => {
+    let resolvedPath = item.path;
+    if (isInsideModules) {
+      if (resolvedPath.startsWith('modules/')) {
+        resolvedPath = resolvedPath.replace('modules/', '');
+      } else {
+        resolvedPath = '../' + resolvedPath;
+      }
+    } else {
+      resolvedPath = item.path;
+    }
+
+    const isActive = idx === activeResultIndex ? ' active' : '';
+    html += `
+      <a href="${resolvedPath}" class="search-result-item${isActive}" onclick="closeSearchModal()">
+        <div class="search-result-left">
+          <span class="search-result-badge">${item.badge}</span>
+          <div class="search-result-text">
+            <div class="search-result-title">${escapeHtml(item.title)}</div>
+            <div class="search-result-desc">${escapeHtml(item.desc)}</div>
+          </div>
+        </div>
+        <span class="search-result-arrow">→</span>
+      </a>
+    `;
+  });
+
+  searchResultsEl.innerHTML = html;
+}
+
+function navigateToSearchResult(item) {
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+  let resolvedPath = item.path;
+  if (isInsideModules) {
+    if (resolvedPath.startsWith('modules/')) {
+      resolvedPath = resolvedPath.replace('modules/', '');
+    } else {
+      resolvedPath = '../' + resolvedPath;
+    }
+  }
+  closeSearchModal();
+  window.location.href = resolvedPath;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+</script>
+</body>
+</html>
