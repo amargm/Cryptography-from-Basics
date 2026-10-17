@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 05: Classical Ciphers — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .cipher-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .alphabet-strip {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.15em;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .shift-readout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 05</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link active"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 6 min read</span>
+        <span>•</span>
+        <span>Tier: Shared Secrets</span>
+        <span>•</span>
+        <span>Prerequisites: Module 01</span>
+      </div>
+
+      <h1 class="lesson-headline">Classical Ciphers & Breaking Patterns</h1>
+      <p class="lesson-lead">
+        For thousands of years, humans believed that swapping or reordering letters was enough to hide secrets. They overlooked one fatal flaw: human language leaves unmistakable footprints.
+      </p>
+
+      <!-- Section 1 -->
+      <section id="substitution-ciphers">
+        <h2>1. The Caesar Shift: The Oldest Trick</h2>
+        <p>
+          Julius Caesar did not trust his messengers. When writing to his generals, he shifted every letter in the Roman alphabet forward by 3 positions: <code>A</code> became <code>D</code>, <code>B</code> became <code>E</code>, and so on.
+        </p>
+        <p>
+          Because the English alphabet has only 26 letters, there are only <strong>25 possible keys</strong>. Even without a computer, a Roman soldier could try all 25 shifts on a napkin in 3 minutes.
+        </p>
+
+        <!-- Interactive Caesar Tool -->
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>Interactive Caesar Shift Dial</span>
+              <span class="widget-badge">Shift Explorer</span>
+            </div>
+            <span style="font-family:var(--font-mono); font-size:11px;" id="shiftVal">Shift: +3</span>
+          </div>
+
+          <div class="widget-content">
+            <div class="cipher-controls">
+              <div class="shift-readout">
+                <span>Drag to shift the alphabet:</span>
+                <input type="range" id="caesarSlider" min="1" max="25" value="3" style="width:50%; accent-color:var(--accent);">
+              </div>
+
+              <div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:4px;">Original Plaintext Alphabet:</div>
+                <div class="alphabet-strip">A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</div>
+              </div>
+
+              <div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:4px;">Shifted Ciphertext Alphabet:</div>
+                <div class="alphabet-strip" id="shiftedAlphabet" style="color:var(--accent);">D E F G H I J K L M N O P Q R S T U V W X Y Z A B C</div>
+              </div>
+
+              <div style="margin-top:10px;">
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Test Message:</label>
+                <input type="text" id="caesarInput" class="clean-input" value="MEET ME AT SUNSET">
+              </div>
+
+              <div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:4px;">Resulting Ciphertext:</div>
+                <div class="alphabet-strip" id="caesarOutput" style="font-weight:600;">PHHW PH DW VXQVHW</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2 -->
+      <section id="frequency-analysis">
+        <h2>2. Frequency Analysis: The Death of Substitution</h2>
+        <p>
+          To defeat simple shift guessing, scholars invented <strong>Monoalphabetic Substitution</strong>, mapping letters randomly (e.g., <code>A</code> $\to$ <code>X</code>, <code>B</code> $\to$ <code>Q</code>). This yields $26! \approx 4 \times 10^{26}$ combinations. A human could never guess them all.
+        </p>
+        <p>
+          Yet in the 9th century, Arab mathematician <strong>Al-Kindi</strong> cracked it using one profound insight: <em>Letter swapping scrambles the symbols, but preserves the rhythm of language.</em>
+        </p>
+        <div class="dilemma-card">
+          <div class="dilemma-label">The Inescapable Fingerprint of English</div>
+          <p class="dilemma-text">
+            In any typical English book, the letter <strong>E</strong> appears about <strong>13%</strong> of the time. The letters <strong>T</strong> (9%) and <strong>A</strong> (8%) follow closely. The letters <strong>Q</strong> and <strong>Z</strong> appear less than 0.2% of the time.<br><br>
+            If a hacker counts the letters in an intercepted ciphertext and finds that <code>W</code> appears 13% of the time, <code>W</code> is almost certainly the letter <code>E</code>!
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="one-time-pad">
+        <h2>3. The One-Time Pad: The Only Unbreakable Cipher</h2>
+        <p>
+          In 1917, engineers discovered the only mathematically proven unbreakable cipher: the <strong>One-Time Pad (OTP)</strong>.
+        </p>
+        <p>
+          If you take a message and combine each letter with a completely random letter from a key that is used <strong>only once and never reused</strong>, the resulting ciphertext has zero statistical patterns. Even an infinite supercomputer cannot crack it because every possible plaintext is equally likely.
+        </p>
+        <p>
+          <strong>Why don't we use it for everything?</strong> The Key Distribution Problem: The secret key must be just as long as the message. If you want to download a 50 GB video game securely, you would need to securely transport a 50 GB random key first!
+        </p>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            Why does frequency analysis fail against modern encryption algorithms like AES?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Modern block ciphers use multiple rounds of Confusion and Diffusion, completely flattening any letter frequency into uniform random noise.')">A) Modern ciphers destroy all letter patterns through confusion and diffusion rounds.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Frequency analysis works on any language as long as letter frequencies exist.')">B) Modern computers don\'t use the English language.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Key length matters, but without diffusion, repeating patterns still leak.')">C) Simply because the keys are longer.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m04-randomness-entropy.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>04. Randomness & Entropy</span>
+        </a>
+        <a href="m06-symmetric-aes.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>06. Symmetric & AES</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#substitution-ciphers" class="toc-nav-link">1. The Caesar Shift Dial</a></li>
+        <li class="toc-nav-item"><a href="#frequency-analysis" class="toc-nav-link">2. Frequency Analysis</a></li>
+        <li class="toc-nav-item"><a href="#one-time-pad" class="toc-nav-link">3. The One-Time Pad</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    const slider = document.getElementById('caesarSlider');
+    const shiftVal = document.getElementById('shiftVal');
+    const shiftedAlphabet = document.getElementById('shiftedAlphabet');
+    const caesarInput = document.getElementById('caesarInput');
+    const caesarOutput = document.getElementById('caesarOutput');
+
+    const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    function updateCaesar() {
+      const shift = parseInt(slider.value);
+      shiftVal.textContent = `Shift: +${shift}`;
+
+      // Build shifted alphabet
+      const shifted = ALPHABET.slice(shift) + ALPHABET.slice(0, shift);
+      shiftedAlphabet.textContent = shifted.split('').join(' ');
+
+      // Encrypt test input
+      const text = caesarInput.value.toUpperCase();
+      let res = '';
+      for (let ch of text) {
+        const idx = ALPHABET.indexOf(ch);
+        if (idx !== -1) {
+          res += shifted[idx];
+        } else {
+          res += ch;
+        }
+      }
+      caesarOutput.textContent = res;
+    }
+
+    slider.addEventListener('input', updateCaesar);
+    caesarInput.addEventListener('input', updateCaesar);
+    updateCaesar();
+  </script>
+</body>
+</html>
