@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 07: Hashing & Fingerprints — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .diff-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .diff-col { display: flex; flex-direction: column; gap: 6px; }
+    .hash-readout {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background: var(--code-bg);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .avalanche-metrics {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+    }
+    .bit-matrix {
+      display: grid;
+      grid-template-columns: repeat(32, 1fr);
+      gap: 4px;
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .bit-cell {
+      height: 14px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .bit-cell.flipped {
+      background: var(--accent);
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 07</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link active"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 6 min read</span>
+        <span>•</span>
+        <span>Tier: Integrity</span>
+        <span>•</span>
+        <span>Prerequisites: Module 02</span>
+      </div>
+
+      <h1 class="lesson-headline">Hashing & Digital Fingerprints</h1>
+      <p class="lesson-lead">
+        Encryption hides meaning; hashing detects change. A cryptographic hash function produces an unforgeable, fixed-length digital fingerprint of any data, whether a single letter or an entire operating system.
+      </p>
+
+      <!-- Section 1 -->
+      <section id="what-is-a-hash">
+        <h2>1. The Meat Grinder Analogy</h2>
+        <p>
+          Unlike encryption, which is designed to be decrypted with a key, a hash function is strictly a <strong>one-way street</strong>:
+        </p>
+        <ul>
+          <li>You can put a steak into a meat grinder and turn it into ground beef.</li>
+          <li>No machine on Earth can take the ground beef and reconstruct the original living steak.</li>
+        </ul>
+        <p>
+          No matter how large the input file is—1 word or a 50-gigabyte movie—a hash algorithm like <strong>SHA-256</strong> always produces a fingerprint of exactly 256 bits (64 hexadecimal characters).
+        </p>
+      </section>
+
+      <!-- Section 2: Interactive Avalanche Sandbox -->
+      <section id="avalanche-effect">
+        <h2>2. The Avalanche Effect</h2>
+        <p>
+          A secure hash function must have extreme sensitivity: altering just one letter, space, or comma must scramble approximately 50% of the entire output.
+        </p>
+
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>Live SHA-256 Avalanche Heatmap</span>
+              <span class="widget-badge">Real WebCrypto Engine</span>
+            </div>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Client-Side SHA-256</span>
+          </div>
+
+          <div class="widget-content">
+            <div class="diff-inputs">
+              <div class="diff-col">
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary);">Input A (Original):</label>
+                <input type="text" id="inA" class="clean-input" value="Password123">
+                <div class="hash-readout" id="outA">Calculating...</div>
+              </div>
+              <div class="diff-col">
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary);">Input B (Changed 1 letter):</label>
+                <input type="text" id="inB" class="clean-input" value="password123">
+                <div class="hash-readout" id="outB">Calculating...</div>
+              </div>
+            </div>
+
+            <div class="avalanche-metrics">
+              <div>
+                <div style="font-size:20px; font-weight:700; font-family:var(--font-mono); color:var(--accent-text);" id="flipScore">134 / 256</div>
+                <div style="font-size:11.5px; color:var(--text-muted);">Bits Flipped</div>
+              </div>
+              <div>
+                <div style="font-size:20px; font-weight:700; font-family:var(--font-mono); color:var(--accent-text);" id="flipPct">52.3%</div>
+                <div style="font-size:11.5px; color:var(--text-muted);">Avalanche Rate (Ideal is ~50%)</div>
+              </div>
+              <div>
+                <span style="font-size:12px; font-weight:700; background:var(--accent-soft); color:var(--accent-text); padding:4px 8px; border-radius:4px;">Passed</span>
+              </div>
+            </div>
+
+            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">
+              32-Byte Matrix (Green blocks show bytes that completely changed):
+            </div>
+            <div class="bit-matrix" id="byteGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="collisions-hmac">
+        <h2>3. The Birthday Paradox & HMAC</h2>
+        <p>
+          Because there are an infinite number of possible files, but only $2^{256}$ possible SHA-256 hashes, two distinct files could theoretically produce the identical fingerprint (a <strong>collision</strong>).
+        </p>
+        <p>
+          The <strong>Birthday Paradox</strong> proves that finding *any* matching pair in a group is much easier than finding a match for one specific person. This is how older hash algorithms like <strong>MD5</strong> and <strong>SHA-1</strong> were broken. SHA-256 remains rock solid.
+        </p>
+        <div class="dilemma-card">
+          <div class="dilemma-label">The Missing Piece: Who Made the Hash?</div>
+          <p class="dilemma-text">
+            If Mallory intercepts a file on the wire, she can alter the document and simply compute a fresh SHA-256 hash! Bob verifies the hash, and it matches!<br><br>
+            To prevent this, we use <strong>HMAC (Keyed-Hash Message Authentication Code)</strong>: Alice blends a secret key into the hash computation. Mallory cannot compute the valid HMAC because she doesn't know the key.
+          </p>
+        </div>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            Why does a standard hash (like SHA-256) alone fail to protect a message from an active attacker like Mallory?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Because anyone can run SHA-256. If Mallory tampers with the message, she simply generates a new matching hash for her altered message.')">A) Anyone can calculate a hash; Mallory can alter the text and regenerate the hash herself.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Hashing is virtually instantaneous for typical messages.')">B) Calculating hashes takes hours, allowing Mallory to attack.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Hashes operate uniformly on any language or byte format.')">C) Hashes only work on English characters.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m06-symmetric-aes.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>06. Symmetric & AES</span>
+        </a>
+        <a href="m08-asymmetric-diffie-hellman.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>08. Public-Key Revolution</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#what-is-a-hash" class="toc-nav-link">1. The Meat Grinder</a></li>
+        <li class="toc-nav-item"><a href="#avalanche-effect" class="toc-nav-link">2. Avalanche Sandbox</a></li>
+        <li class="toc-nav-item"><a href="#collisions-hmac" class="toc-nav-link">3. Collisions & HMAC</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    const inA = document.getElementById('inA');
+    const inB = document.getElementById('inB');
+    const outA = document.getElementById('outA');
+    const outB = document.getElementById('outB');
+    const flipScore = document.getElementById('flipScore');
+    const flipPct = document.getElementById('flipPct');
+    const byteGrid = document.getElementById('byteGrid');
+
+    // Create 32 cells
+    for (let i = 0; i < 32; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'bit-cell';
+      cell.id = `cell-${i}`;
+      byteGrid.appendChild(cell);
+    }
+
+    async function computeSHA256(text) {
+      const buf = new TextEncoder().encode(text);
+      const hash = await crypto.subtle.digest('SHA-256', buf);
+      return new Uint8Array(hash);
+    }
+
+    function toHex(bytes) {
+      return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function updateAvalanche() {
+      const bA = await computeSHA256(inA.value);
+      const bB = await computeSHA256(inB.value);
+
+      outA.textContent = toHex(bA);
+      outB.textContent = toHex(bB);
+
+      let flipped = 0;
+      for (let i = 0; i < 32; i++) {
+        const diff = bA[i] ^ bB[i];
+        const cell = document.getElementById(`cell-${i}`);
+
+        let temp = diff;
+        while (temp > 0) {
+          flipped += temp & 1;
+          temp >>= 1;
+        }
+
+        if (diff !== 0) {
+          cell.classList.add('flipped');
+        } else {
+          cell.classList.remove('flipped');
+        }
+      }
+
+      flipScore.textContent = `${flipped} / 256`;
+      flipPct.textContent = `${((flipped / 256) * 100).toFixed(1)}%`;
+    }
+
+    inA.addEventListener('input', updateAvalanche);
+    inB.addEventListener('input', updateAvalanche);
+    updateAvalanche();
+  </script>
+</body>
+</html>
