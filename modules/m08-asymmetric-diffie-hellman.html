@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 08: Public-Key Revolution — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .actor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .actor-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+    }
+    .actor-card.eve { border-style: dashed; background: var(--bg-alt); }
+    .color-swatch {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      margin: 0 auto 10px auto;
+      border: 2px solid var(--border);
+      transition: background-color 0.25s ease;
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: var(--surface);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .status-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 08</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link active"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 7 min read</span>
+        <span>•</span>
+        <span>Tier: Public-Key</span>
+        <span>•</span>
+        <span>Prerequisites: Modules 04, 06</span>
+      </div>
+
+      <h1 class="lesson-headline">The Public-Key Revolution</h1>
+      <p class="lesson-lead">
+        For 2,000 years, secure communication required a shared secret. If Alice and Bob never met in person, how could they start? In 1976, mathematics solved this impossible paradox.
+      </p>
+
+      <!-- Section 1 -->
+      <section id="padlock-analogy">
+        <h2>1. The Padlock Mental Model</h2>
+        <p>
+          In symmetric cryptography, Alice and Bob have identical keys. But in <strong>Asymmetric Cryptography</strong>, every person has a pair of two mathematically connected keys:
+        </p>
+        <ul>
+          <li><strong>Public Key:</strong> An open padlock. You can manufacture a million copies and hand them out to everyone on the street. Anyone can drop a letter in a box and snap your padlock shut.</li>
+          <li><strong>Private Key:</strong> The only physical key that opens that padlock. You keep it locked in your pocket and never show it to anyone.</li>
+        </ul>
+        <p>
+          Now, a complete stranger across the globe can take your public padlock, lock their credit card info inside, and send it to you. Even if Eve intercepts the box, she has no private key to open it!
+        </p>
+      </section>
+
+      <!-- Section 2: Interactive Color Lab -->
+      <section id="diffie-hellman-lab">
+        <h2>2. Diffie-Hellman: The Paint Mixing Masterpiece</h2>
+        <p>
+          In 1976, Whitfield Diffie and Martin Hellman designed the first key exchange protocol. How can two people agree on a secret color while an adversary watches every transmission?
+        </p>
+
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>Diffie-Hellman Color Exchange Lab</span>
+              <span class="widget-badge">No Math Required</span>
+            </div>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Common Base: Yellow</span>
+          </div>
+
+          <div class="widget-content">
+            <div class="actor-grid">
+              
+              <div class="actor-card">
+                <div style="font-size:13px; font-weight:700;">Alice</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Sender</div>
+                <div class="color-swatch" id="swatchAlice" style="background-color: rgb(220, 38, 38);"></div>
+                <div style="font-size:11.5px; color:var(--text-secondary);">Alice's Secret Hue</div>
+              </div>
+
+              <div class="actor-card eve">
+                <div style="font-size:13px; font-weight:700;">Eve (Hacker)</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Intercepts Public Wire</div>
+                <div class="color-swatch" id="swatchEve" style="background-color: rgb(210, 160, 40);"></div>
+                <div style="font-size:11.5px; color:var(--text-secondary);">Sees only murky mixtures</div>
+              </div>
+
+              <div class="actor-card">
+                <div style="font-size:13px; font-weight:700;">Bob</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Receiver</div>
+                <div class="color-swatch" id="swatchBob" style="background-color: rgb(37, 99, 235);"></div>
+                <div style="font-size:11.5px; color:var(--text-secondary);">Bob's Secret Hue</div>
+              </div>
+
+            </div>
+
+            <div class="controls-grid">
+              <div>
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:flex; justify-content:space-between;">
+                  <span>Alice's Secret Hue:</span>
+                  <span id="labelAlice">0°</span>
+                </label>
+                <input type="range" id="slideAlice" min="0" max="360" value="0" style="width:100%; accent-color:var(--accent);">
+              </div>
+              <div>
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:flex; justify-content:space-between;">
+                  <span>Bob's Secret Hue:</span>
+                  <span id="labelBob">220°</span>
+                </label>
+                <input type="range" id="slideBob" min="0" max="360" value="220" style="width:100%; accent-color:var(--accent);">
+              </div>
+            </div>
+
+            <div class="status-banner">
+              <div>
+                <strong style="font-size:13.5px;">Final Computed Shared Secret Key:</strong>
+                <div style="font-size:12px; color:var(--text-muted);">Both Alice and Bob arrived at the exact same secret color without ever sending it!</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="color-swatch" id="swatchFinal" style="width:36px; height:36px; margin:0;"></div>
+                <span style="font-family:var(--font-mono); font-size:13px; font-weight:700;" id="codeFinal">Identical Key!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="hybrid-encryption">
+        <h2>3. The Engineering Compromise: Hybrid Encryption</h2>
+        <p>
+          If asymmetric cryptography is so wonderful, why don't we use it to encrypt everything?
+        </p>
+        <div class="dilemma-card">
+          <div class="dilemma-label">Speed vs. Key Exchange</div>
+          <p class="dilemma-text">
+            Asymmetric math (RSA and Elliptic Curves) is roughly <strong>1,000 times slower</strong> than symmetric AES. Encrypting a 2-hour 4K movie with RSA would cause your smartphone to overheat and drain the battery.<br><br>
+            <strong>The Solution (Hybrid Cryptography):</strong> Use asymmetric keys for 0.05 seconds to safely exchange a fresh, random AES symmetric key. Then, switch to lightning-fast AES for the rest of the session!
+          </p>
+        </div>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            If Alice wants Bob to send her an encrypted confidential file using public-key cryptography, whose key should Bob use to encrypt the file?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Bob snaps Alice\'s open padlock (public key) shut. Only Alice holds the private key that unlocks it.')">A) Alice\'s Public Key</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Bob\'s public key would mean only Bob could decrypt it.')">B) Bob\'s Public Key</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Alice\'s private key must never leave her possession!')">C) Alice\'s Private Key</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m07-hashing-integrity.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>07. Hashing & Fingerprints</span>
+        </a>
+        <a href="m09-signatures-pki.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>09. Signatures & PKI</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#padlock-analogy" class="toc-nav-link">1. The Padlock Analogy</a></li>
+        <li class="toc-nav-item"><a href="#diffie-hellman-lab" class="toc-nav-link">2. Color Mixing Lab</a></li>
+        <li class="toc-nav-item"><a href="#hybrid-encryption" class="toc-nav-link">3. Hybrid Encryption</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    const slideA = document.getElementById('slideAlice');
+    const slideB = document.getElementById('slideBob');
+    const labelA = document.getElementById('labelAlice');
+    const labelB = document.getElementById('labelBob');
+    const swatchA = document.getElementById('swatchAlice');
+    const swatchB = document.getElementById('swatchBob');
+    const swatchEve = document.getElementById('swatchEve');
+    const swatchFinal = document.getElementById('swatchFinal');
+
+    function hslToRgb(h, s, l) {
+      let c = (1 - Math.abs(2 * l - 1)) * s,
+          x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+          m = l - c / 2,
+          r = 0, g = 0, b = 0;
+      if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+      else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+      else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+      else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+      else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+      else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+      return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+    }
+
+    function mix(c1, c2) {
+      return [Math.round((c1[0] + c2[0]) / 2), Math.round((c1[1] + c2[1]) / 2), Math.round((c1[2] + c2[2]) / 2)];
+    }
+
+    function toRgbStr(rgb) {
+      return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+    }
+
+    function updateDH() {
+      const hA = parseInt(slideA.value);
+      const hB = parseInt(slideB.value);
+      labelA.textContent = `${hA}°`;
+      labelB.textContent = `${hB}°`;
+
+      const common = [240, 200, 30]; // Base yellow
+      const secA = hslToRgb(hA, 0.8, 0.5);
+      const secB = hslToRgb(hB, 0.8, 0.5);
+
+      const pubA = mix(common, secA);
+      const pubB = mix(common, secB);
+      const eve = mix(pubA, pubB);
+
+      const finalKey = mix(pubB, secA);
+
+      swatchA.style.backgroundColor = toRgbStr(secA);
+      swatchB.style.backgroundColor = toRgbStr(secB);
+      swatchEve.style.backgroundColor = toRgbStr(eve);
+      swatchFinal.style.backgroundColor = toRgbStr(finalKey);
+    }
+
+    slideA.addEventListener('input', updateDH);
+    slideB.addEventListener('input', updateDH);
+    updateDH();
+  </script>
+</body>
+</html>
