@@ -1,1 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 03: Steganography — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .stego-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .stego-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+    }
+    .pixel-swatch {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      margin: 0 auto 12px auto;
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .binary-breakdown {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 03</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link active"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 5 min read</span>
+        <span>•</span>
+        <span>Tier: Foundations</span>
+        <span>•</span>
+        <span>Prerequisites: Module 02</span>
+      </div>
+
+      <h1 class="lesson-headline">Steganography: Hiding in Plain Sight</h1>
+      <p class="lesson-lead">
+        Encryption protects the content of a message, but announces to the world that you are keeping a secret. Steganography conceals the very existence of the communication.
+      </p>
+
+      <!-- Section 1 -->
+      <section id="hiding-vs-scrambling">
+        <h2>1. Hiding vs. Scrambling</h2>
+        <p>
+          Imagine you live under a tyrannical surveillance state. If the border guard finds an encrypted, password-protected file on your USB drive, they might arrest you simply for possessing encrypted material:
+        </p>
+        <ul>
+          <li><strong>Cryptography (Scrambling):</strong> <em>"You can see I am carrying a locked titanium safe, but you cannot open the lock."</em></li>
+          <li><strong>Steganography (Hiding):</strong> <em>"You look at my vacation photo album and see only photos of trees and beaches, completely oblivious that a secret manifesto is embedded inside the image pixels."</em></li>
+        </ul>
+      </section>
+
+      <!-- Section 2: Interactive LSB Tool -->
+      <section id="lsb-technique">
+        <h2>2. The Least Significant Bit (LSB) Principle</h2>
+        <p>
+          Every digital color photo is a grid of millions of pixels. Each pixel has three color channels: Red, Green, and Blue (RGB), with numbers ranging from 0 to 255 (1 byte each).
+        </p>
+        <p>
+          Look at the two color swatches below. Can your eyes spot any difference?
+        </p>
+
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>LSB Color-Shade Inspector</span>
+              <span class="widget-badge">Human Vision vs Binary</span>
+            </div>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Delta = 1 bit</span>
+          </div>
+
+          <div class="widget-content">
+            <div class="stego-grid">
+              
+              <div class="stego-card">
+                <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Original Innocent Pixel</div>
+                <div class="pixel-swatch" style="background-color: rgb(45, 106, 79);"></div>
+                <div style="font-size:12px; color:var(--text-secondary);">RGB: (45, 106, <strong>79</strong>)</div>
+                <div class="binary-breakdown">Blue byte: 0100111<strong>1</strong></div>
+              </div>
+
+              <div class="stego-card">
+                <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Pixel with Hidden Bit ('0')</div>
+                <div class="pixel-swatch" style="background-color: rgb(45, 106, 78);"></div>
+                <div style="font-size:12px; color:var(--text-secondary);">RGB: (45, 106, <strong>78</strong>)</div>
+                <div class="binary-breakdown">Blue byte: 0100111<strong style="color:var(--accent);">0</strong></div>
+              </div>
+
+            </div>
+
+            <div style="margin-top:16px; font-size:13.5px; color:var(--text-secondary); line-height:1.5;">
+              The blue value shifted by only 1 unit (from 79 to 78). The human eye has about 6 million retinal cones; it cannot detect a $0.4\%$ shade difference. But to a computer, that last bit holds a secret <code>0</code> or <code>1</code>!
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="layered-security">
+        <h2>3. Layered Defense: Crypto + Stego</h2>
+        <p>
+          What happens if an adversary runs a computer script to inspect all the least-significant bits in your photos? They might extract your hidden text!
+        </p>
+        <div class="dilemma-card">
+          <div class="dilemma-label">The Ultimate Defense Strategy</div>
+          <p class="dilemma-text">
+            <strong>Never rely on steganography alone.</strong> Professional security teams first <strong>encrypt</strong> the confidential document using AES-256 (turning it into random static), and then <strong>embed</strong> that encrypted static into an image or audio track. Even if an adversary extracts the hidden bits, they find only unbreakable ciphertext!
+          </p>
+        </div>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            Why is pure steganography (without encryption) considered a violation of Kerckhoffs's principle?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Once the enemy knows you are using LSB steganography on your JPEG images, they can extract the hidden text trivially. The security was dependent on keeping the method secret!')">A) Once the adversary learns your hiding technique, they extract your secret immediately; there is no secret key.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Images can hide thousands of text pages with zero visible degradation.')">B) Images can only store up to 5 letters of text.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Steganography is used widely across digital media and watermarking.')">C) Modern computers cannot read altered pixel bits.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m02-bits-and-encoding.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>02. Bits, Data & Encoding</span>
+        </a>
+        <a href="m04-randomness-entropy.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>04. Randomness & Entropy</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#hiding-vs-scrambling" class="toc-nav-link">1. Hiding vs Scrambling</a></li>
+        <li class="toc-nav-item"><a href="#lsb-technique" class="toc-nav-link">2. LSB Principle & Tool</a></li>
+        <li class="toc-nav-item"><a href="#layered-security" class="toc-nav-link">3. Crypto + Stego Layer</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+</body>
+</html>
 
