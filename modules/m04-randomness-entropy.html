@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 04: Randomness & Entropy — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .entropy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .entropy-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .random-stream {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+      margin-top: 8px;
+      min-height: 44px;
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 04</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link active"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 6 min read</span>
+        <span>•</span>
+        <span>Tier: Foundations</span>
+        <span>•</span>
+        <span>Prerequisites: Module 02</span>
+      </div>
+
+      <h1 class="lesson-headline">Randomness & Entropy</h1>
+      <p class="lesson-lead">
+        You can build a bank vault out of 10-foot-thick solid titanium, but if you lock it with a cheap 3-digit combination padlock, the titanium is useless. Randomness is the fuel of all secrets.
+      </p>
+
+      <!-- Section 1 -->
+      <section id="what-is-entropy">
+        <h2>1. What is Entropy?</h2>
+        <p>
+          In cryptography, <strong>entropy</strong> measures unpredictability or pure surprise.
+        </p>
+        <p>
+          If you tell an attacker: <em>"My password is a day of the week,"</em> your entropy is tiny (only 7 choices). An attacker checks all 7 in 0.0001 seconds.
+        </p>
+        <p>
+          If you use a <strong>256-bit random key</strong>, there are $2^{256}$ possible combinations. That number is larger than the total number of atoms in the entire observable universe. Even if all computers on Earth combined to guess a billion keys per second, the sun would burn out long before they guessed it.
+        </p>
+      </section>
+
+      <!-- Section 2: Interactive Generator -->
+      <section id="prng-vs-trng">
+        <h2>2. The Trap: PRNG vs. True Hardware Chaos</h2>
+        <p>
+          Computers are deterministic calculators. When you tell a computer to "pick a random number," it usually runs an equation starting from a seed (like the current microsecond clock).
+        </p>
+
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>Pseudo vs. Cryptographic Randomness</span>
+              <span class="widget-badge">Interactive Demo</span>
+            </div>
+            <button class="choice-btn" style="padding:4px 10px; font-size:11px;" onclick="generateRandomStreams()">Re-roll Numbers</button>
+          </div>
+
+          <div class="widget-content">
+            <div class="entropy-grid">
+              
+              <div class="entropy-card">
+                <div style="font-size:13px; font-weight:700;">Simple Math PRNG (`Math.random()`)</div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Fast for video games, predictable for hackers</div>
+                <div class="random-stream" id="pseudoOut">...</div>
+                <div style="font-size:11.5px; color:#c53030; margin-top:6px;">⚠️ If Eve knows the seed, she predicts all future keys!</div>
+              </div>
+
+              <div class="entropy-card">
+                <div style="font-size:13px; font-weight:700;">CSPRNG (`crypto.getRandomValues`)</div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Harvests physical chaos (mouse movements, CPU noise)</div>
+                <div class="random-stream" id="cryptoOut">...</div>
+                <div style="font-size:11.5px; color:var(--accent); margin-top:6px;">✓ Mathematically unpredictable</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="famous-disasters">
+        <h2>3. Historic Disasters: When Randomness Failed</h2>
+        <p>
+          When cryptography breaks in the real world, it is almost never because someone cracked the mathematical equations; it is because the random number generator was predictable:
+        </p>
+        <div class="dilemma-card">
+          <div class="dilemma-label">Case Study: The Sony PlayStation 3 Master Key</div>
+          <p class="dilemma-text">
+            In 2010, hackers extracted Sony's master private signing key. Sony's engineers implemented ECDSA (Elliptic Curve Digital Signature Algorithm)—a mathematically unbreakable signature. But ECDSA requires a fresh random number (a <span class="analogy-term" data-tooltip="A random number used only once so an attacker cannot re-send old messages or extract keys.">nonce</span>) for every signature. Sony's code accidentally reused the same fixed number every time! Within hours, researchers extracted the root key using high school algebra.
+          </p>
+        </div>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            Why can't a programmer use standard dice-roll functions like `Math.random()` to generate cryptographic encryption keys?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Standard PRNGs are deterministic formulas. An attacker who observes a few outputs can deduce the internal state and predict every encryption key the system will generate.')">A) Standard PRNGs are predictable; an attacker can calculate past and future keys.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'PRNGs generate millions of numbers per millisecond.')">B) Standard PRNGs are too slow for encryption.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Math formulas work uniformly across both odd and even values.')">C) They only generate even numbers, never odd numbers.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m03-steganography.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>03. Steganography</span>
+        </a>
+        <a href="m05-classical-ciphers.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>05. Classical Ciphers</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#what-is-entropy" class="toc-nav-link">1. What is Entropy?</a></li>
+        <li class="toc-nav-item"><a href="#prng-vs-trng" class="toc-nav-link">2. PRNG vs CSPRNG Tool</a></li>
+        <li class="toc-nav-item"><a href="#famous-disasters" class="toc-nav-link">3. Historic Disasters</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    function generateRandomStreams() {
+      // 1. Math.random() (pseudo)
+      let pseudo = '';
+      for (let i = 0; i < 16; i++) {
+        pseudo += Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
+      }
+      document.getElementById('pseudoOut').textContent = pseudo.toUpperCase();
+
+      // 2. Web Crypto CSPRNG
+      const cryptoArray = new Uint8Array(16);
+      window.crypto.getRandomValues(cryptoArray);
+      let cryptoHex = Array.from(cryptoArray).map(b => b.toString(16).padStart(2, '0')).join('');
+      document.getElementById('cryptoOut').textContent = cryptoHex.toUpperCase();
+    }
+    generateRandomStreams();
+  </script>
+</body>
+</html>
