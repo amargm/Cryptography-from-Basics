@@ -24,6 +24,7 @@
 
 /* 1. WARM PAPER (Default: Focused daylight, zero eye glare) */
 html[data-theme="paper"] {
+  color-scheme: light;
   --bg: #fbfaf8;
   --bg-alt: #f3f1ec;
   --surface: #ffffff;
@@ -50,6 +51,7 @@ html[data-theme="paper"] {
 
 /* 2. SEPIA (Kindle E-Reader warmth for extended study) */
 html[data-theme="sepia"] {
+  color-scheme: light;
   --bg: #f4efe6;
   --bg-alt: #eae4d8;
   --surface: #fbf7f0;
@@ -76,6 +78,7 @@ html[data-theme="sepia"] {
 
 /* 3. SLATE (Night reading with reduced blue-light) */
 html[data-theme="slate"] {
+  color-scheme: dark;
   --bg: #141618;
   --bg-alt: #1a1d20;
   --surface: #202428;
@@ -103,6 +106,27 @@ html[data-theme="slate"] {
 /* Font Switching */
 html[data-font="sans"] { --font-current: var(--font-sans); }
 html[data-font="serif"] { --font-current: var(--font-serif); }
+
+/* Theme-adaptive Ergonomic Scrollbars */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-focus) var(--bg);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-focus);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -135,11 +159,13 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
-  position: sticky;
-  top: 0;
+  position: sticky !important;
+  top: 0 !important;
   background: var(--bg);
-  backdrop-filter: blur(8px);
-  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000 !important;
+  width: 100%;
 }
 
 .brand {
@@ -349,6 +375,79 @@ code {
   padding: 2px 5px;
   border-radius: var(--radius-sm);
   color: var(--text-main);
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: inherit;
+  font-size: inherit;
+}
+
+.code-block-wrap {
+  position: relative;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 64px 14px 16px;
+  margin: 12px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-main);
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+.code-block-wrap code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.copy-btn:hover {
+  background: var(--bg-alt);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Dilemma Box */
@@ -602,6 +701,1776 @@ code {
   .top-controls .segmented-control { display: none; }
 }
 
+/* =============================================================
+   VISUAL INFOGRAPHICS & DIAGRAM SUITE
+   ============================================================= */
+.pillar-visual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pillar-visual-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+.pillar-visual-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+.pillar-card-c::before,
+.pillar-card-i::before,
+.pillar-card-a::before,
+.pillar-card-r::before,
+.pillar-card-danger::before,
+.pillar-card-slate::before {
+  background: var(--accent);
+}
+
+.pillar-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.pillar-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+.pillar-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+}
+.pillar-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.pillar-card-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.pillar-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  margin: 0 -20px -20px -20px;
+  padding: 12px 20px;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.pillar-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pillar-meta-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.pillar-meta-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* Channel & Pipeline Architecture Diagrams */
+.channel-diagram {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 28px 0;
+}
+.channel-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+}
+.channel-actor-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  width: 140px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+}
+.channel-wire-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 14px 0;
+}
+.channel-line {
+  width: 100%;
+  height: 2px;
+  background: var(--border-focus);
+  position: relative;
+}
+.channel-line::before {
+  content: '►';
+  position: absolute;
+  right: 0;
+  top: -7px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+.threat-bubble {
+  background: var(--surface);
+  border: 1px dashed #c53030;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 12px;
+  color: var(--text-main);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Flow Ladders & Sequence Boxes */
+.ladder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+.ladder-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+}
+.ladder-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* =============================================================
+   INTERACTIVE PROCESS STEPPERS (FIXES NUMBER RENDERING)
+   ============================================================= */
+.step-stepper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 12px 0 24px 0;
+  padding: 0 14px;
+}
+.step-stepper::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+  transform: translateY(-50%);
+}
+.step-node {
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  transition: all 0.25s ease;
+  user-select: none;
+}
+.step-node.active {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  transform: scale(1.1);
+}
+.step-node.completed {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.process-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin: 16px 0;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sim-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* =============================================================
+   WORKED EXAMPLES (STANDARDIZED EDITORIAL FORMAT)
+   ============================================================= */
+.worked-example {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin: 32px 0;
+  box-shadow: var(--shadow-soft);
+}
+.example-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.example-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.example-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+.example-step {
+  display: flex;
+  gap: 14px;
+  margin: 12px 0;
+  align-items: flex-start;
+}
+.example-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.example-step-content {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.example-math {
+  font-family: var(--font-mono);
+  background: var(--code-bg);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 13px;
+  margin: 6px 0;
+  display: block;
+  overflow-x: auto;
+}
+.example-result {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  color: var(--accent-text);
+  font-weight: 600;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .pillar-visual-grid, .pillar-visual-grid-3 { grid-template-columns: 1fr; }
+  .channel-flow { flex-direction: column; }
+  .channel-actor-box { width: 100%; }
+}
+
+/* =============================================================
+   ATTACK POST-MORTEMS & HISTORIC CATASTROPHES
+   ============================================================= */
+.case-study {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid #c53030;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+}
+.case-study-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.case-study-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9b2c2c;
+  background: rgba(197, 48, 48, 0.08);
+  border: 1px solid rgba(197, 48, 48, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.case-study-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.case-study-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+.case-study-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.case-study-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.case-study-box-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.case-study-box p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.case-study-lesson {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--accent-text);
+  line-height: 1.6;
+}
+
+/* =============================================================
+   DISAMBIGUATION MATRICES, DEEP TABLES & COMPARISON TABLES
+   ============================================================= */
+.disambiguation-matrix {
+  margin: 32px 0;
+  overflow-x: auto;
+}
+table,
+.matrix-table,
+.deep-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin: 24px 0;
+}
+table th,
+.matrix-table th,
+.deep-table th {
+  background: var(--bg-alt);
+  color: var(--text-main);
+  font-weight: 700;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+table td,
+.matrix-table td,
+.deep-table td {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  vertical-align: top;
+}
+table tr:hover td,
+.matrix-table tr:hover td,
+.deep-table tr:hover td {
+  background: var(--surface-hover);
+}
+.status-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-broken {
+  background: rgba(197, 48, 48, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(197, 48, 48, 0.25);
+}
+.status-legacy {
+  background: rgba(214, 158, 46, 0.1);
+  color: #b7791f;
+  border: 1px solid rgba(214, 158, 46, 0.25);
+}
+.status-recommended {
+  background: rgba(45, 106, 79, 0.1);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.status-quantum {
+  background: rgba(107, 70, 193, 0.1);
+  color: #6b46c1;
+  border: 1px solid rgba(107, 70, 193, 0.25);
+}
+
+/* =============================================================
+   COMMANDMENTS & GOLDEN RULES
+   ============================================================= */
+.commandment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.commandment-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  gap: 14px;
+  transition: all 0.15s;
+}
+.commandment-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+.commandment-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.commandment-body h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.commandment-body p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.commandment-danger {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #c53030;
+  margin-top: 6px;
+  display: block;
+}
+
+/* =============================================================
+   GRAND UNIFIED PROTOCOL PIPELINE (HOW ALL 12 MODULES CONNECT)
+   ============================================================= */
+.protocol-pipeline {
+  position: relative;
+  margin: 36px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.protocol-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.15s;
+}
+.protocol-stage:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateX(4px);
+}
+.protocol-step-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.protocol-stage-content { flex: 1; }
+.protocol-stage-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+.protocol-stage-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.protocol-module-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* =============================================================
+   CIPHER ARCHITECTURE & MODES SCHEMATICS
+   ============================================================= */
+.cipher-arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.cipher-arch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.schematic-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* MODES SCHEMATICS */
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mode-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram {
+  background: var(--bg-alt);
+  border: 1px dashed var(--border-focus);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin: 10px 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-align: center;
+  color: var(--text-main);
+}
+
+/* =============================================================
+   INTERACTIVE MODES TAMPER LAB
+   ============================================================= */
+.tamper-lab-container {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 32px 0;
+}
+.tamper-mode-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.tamper-mode-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tamper-mode-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+.tamper-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+@media (max-width: 600px) {
+  .tamper-blocks-grid { grid-template-columns: 1fr; }
+}
+.tamper-block {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.tamper-block.corrupted {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.25);
+  animation: pulse-corrupt 0.35s ease;
+}
+.tamper-block.flipped {
+  border-color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+  animation: pulse-flipped 0.35s ease;
+}
+.tamper-block.intact {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+@keyframes pulse-corrupt {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes pulse-flipped {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.sim-btn {
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+.sim-btn-danger {
+  border-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #dc2626 !important;
+}
+.sim-btn-danger:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+.sim-btn-secondary {
+  border-color: var(--border);
+  background: var(--bg-alt);
+  color: var(--text-secondary);
+}
+.sim-btn-secondary:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+/* =============================================================
+   CRYPTOGRAPHY MYTHS VS REALITY
+   ============================================================= */
+.myth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin: 28px 0;
+}
+.myth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.myth-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c53030;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.myth-reality {
+  background: var(--bg-alt);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* =============================================================
+   CATALOG FILTER BUTTONS
+   ============================================================= */
+.catalog-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 24px 0;
+}
+.catalog-filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.catalog-filter-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.catalog-filter-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* =============================================================
+   VISUAL FLOWCHART NODES (PROFESSIONAL RENDERED DIAGRAMS)
+   ============================================================= */
+.flow-diagram-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+.flow-node-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.flow-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.flow-box-highlight {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+.flow-box-danger {
+  border-color: rgba(197, 48, 48, 0.3);
+  background: rgba(197, 48, 48, 0.05);
+}
+.flow-box-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.flow-box-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.flow-box-sub {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+.flow-substeps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.flow-substep-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+}
+.flow-arrow-down {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  height: 20px;
+  font-size: 14px;
+}
+.flow-arrow-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  width: 24px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.flow-operator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* MODE SCHEMATICS GRID & CARDS */
+.modes-visual-schematics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.mode-schematic-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-soft);
+}
+.mode-schematic-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.mode-schematic-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram-canvas {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 12px 0;
+}
+
+
+/* -------------------------------------------------------------
+   GLOBAL SEARCH & QUICK-LAUNCHER (MODAL & TRIGGER)
+------------------------------------------------------------- */
+.search-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-right: 8px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+.search-trigger-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-focus);
+  color: var(--text-main);
+}
+.search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  color: var(--text-muted);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+#searchModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  box-sizing: border-box;
+}
+#searchModalOverlay.active {
+  display: flex;
+}
+#searchModalCard {
+  background: var(--surface);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 640px;
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+  animation: searchCardPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes searchCardPop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+#searchModalHeader {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+#searchModalInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  color: var(--text-main);
+  outline: none;
+  font-family: var(--font-sans);
+}
+#searchModalInput::placeholder {
+  color: var(--text-muted);
+}
+#searchModalClose {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+#searchModalClose:hover {
+  background: var(--bg-alt);
+  color: var(--text-main);
+}
+#searchModalResults {
+  overflow-y: auto;
+  padding: 8px;
+  max-height: 52vh;
+}
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-main);
+  transition: background 0.12s ease;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+.search-result-item:hover,
+.search-result-item.active {
+  background: var(--accent-soft);
+}
+.search-result-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.search-result-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  margin-right: 12px;
+  white-space: nowrap;
+}
+.search-result-text {
+  overflow: hidden;
+}
+.search-result-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-arrow {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-left: 8px;
+  font-family: var(--font-mono);
+}
+#searchModalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+}
+
+/* -------------------------------------------------------------
+   ENVELOPE ENCRYPTION & INCIDENT RESPONSE PLAYBOOK COMPONENTS
+------------------------------------------------------------- */
+.envelope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.envelope-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+.envelope-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.envelope-card-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.envelope-step-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+.runbook-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+}
+.runbook-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-soft);
+}
+.runbook-step-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.runbook-step-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.runbook-step-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.runbook-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+.runbook-checklist li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 6px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+.runbook-checklist li::before {
+  content: "->";
+  position: absolute;
+  left: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hardware-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.hardware-tier-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hardware-tier-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  width: fit-content;
+  margin-bottom: 8px;
+}
+
+
+/* -------------------------------------------------------------
+   TLS 1.2 vs TLS 1.3 SEQUENCE DIAGRAM STYLES
+------------------------------------------------------------- */
+.seq-diagram-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: var(--shadow-soft);
+}
+.seq-diagram-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.seq-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+}
+.seq-protocol-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.seq-protocol-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.seq-protocol-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.badge-legacy {
+  background: rgba(220, 38, 38, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+.badge-modern {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.seq-flow-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.seq-lifelines {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px dashed var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.seq-rtt-section {
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.seq-rtt-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+.seq-flight {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.seq-flight-dir {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 11.5px;
+}
+.seq-flight-arrow-r {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-arrow-l {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-payload {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-main);
+  background: var(--bg-alt);
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+.seq-flight-tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  width: fit-content;
+}
+.tag-plain {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+.tag-enc {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+/* -------------------------------------------------------------
+   SYSTEMS & SECURITY KNOWLEDGE HUB DOMAIN CARDS
+------------------------------------------------------------- */
+.hub-domains-container {
+  margin: 40px 0;
+}
+.hub-domains-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 24px;
+}
+.hub-domain-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px 22px 24px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 330px;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.hub-domain-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-float);
+  border-color: var(--accent);
+}
+.hub-domain-card.active-domain {
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-float);
+}
+.hub-domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.hub-domain-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+.hub-domain-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.badge-active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.badge-roadmap {
+  background: var(--bg-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.hub-domain-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.hub-domain-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.hub-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.hub-topic-tag {
+  font-size: 11px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+
+/* -------------------------------------------------------------
+   TRACK VIEW TOGGLE & NAVIGATION IN HUB
+------------------------------------------------------------- */
+.track-view-section {
+  display: none;
+  animation: fadeIn 0.15s ease;
+}
+.track-view-section.active {
+  display: block;
+}
+.back-to-tracks-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+.back-to-tracks-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.track-card-clickable {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.track-card-clickable:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+
+.track-card-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  transition: color 0.15s ease;
+}
+.track-card-clickable:hover .track-card-action {
+  color: var(--accent-text);
+}
+.track-action-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.track-action-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+
+/* -------------------------------------------------------------
+   WIDE SCREEN UTILIZATION & CHEATSHEET CARDS DIRECTORY
+------------------------------------------------------------- */
+.hub-main-container {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 40px 100px 40px;
+}
+@media (min-width: 1600px) {
+  .hub-main-container {
+    max-width: 1640px;
+    padding: 0 56px 120px 56px;
+  }
+}
+@media (max-width: 768px) {
+  .hub-main-container {
+    padding: 0 20px 80px 20px;
+  }
+}
+
+.hub-cheatsheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 22px;
+  margin-top: 18px;
+}
+.hub-cheatsheet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 220px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+.hub-cheatsheet-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-float);
+}
+.hub-cheatsheet-card.active-ref {
+  border-left: 4px solid var(--accent);
+}
+.cheatsheet-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cheatsheet-track-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.cheatsheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.cheatsheet-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+/* =============================================================
+   IMMERSIVE BACKGROUND ANIMATIONS (HUB & TRACK LANDING ONLY)
+   ============================================================= */
+.immersive-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+#immersiveBgCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.immersive-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 28%, transparent 25%, var(--bg) 95%);
+  pointer-events: none;
+}
+
+/* Elevate portal content layers crisply above the ambient canvas */
+.hub-main-container,
+.modal-overlay {
+  position: relative;
+  z-index: 1;
+}
+
 </style>
   <style>
     .portal-hero {
@@ -772,14 +2641,25 @@ code {
 
   <div id="readingProgress"></div>
 
+  <!-- Immersive Animated Background Canvas (Home & Landing Pages Only) -->
+  <div class="immersive-bg-container" aria-hidden="true">
+    <canvas id="immersiveBgCanvas"></canvas>
+    <div class="immersive-bg-overlay"></div>
+  </div>
+
   <!-- Topbar -->
   <header class="topbar">
     <a href="index.html" class="brand">
-      <span>CRYPTOGRAPHY</span>
-      <span class="brand-mark">BASICS</span>
+      <span>SYSTEMS &amp; SECURITY</span> <span class="brand-mark">HUB</span>
     </a>
 
     <div class="top-controls">
+      <button type="button" class="search-trigger-btn" onclick="openSearchModal()" title="Search documentation (Ctrl+K)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <span>Search</span>
+        <kbd class="search-kbd">Ctrl K</kbd>
+      </button>
+
       <!-- Font Switcher -->
       <div class="segmented-control">
         <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
@@ -788,26 +2668,482 @@ code {
 
       <!-- Theme Switcher -->
       <div class="theme-picker">
-        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
-        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
-        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">Slate</button>
       </div>
     </div>
   </header>
 
   <!-- Main Portal Layout -->
-  <main style="max-width: 1080px; margin: 0 auto; padding: 0 28px 100px 28px;">
+  <main class="hub-main-container">
 
-    <!-- Hero -->
-    <section class="portal-hero">
-      <div class="portal-eyebrow">Zero Math • Zero Code • Applied Intuition</div>
-      <h1 class="portal-title">Cryptography from Basics</h1>
-      <p class="portal-subtitle">
-        A 12-module self-paced journey from electrical switches to quantum encryption. Designed with clear mental models, zero prerequisite jargon, and focused interactive tools.
-      </p>
-    </section>
+    <!-- =============================================================
+         VIEW 1: CLEAN & MINIMAL TRACK CARDS (DEFAULT LANDING VIEW)
+         Does NOT expand any track by default! Clean, fast, focused.
+    ============================================================= -->
+    <div id="view-tracks" class="track-view-section active">
 
-    <!-- Jump-In Diagnostic -->
+      <!-- Minimal Landing Hero -->
+      <section class="portal-hero" style="text-align: center; margin-bottom: 40px;">
+        <div class="portal-eyebrow">Engineering Knowledge Platform</div>
+        <h1 class="portal-title">Systems &amp; Security Engineering Hub</h1>
+        <p class="portal-subtitle" style="margin: 0 auto; max-width: 720px;">
+          A multi-track engineering academy spanning low-level computer systems, operating systems, hardware architecture, network protocols, applied cryptography, and cloud security.
+        </p>
+      </section>
+
+      <!-- Track Cards Grid -->
+      <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em;">Curriculum Directory</span>
+          <h2 style="font-size: 20px; font-weight: 800; color: var(--text-main); margin-top: 2px;">Engineering Knowledge Tracks</h2>
+        </div>
+        <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">Select a track to inspect modules</span>
+      </div>
+
+      <div class="hub-domains-grid">
+
+        <!-- TRACK 01: Applied Cryptography (Active Flagship) -->
+        <div class="hub-domain-card active-domain track-card-clickable" onclick="selectTrack('crypto')">
+          <div>
+            <div class="hub-domain-header">
+              <span class="hub-domain-num">Track 01 • Cryptography</span>
+              <span class="hub-domain-badge badge-active">Active • 13 Modules</span>
+            </div>
+            <div class="hub-domain-title">Applied Cryptography &amp; Security Primitives</div>
+            <div class="hub-domain-desc">
+              From electrical switches to quantum encryption. AES round internals, digital signatures, PKI, KMS envelope encryption, zero-knowledge proofs, and operational incident response.
+            </div>
+          </div>
+          <div>
+            <div class="hub-topic-tags">
+              <span class="hub-topic-tag">Symmetric AES-GCM</span>
+              <span class="hub-topic-tag">Diffie-Hellman &amp; RSA</span>
+              <span class="hub-topic-tag">Digital Signatures</span>
+              <span class="hub-topic-tag">X.509 PKI</span>
+              <span class="hub-topic-tag">Cloud KMS</span>
+              <span class="hub-topic-tag">Post-Quantum</span>
+            </div>
+            <div class="track-card-action">
+              <span class="track-action-label">Explore Curriculum →</span>
+              <span class="track-action-meta">13 Modules Active</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRACK 02: Operating System Fundamentals -->
+        <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('os-basics')">
+          <div>
+            <div class="hub-domain-header">
+              <span class="hub-domain-num">Track 02 • Core OS</span>
+              <span class="hub-domain-badge badge-roadmap">Curriculum Outline</span>
+            </div>
+            <div class="hub-domain-title">Operating System Fundamentals</div>
+            <div class="hub-domain-desc">
+              How software bridges the physical machine. Process lifecycles, virtual memory paging, CPU scheduling, file system inodes, and POSIX system calls.
+            </div>
+          </div>
+          <div>
+            <div class="hub-topic-tags">
+              <span class="hub-topic-tag">Processes &amp; Threads</span>
+              <span class="hub-topic-tag">Virtual Memory</span>
+              <span class="hub-topic-tag">CPU Schedulers</span>
+              <span class="hub-topic-tag">POSIX Syscalls</span>
+            </div>
+            <div class="track-card-action">
+              <span class="track-action-label">View Curriculum Outline →</span>
+              <span class="track-action-meta">Roadmap</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRACK 03: OS Internals & Kernel Security -->
+        <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('os-internals')">
+          <div>
+            <div class="hub-domain-header">
+              <span class="hub-domain-num">Track 03 • Kernel Sec</span>
+              <span class="hub-domain-badge badge-roadmap">Curriculum Outline</span>
+            </div>
+            <div class="hub-domain-title">OS Internals &amp; Kernel Security</div>
+            <div class="hub-domain-desc">
+              The boundary between user space and Ring 0. Memory corruption mechanics, modern exploit mitigations (ASLR, DEP/NX), Linux capabilities, and eBPF tracing.
+            </div>
+          </div>
+          <div>
+            <div class="hub-topic-tags">
+              <span class="hub-topic-tag">Ring 0 vs Ring 3</span>
+              <span class="hub-topic-tag">Buffer Overflows</span>
+              <span class="hub-topic-tag">ASLR &amp; DEP/NX</span>
+              <span class="hub-topic-tag">eBPF Tracing</span>
+            </div>
+            <div class="track-card-action">
+              <span class="track-action-label">View Curriculum Outline →</span>
+              <span class="track-action-meta">Roadmap</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRACK 04: Computer Networking & Protocols -->
+        <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('networking')">
+          <div>
+            <div class="hub-domain-header">
+              <span class="hub-domain-num">Track 04 • Networking</span>
+              <span class="hub-domain-badge badge-roadmap">Curriculum Outline</span>
+            </div>
+            <div class="hub-domain-title">Computer Networking &amp; Protocols</div>
+            <div class="hub-domain-desc">
+              From physical frames to global BGP routing. The TCP/IP protocol stack, TCP 3-way handshakes, congestion avoidance, DNS hierarchies, and WireGuard tunnels.
+            </div>
+          </div>
+          <div>
+            <div class="hub-topic-tags">
+              <span class="hub-topic-tag">TCP/IP Stack</span>
+              <span class="hub-topic-tag">3-Way Handshake</span>
+              <span class="hub-topic-tag">BGP Routing</span>
+              <span class="hub-topic-tag">WireGuard</span>
+            </div>
+            <div class="track-card-action">
+              <span class="track-action-label">View Curriculum Outline →</span>
+              <span class="track-action-meta">Roadmap</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRACK 05: Hardware Architecture & Silicon -->
+        <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('hardware')">
+          <div>
+            <div class="hub-domain-header">
+              <span class="hub-domain-num">Track 05 • Architecture</span>
+              <span class="hub-domain-badge badge-roadmap">Curriculum Outline</span>
+            </div>
+            <div class="hub-domain-title">Hardware Architecture &amp; Silicon</div>
+            <div class="hub-domain-desc">
+              Silicon architecture from logic gates to multicore superscalar microprocessors. CPU pipelines, branch prediction, L1/L2/L3 caches, and MMU page tables.
+            </div>
+          </div>
+          <div>
+            <div class="hub-topic-tags">
+              <span class="hub-topic-tag">CPU Pipelines</span>
+              <span class="hub-topic-tag">Branch Prediction</span>
+              <span class="hub-topic-tag">L1/L2/L3 Caches</span>
+              <span class="hub-topic-tag">MMU &amp; TLB</span>
+            </div>
+            <div class="track-card-action">
+              <span class="track-action-label">View Curriculum Outline →</span>
+              <span class="track-action-meta">Roadmap</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRACK 06: Hardware Security & Silicon Trust -->
+        <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('hw-security')">
+          <div>
+            <div class="hub-domain-header">
+              <span class="hub-domain-num">Track 06 • HW Security</span>
+              <span class="hub-domain-badge badge-roadmap">Curriculum Outline</span>
+            </div>
+            <div class="hub-domain-title">Hardware Security &amp; Silicon Trust</div>
+            <div class="hub-domain-desc">
+              Physical attacks, microarchitectural side-channels, and silicon roots of trust. Spectre, Meltdown, Rowhammer bit flips, fault injection, and TPM 2.0.
+            </div>
+          </div>
+          <div>
+            <div class="hub-topic-tags">
+              <span class="hub-topic-tag">Spectre &amp; Meltdown</span>
+              <span class="hub-topic-tag">Rowhammer</span>
+              <span class="hub-topic-tag">Voltage Glitching</span>
+              <span class="hub-topic-tag">TPM 2.0</span>
+            </div>
+            <div class="track-card-action">
+              <span class="track-action-label">View Curriculum Outline →</span>
+              <span class="track-action-meta">Roadmap</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRACK 07: Cloud Infrastructure Security -->
+        <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('cloud-sec')">
+          <div>
+            <div class="hub-domain-header">
+              <span class="hub-domain-num">Track 07 • Cloud Sec</span>
+              <span class="hub-domain-badge badge-roadmap">Curriculum Outline</span>
+            </div>
+            <div class="hub-domain-title">Cloud Infrastructure Security</div>
+            <div class="hub-domain-desc">
+              Production zero-trust systems and distributed cloud hardening. Cloud IAM least privilege, VPC network peering, container sandboxing, and Vault secrets.
+            </div>
+          </div>
+          <div>
+            <div class="hub-topic-tags">
+              <span class="hub-topic-tag">Zero-Trust</span>
+              <span class="hub-topic-tag">IAM Least Privilege</span>
+              <span class="hub-topic-tag">Container Security</span>
+              <span class="hub-topic-tag">HashiCorp Vault</span>
+            </div>
+            <div class="track-card-action">
+              <span class="track-action-label">View Curriculum Outline →</span>
+              <span class="track-action-meta">Roadmap</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    
+      <!-- =============================================================
+           DEDICATED REFERENCE CHEATSHEETS & OPERATIONAL HANDBOOKS
+           Modular directory - extensible as new cheatsheets are added per track
+      ============================================================= -->
+      <section style="margin-top: 54px; padding-top: 36px; border-top: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+          <div>
+            <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em;">Operational References</span>
+            <h2 style="font-size: 20px; font-weight: 800; color: var(--text-main); margin-top: 2px;">Engineering Cheatsheets &amp; Handbooks</h2>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">Quick-reference manuals &amp; decision matrices</span>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary); max-width: 760px; margin-bottom: 20px;">
+          Curated decision frameworks, command line manuals, and operational checklists organized by engineering track. Continuously updated as new tracks and topics are published.
+        </p>
+
+        <div class="hub-cheatsheet-grid">
+
+          <!-- Cheatsheet 1: Cryptographic Decision Matrix -->
+          <a href="cheatsheet.html" class="hub-cheatsheet-card active-ref">
+            <div>
+              <div class="cheatsheet-card-top">
+                <span class="cheatsheet-track-tag">Track 01 • Cryptography</span>
+                <span class="hub-domain-badge badge-active">Active • Interactive</span>
+              </div>
+              <div class="cheatsheet-title">When to Use What — Cryptographic Decision Matrix</div>
+              <div class="cheatsheet-desc">
+                Head-to-head algorithm comparisons (AES-GCM vs ChaCha20, Ed25519 vs RSA, Argon2id vs PBKDF2), NIST security lifetimes, KMS envelope encryption patterns, and incident triage runbooks.
+              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px;">
+              <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--accent); font-weight: 700;">Open Decision Matrix →</span>
+              <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">cheatsheet.html</span>
+            </div>
+          </a>
+
+          <!-- Cheatsheet 2: OpenSSL 3.x Command Handbook -->
+          <a href="openssl-cheatsheet.html" class="hub-cheatsheet-card active-ref">
+            <div>
+              <div class="cheatsheet-card-top">
+                <span class="cheatsheet-track-tag">Track 01 • Cryptography</span>
+                <span class="hub-domain-badge badge-active">Active • CLI Manual</span>
+              </div>
+              <div class="cheatsheet-title">OpenSSL 3.x Modern Command Handbook</div>
+              <div class="cheatsheet-desc">
+                Intuitive mental models for modern OpenSSL 3.x syntax: generating Ed25519/RSA keys, creating self-signed &amp; CA certificates, calculating HMAC digests, and live TLS handshake inspection.
+              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px;">
+              <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--accent); font-weight: 700;">Open OpenSSL Handbook →</span>
+              <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">openssl-cheatsheet.html</span>
+            </div>
+          </a>
+
+          <!-- Cheatsheet 3: Linux Syscalls (Track 2) -->
+          <div class="hub-cheatsheet-card" style="opacity: 0.85;">
+            <div>
+              <div class="cheatsheet-card-top">
+                <span class="cheatsheet-track-tag" style="color: var(--text-muted);">Track 02 • Core OS</span>
+                <span class="hub-domain-badge badge-roadmap">Planned Reference</span>
+              </div>
+              <div class="cheatsheet-title">Linux System Calls &amp; Inodes Reference</div>
+              <div class="cheatsheet-desc">
+                Core POSIX syscall manual: <code>mmap()</code> memory mappings, <code>clone()</code>/<code>fork()</code> thread flags, <code>epoll()</code> multiplexing, and file descriptor permissions.
+              </div>
+            </div>
+            <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px; font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);">
+              Will accompany Track 02 release
+            </div>
+          </div>
+
+          <!-- Cheatsheet 4: Kernel Exploit Mitigations (Track 3) -->
+          <div class="hub-cheatsheet-card" style="opacity: 0.85;">
+            <div>
+              <div class="cheatsheet-card-top">
+                <span class="cheatsheet-track-tag" style="color: var(--text-muted);">Track 03 • Kernel Sec</span>
+                <span class="hub-domain-badge badge-roadmap">Planned Reference</span>
+              </div>
+              <div class="cheatsheet-title">Kernel Exploit Mitigations &amp; GDB Runbook</div>
+              <div class="cheatsheet-desc">
+                Binary hardening cheat card: ASLR offsets, DEP/NX bit checks, stack canary validation, ROP gadget lookup patterns, and eBPF kernel tracing one-liners.
+              </div>
+            </div>
+            <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px; font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);">
+              Will accompany Track 03 release
+            </div>
+          </div>
+
+          <!-- Cheatsheet 5: Networking & BGP (Track 4) -->
+          <div class="hub-cheatsheet-card" style="opacity: 0.85;">
+            <div>
+              <div class="cheatsheet-card-top">
+                <span class="cheatsheet-track-tag" style="color: var(--text-muted);">Track 04 • Networking</span>
+                <span class="hub-domain-badge badge-roadmap">Planned Reference</span>
+              </div>
+              <div class="cheatsheet-title">TCP Packet Analysis &amp; WireGuard Runbook</div>
+              <div class="cheatsheet-desc">
+                Packet header structures (IPv4/IPv6, TCP, UDP), TCP state transition diagram, tcpdump capture filters, BGP routing states, and WireGuard configuration templates.
+              </div>
+            </div>
+            <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px; font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);">
+              Will accompany Track 04 release
+            </div>
+          </div>
+
+          <!-- Cheatsheet 6: Cloud IAM & Kubernetes (Track 7) -->
+          <div class="hub-cheatsheet-card" style="opacity: 0.85;">
+            <div>
+              <div class="cheatsheet-card-top">
+                <span class="cheatsheet-track-tag" style="color: var(--text-muted);">Track 07 • Cloud Sec</span>
+                <span class="hub-domain-badge badge-roadmap">Planned Reference</span>
+              </div>
+              <div class="cheatsheet-title">Cloud IAM &amp; Kubernetes Security Runbook</div>
+              <div class="cheatsheet-desc">
+                Least-privilege AWS/GCP IAM policy templates, Kubernetes RBAC manifest patterns, Pod Security Standards (PSS), and HashiCorp Vault dynamic secret commands.
+              </div>
+            </div>
+            <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px; font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);">
+              Will accompany Track 07 release
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- =============================================================
+           CAPTURE THE FLAG (CTF) CHALLENGES & HANDS-ON ARENAS
+           Three dedicated tracks: Beginner, Intermediate & Problem Bank
+      ============================================================= -->
+      <section style="margin-top: 54px; padding-top: 36px; border-top: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+          <div>
+            <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em;">Offensive &amp; Defensive Arenas</span>
+            <h2 style="font-size: 20px; font-weight: 800; color: var(--text-main); margin-top: 2px;">Capture The Flag (CTF) Tracks</h2>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">Practical offensive security &amp; cryptanalysis labs</span>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary); max-width: 760px; margin-bottom: 20px;">
+          Competitive security problem solving. From fundamental patterns and reconnaissance toolkits to advanced cryptographic oracle exploits and a curated problem challenge bank.
+        </p>
+
+        <div class="hub-domains-grid">
+
+          <!-- CTF TRACK 01: Starting Knowledge & Patterns -->
+          <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('ctf-foundations')">
+            <div>
+              <div class="hub-domain-header">
+                <span class="hub-domain-num">CTF 01 • Foundations</span>
+                <span class="hub-domain-badge badge-roadmap">Curriculum Outline</span>
+              </div>
+              <div class="hub-domain-title">Starting CTF Knowledge &amp; Problem Patterns</div>
+              <div class="hub-domain-desc">
+                The essential mental models and toolchains to conquer beginner competitions. Flag discovery methodology, classical cipher reconnaissance (XOR, Caesar, Vigenère), multi-layer encoding detection (Base64/32/85, Hex, ROT13), and file steganography.
+              </div>
+            </div>
+            <div>
+              <div class="hub-topic-tags">
+                <span class="hub-topic-tag">Recon Methodology</span>
+                <span class="hub-topic-tag">CyberChef &amp; pwntools</span>
+                <span class="hub-topic-tag">Classical Ciphers</span>
+                <span class="hub-topic-tag">Encoding Detection</span>
+                <span class="hub-topic-tag">Stego (zsteg/binwalk)</span>
+              </div>
+              <div class="track-card-action">
+                <span class="track-action-label">View Curriculum Outline →</span>
+                <span class="track-action-meta">CTF Syllabus</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CTF TRACK 02: Intermediate CTF Cryptanalysis -->
+          <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('ctf-intermediate')">
+            <div>
+              <div class="hub-domain-header">
+                <span class="hub-domain-num">CTF 02 • Exploitation</span>
+                <span class="hub-domain-badge badge-roadmap">Curriculum Outline</span>
+              </div>
+              <div class="hub-domain-title">Intermediate CTF Cryptanalysis &amp; Exploitation</div>
+              <div class="hub-domain-desc">
+                Exploiting mathematical flaws in modern cryptographic implementations. CBC padding oracle attacks, ECB byte-at-a-time decryption, RSA small exponent factorization ($e=3$, Wiener), PRNG state recovery, and hash length extension attacks.
+              </div>
+            </div>
+            <div>
+              <div class="hub-topic-tags">
+                <span class="hub-topic-tag">CBC Padding Oracle</span>
+                <span class="hub-topic-tag">ECB Chosen-Plaintext</span>
+                <span class="hub-topic-tag">RSA Factorization</span>
+                <span class="hub-topic-tag">PRNG State Inversion</span>
+                <span class="hub-topic-tag">Hash Length Extension</span>
+              </div>
+              <div class="track-card-action">
+                <span class="track-action-label">View Curriculum Outline →</span>
+                <span class="track-action-meta">Attack Vectors</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CTF TRACK 03: Curated CTF Problem Bank -->
+          <div class="hub-domain-card track-card-clickable" onclick="selectRoadmapTrack('ctf-problems')">
+            <div>
+              <div class="hub-domain-header">
+                <span class="hub-domain-num">CTF 03 • Challenge Bank</span>
+                <span class="hub-domain-badge badge-active" style="background: rgba(107, 70, 193, 0.1); color: #6b46c1; border-color: rgba(107, 70, 193, 0.25);">Practice Catalog</span>
+              </div>
+              <div class="hub-domain-title">Curated CTF Problem Bank &amp; Practice Challenges</div>
+              <div class="hub-domain-desc">
+                An expansive, tiered challenge directory spanning cryptography, forensics, and token security. Complete with problem statements, concepts tested, flag format criteria, and prepared for future interactive challenge laboratories and asset bundles.
+              </div>
+            </div>
+            <div>
+              <div class="hub-topic-tags">
+                <span class="hub-topic-tag">Crypto (AES, RSA)</span>
+                <span class="hub-topic-tag">PCAP Forensics</span>
+                <span class="hub-topic-tag">JWT Exploitation</span>
+                <span class="hub-topic-tag">Difficulty Tiers</span>
+                <span class="hub-topic-tag">Planned Lab Assets</span>
+              </div>
+              <div class="track-card-action">
+                <span class="track-action-label">Explore Problem Bank →</span>
+                <span class="track-action-meta">6 Flag Labs Planned</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+<!-- =============================================================
+         VIEW 2: TRACK 01 (APPLIED CRYPTOGRAPHY) DETAIL VIEW
+         Revealed only when user clicks Track 01!
+    ============================================================= -->
+    <div id="view-track-crypto" class="track-view-section">
+      
+      <!-- Top Track Navigation Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+        <button type="button" class="back-to-tracks-btn" onclick="showAllTracks()">
+          ← Back to All Tracks
+        </button>
+        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--accent); font-weight: 700;">
+          Track 01 • 13 Modules Complete
+        </div>
+      </div>
+
+      <!-- Track Header -->
+      <header class="lesson-header" style="margin-bottom: 32px;">
+        <h1 class="lesson-title" style="font-size: 30px;">Track 01: Applied Cryptography</h1>
+        <p class="lesson-subtitle" style="font-size: 15px;">
+          A 13-module self-paced journey from electrical switches to quantum encryption. Designed with clear mental models, zero prerequisite jargon, interactive simulators, and enterprise production runbooks.
+        </p>
+      </header>
+
+      <!-- Jump-In Diagnostic -->
     <section class="jumpin-card">
       <div class="jumpin-title">Where Should You Start? (Jump-In Diagnostic)</div>
       <div class="jumpin-desc">Select your current familiarity to jump straight to your optimal starting point:</div>
@@ -1031,8 +3367,8 @@ code {
     <!-- TIER 4 -->
     <section class="tier-section">
       <div class="tier-header">
-        <span class="tier-name">Tier 4: Applied Daily Systems & The Future</span>
-        <span class="tier-badge">Modules 11 – 12</span>
+        <span class="tier-name">Tier 4: Applied Daily Systems &amp; Public-Key Anatomy</span>
+        <span class="tier-badge">Modules 11 – 13</span>
       </div>
       <div class="module-card-grid">
 
@@ -1042,8 +3378,8 @@ code {
               <span class="card-index">MODULE 11</span>
               <span class="card-duration">8 min</span>
             </div>
-            <div class="card-title">Applied HTTPS & Tokens</div>
-            <div class="card-desc">The complete TLS handshake, End-to-End Encrypted chat (Signal/WhatsApp), JSON Web Tokens (JWT), and Passkeys.</div>
+            <div class="card-title">Applied HTTPS &amp; Tokens</div>
+            <div class="card-desc">The complete TLS 1.2 vs 1.3 sequence handshake, E2EE Double Ratchet (Signal), JWT vs PASETO, and Passkeys.</div>
           </div>
           <div class="card-tags">
             <span class="card-tag">TLS Handshake</span>
@@ -1058,44 +3394,171 @@ code {
               <span class="card-index">MODULE 12</span>
               <span class="card-duration">7 min</span>
             </div>
-            <div class="card-title">ZKP & The Quantum Era</div>
-            <div class="card-desc">Proving secrets without revealing them (Zero-Knowledge). Shor's algorithm, quantum threats, and Post-Quantum cryptography.</div>
+            <div class="card-title">ZKP &amp; The Quantum Era</div>
+            <div class="card-desc">Proving secrets without revealing them (Zero-Knowledge). Shor's algorithm, quantum threats, and NIST Post-Quantum standards (ML-KEM/ML-DSA).</div>
           </div>
           <div class="card-tags">
             <span class="card-tag">Ali Baba Cave</span>
             <span class="card-tag">Post-Quantum</span>
-            <span class="card-tag">Replay Attacks</span>
+            <span class="card-tag">zk-SNARKs</span>
+          </div>
+        </a>
+
+        <a href="modules/m13-misc-topics.html" class="module-card" id="card-m13">
+          <div>
+            <div class="card-top">
+              <span class="card-index">MODULE 13</span>
+              <span class="card-duration">8 min</span>
+            </div>
+            <div class="card-title">Connected Topics &amp; X.509</div>
+            <div class="card-desc">X.509 v3 certificate anatomy, PEM/DER/PKCS#12 keystores, canonical ASN.1 serialization, and cryptographic time (NTS/TSP).</div>
+          </div>
+          <div class="card-tags">
+            <span class="card-tag">X.509 Anatomy</span>
+            <span class="card-tag">PKCS#12 &amp; PEM</span>
+            <span class="card-tag">ASN.1 DER</span>
           </div>
         </a>
 
       </div>
     </section>
 
-  </main>
+    <!-- THE GRAND UNIFIED PROTOCOL PIPELINE -->
+    <section style="margin-top: 50px; padding-top: 36px; border-top: 1px solid var(--border);">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span style="font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em;">The Big Picture</span>
+          <h2 style="font-size:22px; font-weight:800; color:var(--text-main); margin-top:2px;">The Grand Unified Protocol: How All 13 Modules Connect</h2>
+        </div>
+        <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">End-to-End Handshake Pipeline</span>
+      </div>
+      <p style="font-size:14.5px; color:var(--text-secondary); margin-bottom:24px; max-width:760px;">
+        When you connect to your bank, you don't use just one cipher. In a 200ms handshake, the entire curriculum works together in a choreographed defense-in-depth pipeline:
+      </p>
 
+      <div class="protocol-pipeline">
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">1. IDENTITY</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Digital Certificates &amp; PKI Chain of Trust</div>
+            <div class="protocol-stage-desc">Verifying that the server is genuine using asymmetric digital signatures anchored to Root CAs.</div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 09 (Signatures &amp; PKI)</strong></div>
+          </div>
+        </div>
+
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">2. KEY AGREEMENT</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Ephemeral Diffie-Hellman Key Exchange</div>
+            <div class="protocol-stage-desc">Negotiating a one-time master shared secret over untrusted public Wi-Fi with forward secrecy.</div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 08 (Public-Key &amp; Diffie-Hellman)</strong></div>
+          </div>
+        </div>
+
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">3. DERIVATION</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Key Expansion via HKDF</div>
+            <div class="protocol-stage-desc">Expanding the raw shared secret into unique client/server read, write, and initialization vectors.</div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 10 (Key Vaults &amp; KDFs)</strong></div>
+          </div>
+        </div>
+
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">4. BULK TUNNEL</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Authenticated Encryption (AES-256-GCM / ChaCha20)</div>
+            <div class="protocol-stage-desc">Streaming application data at multi-gigabit speeds with continuous cryptographic tamper detection.</div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 06 (Symmetric AES)</strong> &amp; <strong>Module 07 (Hashing &amp; HMAC)</strong></div>
+          </div>
+        </div>
+
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">5. CREDENTIALS</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">Hardware Vaults &amp; Memory-Hard Passwords</div>
+            <div class="protocol-stage-desc">Protecting user credentials using biometric Secure Enclaves and Argon2id password vaults.</div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 10 (KDFs)</strong> &amp; <strong>Module 11 (HTTPS, Tokens &amp; Passkeys)</strong></div>
+          </div>
+        </div>
+
+        <div class="protocol-stage">
+          <div class="protocol-step-badge">6. IDENTITY ANATOMY</div>
+          <div class="protocol-stage-content">
+            <div class="protocol-stage-title">X.509 Certificate Structures &amp; Keystores</div>
+            <div class="protocol-stage-desc">Deconstructing TBSCertificate fields, SAN domain extensions, PKCS#12 bundles, and canonical ASN.1 serialization.</div>
+            <div class="protocol-module-tag">Covered in: <strong>Module 13 (Connected Topics &amp; X.509)</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    
+
+      <!-- Bottom Back Button -->
+      <div style="margin-top: 50px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center;">
+        <button type="button" class="back-to-tracks-btn" onclick="showAllTracks()">
+          ← Back to All Tracks
+        </button>
+      </div>
+    </div>
+
+
+    <!-- =============================================================
+         VIEW 3: ROADMAP TRACKS OUTLINE VIEW
+         Revealed when user clicks Tracks 02 through 07!
+    ============================================================= -->
+    <div id="view-track-roadmap" class="track-view-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+        <button type="button" class="back-to-tracks-btn" onclick="showAllTracks()">
+          ← Back to All Tracks
+        </button>
+        <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); font-weight: 700;" id="roadmapBadgeLabel">
+          Roadmap Track
+        </span>
+      </div>
+
+      <div id="roadmapContentContainer">
+        <!-- Injected dynamically by JavaScript -->
+      </div>
+
+      <div style="margin-top: 50px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center;">
+        <button type="button" class="back-to-tracks-btn" onclick="showAllTracks()">
+          ← Back to All Tracks
+        </button>
+      </div>
+    </div>
+
+  </main>
   <script>
 /* -------------------------------------------------------------
    CRYPTOGRAPHY FROM BASICS — SHARED CORE JAVASCRIPT
-   Handles Theme, Typography, Reading Progress, & Quiz Feedback
+   Theme, Typography, Reading Progress, Checkpoints, & Global Search
 ------------------------------------------------------------- */
 
 (function () {
-  // 1. Initialize Theme from localStorage or Default to 'paper'
-  const savedTheme = localStorage.getItem('crypto_theme') || 'paper';
-  setTheme(savedTheme, false);
+  let savedTheme = 'paper';
+  let savedFont = 'sans';
+  try {
+    savedTheme = localStorage.getItem('crypto_theme') || 'paper';
+  } catch (e) {}
+  try {
+    savedFont = localStorage.getItem('crypto_font') || 'sans';
+  } catch (e) {}
 
-  // 2. Initialize Font from localStorage or Default to 'sans'
-  const savedFont = localStorage.getItem('crypto_font') || 'sans';
+  setTheme(savedTheme, false);
   setFont(savedFont, false);
 
-  // 3. Setup Scroll Progress Bar
+  // Setup Scroll Progress Bar
   window.addEventListener('scroll', updateReadingProgress);
 
-  // 4. Highlight current page in sidebar on DOM ready
+  // DOM Ready Initializations
   document.addEventListener('DOMContentLoaded', () => {
     highlightActiveNavLink();
     updateThemeUI(savedTheme);
     updateFontUI(savedFont);
+    initGlobalSearch();
   });
 })();
 
@@ -1116,7 +3579,9 @@ function updateReadingProgress() {
 function setTheme(themeName, persist = true) {
   document.documentElement.setAttribute('data-theme', themeName);
   if (persist) {
-    localStorage.setItem('crypto_theme', themeName);
+    try {
+      localStorage.setItem('crypto_theme', themeName);
+    } catch (e) {}
   }
   updateThemeUI(themeName);
 }
@@ -1131,7 +3596,9 @@ function updateThemeUI(themeName) {
 function setFont(fontType, persist = true) {
   document.documentElement.setAttribute('data-font', fontType);
   if (persist) {
-    localStorage.setItem('crypto_font', fontType);
+    try {
+      localStorage.setItem('crypto_font', fontType);
+    } catch (e) {}
   }
   updateFontUI(fontType);
 }
@@ -1176,17 +3643,1129 @@ function handleQuiz(button, isCorrect, explanationText) {
       feedback.style.background = 'var(--accent-soft)';
       feedback.style.color = 'var(--accent-text)';
       feedback.style.border = '1px solid var(--accent-border)';
-      feedback.innerHTML = `<strong>Correct.</strong> ${explanationText}`;
+      feedback.innerHTML = '<strong>Correct.</strong> ' + explanationText;
     } else {
       button.style.borderColor = '#c53030';
       feedback.style.background = 'rgba(197, 48, 48, 0.08)';
       feedback.style.color = '#c53030';
       feedback.style.border = '1px solid rgba(197, 48, 48, 0.2)';
-      feedback.innerHTML = `<strong>Not quite.</strong> ${explanationText}`;
+      feedback.innerHTML = '<strong>Not quite.</strong> ' + explanationText;
     }
   }
 }
 
+/* -------------------------------------------------------------
+   UNIVERSAL CRYPTOGRAPHIC SEARCH & QUICK LAUNCHER (CTRL+K)
+------------------------------------------------------------- */
+const SEARCH_INDEX = [
+  // Foundations
+  { title: "CIA Triad & Non-Repudiation (CIA-R)", badge: "M01 Foundations", desc: "Confidentiality, Integrity, Availability, and Non-Repudiation pillars", path: "modules/m01-foundations.html#cia-triad", keywords: "cia confidentiality integrity availability non-repudiation triad pillars" },
+  { title: "Kerckhoffs's Principle & Shannon Maxim", badge: "M01 Foundations", desc: "Why security through obscurity fails: the enemy knows the system", path: "modules/m01-foundations.html#kerckhoffs", keywords: "kerckhoffs shannon obscurity open design enemy knows system" },
+  { title: "Threat Models & Cryptographic Adversaries", badge: "M01 Foundations", desc: "Ciphertext-only, Known-Plaintext, Chosen-Plaintext, Chosen-Ciphertext attacks", path: "modules/m01-foundations.html#threat-models", keywords: "adversary attack coa kpa cpa cca mitm passive active" },
+  
+  // Bits & Encoding
+  { title: "Bits, Bytes, Hexadecimal & ASCII", badge: "M02 Encoding", desc: "Foundational computer representations and binary conversions", path: "modules/m02-bits-and-encoding.html#bits-hex", keywords: "bits bytes binary hex hexadecimal ascii nibble base16" },
+  { title: "Base64 Encoding & 6-Bit Chunking", badge: "M02 Encoding", desc: "Representing raw binary data over 7-bit ASCII channels with padding", path: "modules/m02-bits-and-encoding.html#base64", keywords: "base64 encoding padding mime pem binary to text chunking" },
+  { title: "XOR (Exclusive OR) Cryptographic Properties", badge: "M02 Encoding", desc: "Self-inversion, commutativity, and the backbone of all modern ciphers", path: "modules/m02-bits-and-encoding.html#xor-properties", keywords: "xor exclusive or self-inverse bitwise stream cipher reversibility" },
+  
+  // Steganography
+  { title: "Steganography vs Encryption", badge: "M03 Steganography", desc: "Hiding data existence vs hiding data meaning", path: "modules/m03-steganography.html#steg-vs-crypto", keywords: "steganography hiding cover covert channel carrier" },
+  { title: "LSB (Least Significant Bit) Image Injection", badge: "M03 Steganography", desc: "Modifying lowest-order color bits to conceal secret byte payloads", path: "modules/m03-steganography.html#lsb-deep", keywords: "lsb least significant bit pixel color rgb carrier steganalysis payload" },
+
+  // Randomness
+  { title: "Entropy, PRNGs & CSPRNGs", badge: "M04 Randomness", desc: "True entropy sources vs deterministic pseudo-random generators", path: "modules/m04-randomness-entropy.html#entropy-sources", keywords: "entropy randomness prng csprng urandom seed unpredictability trng" },
+  { title: "The Dual-EC-DRBG Backdoor & Seed Compromise", badge: "M04 Randomness", desc: "How kleptographic backdoors and low entropy destroy key secrecy", path: "modules/m04-randomness-entropy.html#csprng-failures", keywords: "dual-ec-drbg backdoor nsa seed compromise debian openssl bug debian" },
+
+  // Classical Ciphers
+  { title: "Caesar & Vigenère Ciphers", badge: "M05 Classical", desc: "Monoalphabetic shifts and polyalphabetic keystreams", path: "modules/m05-classical-ciphers.html#caesar-vigenere", keywords: "caesar vigenere substitution shift polyalphabetic kasiski tabula recta" },
+  { title: "Frequency Analysis & Cryptanalysis", badge: "M05 Classical", desc: "Cracking classical ciphers using letter frequency distributions", path: "modules/m05-classical-ciphers.html#frequency-analysis", keywords: "frequency analysis cryptanalysis etaoin shrdlu letter distribution index coincidence" },
+  { title: "One-Time Pad (OTP) & Perfect Secrecy", badge: "M05 Classical", desc: "Information-theoretic security: key length >= message, truly random, never reused", path: "modules/m05-classical-ciphers.html#one-time-pad", keywords: "one time pad otp vernam perfect secrecy shannon unconditional vernam cipher" },
+
+  // Symmetric & AES
+  { title: "Block Ciphers vs Stream Ciphers", badge: "M06 Symmetric", desc: "Fixed 128-bit blocks vs continuous pseudo-random keystream XOR", path: "modules/m06-symmetric-aes.html#block-vs-stream", keywords: "block cipher stream cipher aes chacha20 keystream salsa20" },
+  { title: "AES (Advanced Encryption Standard) Round Architecture", badge: "M06 Symmetric", desc: "SubBytes (S-Box confusion), ShiftRows & MixColumns (diffusion), AddRoundKey", path: "modules/m06-symmetric-aes.html#aes-internals", keywords: "aes rijndael subbytes shiftrows mixcolumns addroundkey sbox confusion diffusion 128 192 256" },
+  { title: "Block Cipher Modes: ECB, CBC, CTR & GCM", badge: "M06 Symmetric", desc: "Why ECB is forbidden, CBC error propagation, and modern AEAD GCM", path: "modules/m06-symmetric-aes.html#block-modes-deep", keywords: "ecb cbc ctr gcm aead modes initialization vector iv authentication tag ghash" },
+  { title: "Interactive Tamper Simulator Lab", badge: "M06 Symmetric", desc: "Hands-on experiment: flip 1 ciphertext bit and watch error propagation across modes", path: "modules/m06-symmetric-aes.html#tamper-simulator", keywords: "tamper simulator lab bit-flip malleability authentication tag dropped error propagation" },
+
+  // Hashing & Integrity
+  { title: "Cryptographic Hash Functions: SHA-256, SHA-3, BLAKE3", badge: "M07 Hashing", desc: "Pre-image resistance, collision resistance, and the avalanche effect", path: "modules/m07-hashing-integrity.html#hash-properties", keywords: "sha256 sha3 keccak blake3 avalanche collision pre-image digest md5 sha1 sha2" },
+  { title: "HMAC (Keyed-Hash Message Authentication Code)", badge: "M07 Hashing", desc: "Why simple Hash(Key || Message) is vulnerable to Length Extension Attacks", path: "modules/m07-hashing-integrity.html#hmac-deep", keywords: "hmac length extension attack hash mac integrity authenticity secret key ipad opad" },
+  { title: "Merkle Trees & Lightweight Cryptographic Proofs", badge: "M07 Hashing", desc: "How Git and distributed systems verify 1 file out of 100,000 using 32-byte hashes", path: "modules/m07-hashing-integrity.html#merkle-trees", keywords: "merkle tree merkle root proof git commit integrity distributed blockchain" },
+
+  // Asymmetric & Public-Key
+  { title: "Diffie-Hellman Key Exchange (DH & ECDH)", badge: "M08 Asymmetric", desc: "Establishing a shared secret over an insecure channel without transmitting the key", path: "modules/m08-asymmetric-diffie-hellman.html#diffie-hellman", keywords: "diffie hellman ecdh discrete log public key shared secret x25519 color mixing" },
+  { title: "RSA Cryptosystem & Prime Factorization", badge: "M08 Asymmetric", desc: "Trapdoor one-way functions, Euler's totient, modular exponentiation", path: "modules/m08-asymmetric-diffie-hellman.html#rsa-deep", keywords: "rsa prime factorization modular exponentiation public private key euler totient trapdoor" },
+  { title: "Elliptic Curve Cryptography (ECC & Curve25519)", badge: "M08 Asymmetric", desc: "Point multiplication on Weierstrass and Montgomery curves for smaller, faster keys", path: "modules/m08-asymmetric-diffie-hellman.html#ecc-deep", keywords: "elliptic curve ecc curve25519 p256 point addition scalar multiplication secp256k1" },
+
+  // Signatures & PKI
+  { title: "Digital Signatures: Ed25519 & ECDSA", badge: "M09 Signatures", desc: "Authenticity and non-repudiation: sign with private key, verify with public key", path: "modules/m09-signatures-pki.html#digital-signatures", keywords: "digital signatures ed25519 ecdsa rsa sign verify signature signature verification" },
+  { title: "Public Key Infrastructure (PKI) & X.509", badge: "M09 Signatures", desc: "Certificate Authorities, trust chains, Root CAs, and Subject Alternative Names", path: "modules/m09-signatures-pki.html#pki-deep", keywords: "pki x509 certificate authority root ca intermediate chain san csr cert pem" },
+  { title: "Certificate Revocation: CRL, OCSP & OCSP Stapling", badge: "M09 Signatures", desc: "How browsers detect compromised certificates without privacy leaks or latency", path: "modules/m09-signatures-pki.html#revocation-deep", keywords: "revocation crl ocsp stapling letsencrypt compromised certificate crl distribution" },
+
+  // Key Vaults, KMS & Incident Response
+  { title: "Key Derivation Functions: Argon2id, bcrypt, PBKDF2", badge: "M10 Key Vaults", desc: "Memory-hard password hashing to neutralize GPU, FPGA, and ASIC brute-force", path: "modules/m10-key-vaults-kdfs.html#kdf-simulator", keywords: "argon2id bcrypt pbkdf2 password hashing salt pepper cost factor scrypt kdf" },
+  { title: "Hardware Security: HSMs, TPMs & Secure Enclaves", badge: "M10 Key Vaults", desc: "FIPS 140-3 physical silicon trust, Measured Boot, and zeroization circuits", path: "modules/m10-key-vaults-kdfs.html#hardware-security-deep", keywords: "hsm tpm secure enclave titan fips 140-3 measured boot zeroization hardware vault" },
+  { title: "Cloud KMS & Envelope Encryption Architecture", badge: "M10 Key Vaults", desc: "DEKs (Data Encryption Keys) + KEKs (Key Encryption Keys) for petabyte-scale encryption", path: "modules/m10-key-vaults-kdfs.html#envelope-encryption", keywords: "envelope encryption kms kek dek aws kms hashicorp vault key management google cloud kms" },
+  { title: "Cryptographic Incident Response & Key Compromise Playbook", badge: "M10 Key Vaults", desc: "Production triage, zero-downtime dual-key migration, and secret revocation runbook", path: "modules/m10-key-vaults-kdfs.html#incident-response-playbook", keywords: "incident response key compromise leak rotation playbook zero-downtime rekeying triage" },
+  { title: "Seed Phrases & BIP-39 Derivation Trees", badge: "M10 Key Vaults", desc: "Master seed phrases, checksums, and hierarchical deterministic key generation", path: "modules/m10-key-vaults-kdfs.html#seed-phrases", keywords: "bip39 seed phrase mnemonic hierarchical deterministic wallet recovery bip44" },
+
+  // Applied Protocols
+  { title: "TLS 1.3 Handshake Protocol & Forward Secrecy", badge: "M11 Applied", desc: "1-RTT encrypted handshake, ephemeral Diffie-Hellman, and zero-round-trip resumption", path: "modules/m11-applied-https-tokens.html#tls-handshake", keywords: "tls 1.3 https handshake forward secrecy pfs session resumption sni cipher suite" },
+  { title: "Token Authentication: JWT vs PASETO", badge: "M11 Applied", desc: "Why 'alg: none' ruined JWT, and how PASETO enforces cryptographic security", path: "modules/m11-applied-https-tokens.html#tokens-deep", keywords: "jwt paseto tokens alg none signature authorization bearer claims jws jwe" },
+  { title: "SSH & WireGuard Cryptographic Architecture", badge: "M11 Applied", desc: "Noise protocol, modern ChaCha20-Poly1305 tunnels, and Ed25519 identity", path: "modules/m11-applied-https-tokens.html#wireguard-ssh", keywords: "ssh wireguard noise protocol vpn authorized_keys tunneling modern crypto" },
+
+  // Quantum & ZKP
+  { title: "Post-Quantum Cryptography: NIST Standards (ML-KEM & ML-DSA)", badge: "M12 Quantum & ZKP", desc: "Shor's algorithm threat and lattice-based post-quantum cryptography (Kyber & Dilithium)", path: "modules/m12-zkp-quantum-era.html#pqc-deep", keywords: "post quantum pqc shor grover ml-kem kyber ml-dsa dilithium lattice nist quantum era" },
+  { title: "Zero-Knowledge Proofs: zk-SNARKs & zk-STARKs Intuition", badge: "M12 Quantum & ZKP", desc: "Proving knowledge of a secret without revealing the secret itself", path: "modules/m12-zkp-quantum-era.html#zkp-deep", keywords: "zero knowledge zkp snark stark proof prover verifier succinct rollups" },
+
+  // Module 13: Connected Topics & Public-Key Anatomy
+  { title: "Anatomy of an X.509 Certificate (RFC 5280)", badge: "M13 Connected Topics", desc: "TBSCertificate dissection, Subject Alternative Name (SAN), Basic Constraints, and Key Usage", path: "modules/m13-misc-topics.html#x509-anatomy", keywords: "x509 certificate rfc 5280 san subject alternative name tbscertificate basic constraints eku" },
+  { title: "Certificate Formats & Keystores: PEM, DER, PKCS#12, PKCS#7", badge: "M13 Connected Topics", desc: "Comparing Base64 PEM, raw binary DER, PKCS#7 chains, and password-encrypted PKCS#12 archives", path: "modules/m13-misc-topics.html#cert-formats", keywords: "pem der pkcs12 pfx pkcs7 p7b keystore jks certificate format conversion" },
+  { title: "Cryptographic Serialization & Canonical Encodings (ASN.1 & DER)", badge: "M13 Connected Topics", desc: "Why non-deterministic JSON fails signature checks and how ASN.1 DER and CBOR guarantee unique bitstreams", path: "modules/m13-misc-topics.html#canonical-serialization", keywords: "asn1 der cbor serialization canonical encoding tlv distinguished encoding rules json" },
+  { title: "Cryptographic Time: NTP Vulnerabilities, NTS & RFC 3161 TSP", badge: "M13 Connected Topics", desc: "Network Time Security (NTS) authenticated time and Timestamp Authorities for legal non-repudiation", path: "modules/m13-misc-topics.html#crypto-time", keywords: "time ntp nts network time security rfc 3161 tsp timestamp authority clock drift" },
+
+  // Systems & Security Engineering Tracks
+  { title: "Track 2: Operating System Fundamentals", badge: "Hub Track 02", desc: "Process lifecycles, virtual memory paging, CPU schedulers, file system inodes, and POSIX syscalls", path: "index.html#track-os-basics", keywords: "operating systems os processes threads virtual memory paging scheduling inodes syscalls ipc" },
+  { title: "Track 3: OS Internals & Kernel Security", badge: "Hub Track 03", desc: "Ring 0 vs Ring 3, memory corruption, ASLR, DEP/NX, Linux capabilities, and eBPF tracing", path: "index.html#track-os-internals", keywords: "os internals kernel security ring 0 aslr dep nx buffer overflow ebpf selinux apparmor" },
+  { title: "Track 4: Computer Networking & Protocols", badge: "Hub Track 04", desc: "TCP/IP stack, 3-way handshakes, congestion control, BGP routing, DNS, and WireGuard tunnels", path: "index.html#track-networking", keywords: "networking protocols tcp ip handshake bgp dns wireguard sockets congestion control" },
+  { title: "Track 5: Hardware Architecture & Silicon", badge: "Hub Track 05", desc: "CPU instruction pipelines, branch prediction, L1/L2/L3 caches, MESI coherence, and MMU page tables", path: "index.html#track-hardware", keywords: "hardware architecture cpu pipeline cache mesi mmu page table uefi dma interrupts" },
+  { title: "Track 6: Hardware Security & Silicon Trust", badge: "Hub Track 06", desc: "Spectre, Meltdown, Rowhammer, fault injection, voltage glitching, TPM 2.0, and Secure Enclaves", path: "index.html#track-hw-security", keywords: "hardware security spectre meltdown rowhammer fault injection tpm secure enclave glitching" },
+  { title: "Track 7: Cloud Infrastructure Security", badge: "Hub Track 07", desc: "Zero-Trust architecture, Cloud IAM least privilege, VPC peering, container isolation, and Vault", path: "index.html#track-cloud-sec", keywords: "cloud security zero trust iam vpc container kubernetes vault mtls service mesh" },
+
+  // CTF Engineering Tracks
+  { title: "CTF Track 1: Starting CTF Knowledge & Problem Patterns", badge: "CTF Track 01", desc: "Flag discovery methodology, classical cipher reconnaissance (XOR, Caesar, Vigenère), and encoding detection", path: "index.html#track-ctf-foundations", keywords: "ctf capture the flag beginner patterns cyberchef pwntools recon xor caesar vigenere encoding base64 stego" },
+  { title: "CTF Track 2: Intermediate CTF Cryptanalysis & Exploitation", badge: "CTF Track 02", desc: "CBC padding oracle attacks, ECB byte-at-a-time, RSA small exponent, PRNG state recovery, and hash length extension", path: "index.html#track-ctf-intermediate", keywords: "ctf intermediate cryptanalysis padding oracle ecb rsa factorisation mt19937 prng hash length extension jwt" },
+  { title: "CTF Track 3: Curated CTF Problem Bank & Hands-on Challenges", badge: "CTF Track 03", desc: "Categorized CTF practice challenge bank spanning crypto, forensics, token exploits, and flag formats", path: "index.html#track-ctf-problems", keywords: "ctf problems challenge bank practice ctf crypto pcap forensics web jwt flag labs" },
+
+  // Cheatsheets
+  { title: "When to Use What — Master Decision Matrix", badge: "Cheatsheet", desc: "Head-to-head algorithm comparisons, NIST lifetime matrix, and the 10 Golden Rules", path: "cheatsheet.html", keywords: "cheatsheet decision matrix recommendations comparison golden rules when to use what" },
+  { title: "OpenSSL 3.x Modern Command Handbook", badge: "OpenSSL", desc: "Intuitive command patterns for keys, certificates, HMACs, encryption, and TLS inspection", path: "openssl-cheatsheet.html", keywords: "openssl openssl 3 command cheatsheet req x509 genpkey dgst enc s_client s_server" }
+];
+
+let searchModalEl = null;
+let searchInputEl = null;
+let searchResultsEl = null;
+let activeResultIndex = -1;
+let filteredResults = [];
+
+function initGlobalSearch() {
+  if (!document.getElementById('searchModalOverlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'searchModalOverlay';
+    overlay.innerHTML = `
+      <div id="searchModalCard" onclick="event.stopPropagation()">
+        <div id="searchModalHeader">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchModalInput" placeholder="Search algorithms, ciphers, RFCs, tools, or concepts..." autocomplete="off">
+          <button id="searchModalClose" type="button" onclick="closeSearchModal()" title="Close (Esc)">&times;</button>
+        </div>
+        <div id="searchModalResults"></div>
+        <div id="searchModalFooter">
+          <span>Navigate with <kbd class="search-kbd">↑</kbd> <kbd class="search-kbd">↓</kbd></span>
+          <span>Select <kbd class="search-kbd">Enter</kbd></span>
+          <span>Close <kbd class="search-kbd">Esc</kbd></span>
+        </div>
+      </div>
+    `;
+    overlay.addEventListener('click', closeSearchModal);
+    document.body.appendChild(overlay);
+  }
+
+  searchModalEl = document.getElementById('searchModalOverlay');
+  searchInputEl = document.getElementById('searchModalInput');
+  searchResultsEl = document.getElementById('searchModalResults');
+
+  if (searchInputEl) {
+    searchInputEl.addEventListener('input', handleSearchInput);
+    searchInputEl.addEventListener('keydown', handleSearchKeydown);
+  }
+
+  // Keyboard shortcut listener
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      toggleSearchModal();
+    }
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      openSearchModal();
+    }
+    if (e.key === 'Escape' && searchModalEl && searchModalEl.classList.contains('active')) {
+      closeSearchModal();
+    }
+  });
+
+  renderSearchResults('');
+}
+
+function openSearchModal() {
+  if (!searchModalEl) initGlobalSearch();
+  searchModalEl.classList.add('active');
+  if (searchInputEl) {
+    searchInputEl.value = '';
+    renderSearchResults('');
+    setTimeout(() => searchInputEl.focus(), 50);
+  }
+}
+
+function closeSearchModal() {
+  if (searchModalEl) {
+    searchModalEl.classList.remove('active');
+  }
+}
+
+function toggleSearchModal() {
+  if (searchModalEl && searchModalEl.classList.contains('active')) {
+    closeSearchModal();
+  } else {
+    openSearchModal();
+  }
+}
+
+function handleSearchInput(e) {
+  renderSearchResults(e.target.value);
+}
+
+function handleSearchKeydown(e) {
+  if (!filteredResults.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex + 1) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex - 1 + filteredResults.length) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (activeResultIndex >= 0 && activeResultIndex < filteredResults.length) {
+      navigateToSearchResult(filteredResults[activeResultIndex]);
+    }
+  }
+}
+
+function updateActiveResultUI() {
+  const items = searchResultsEl.querySelectorAll('.search-result-item');
+  items.forEach((item, idx) => {
+    if (idx === activeResultIndex) {
+      item.classList.add('active');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+function renderSearchResults(query) {
+  if (!searchResultsEl) return;
+  const q = query.trim().toLowerCase();
+  
+  if (!q) {
+    filteredResults = SEARCH_INDEX.slice(0, 8);
+  } else {
+    const scored = [];
+    SEARCH_INDEX.forEach(item => {
+      const titleLower = item.title.toLowerCase();
+      const descLower = item.desc.toLowerCase();
+      const badgeLower = item.badge.toLowerCase();
+      const kwLower = item.keywords.toLowerCase();
+      
+      let score = 0;
+      if (titleLower === q) score += 200;
+      else if (titleLower.startsWith(q)) score += 150;
+      else if (titleLower.includes(' ' + q) || titleLower.includes('(' + q)) score += 120;
+      else if (titleLower.includes(q)) score += 40;
+
+      if (kwLower.includes(q)) score += 60;
+      if (descLower.includes(q)) score += 20;
+      if (badgeLower.includes(q)) score += 20;
+
+      if (score > 0) {
+        scored.push({ item, score });
+      }
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    filteredResults = scored.map(s => s.item);
+  }
+
+  activeResultIndex = filteredResults.length > 0 ? 0 : -1;
+
+  if (filteredResults.length === 0) {
+    searchResultsEl.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13.5px;">No cryptographic concepts found matching "<strong>' + escapeHtml(query) + '</strong>".</div>';
+    return;
+  }
+
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+
+  let html = '';
+  filteredResults.forEach((item, idx) => {
+    let resolvedPath = item.path;
+    if (isInsideModules) {
+      if (resolvedPath.startsWith('modules/')) {
+        resolvedPath = resolvedPath.replace('modules/', '');
+      } else {
+        resolvedPath = '../' + resolvedPath;
+      }
+    } else {
+      resolvedPath = item.path;
+    }
+
+    const isActive = idx === activeResultIndex ? ' active' : '';
+    html += `
+      <a href="${resolvedPath}" class="search-result-item${isActive}" onclick="closeSearchModal()">
+        <div class="search-result-left">
+          <span class="search-result-badge">${item.badge}</span>
+          <div class="search-result-text">
+            <div class="search-result-title">${escapeHtml(item.title)}</div>
+            <div class="search-result-desc">${escapeHtml(item.desc)}</div>
+          </div>
+        </div>
+        <span class="search-result-arrow">→</span>
+      </a>
+    `;
+  });
+
+  searchResultsEl.innerHTML = html;
+}
+
+function navigateToSearchResult(item) {
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+  let resolvedPath = item.path;
+  if (isInsideModules) {
+    if (resolvedPath.startsWith('modules/')) {
+      resolvedPath = resolvedPath.replace('modules/', '');
+    } else {
+      resolvedPath = '../' + resolvedPath;
+    }
+  }
+  closeSearchModal();
+  window.location.href = resolvedPath;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 </script>
+
+<script id="hubRouter">
+(function() {
+  const ROADMAP_DATA = {
+    "os-basics": {
+      "num": "Track 02",
+      "name": "Operating System Fundamentals",
+      "desc": "How software bridges the physical machine. Process lifecycles, virtual memory translation, CPU scheduling algorithms, file system inodes, and inter-process communication.",
+      "topics": ["Processes, Threads & Concurrency Models", "Virtual Memory, Paging & TLB", "CPU Scheduling & Fair Queuing", "File System Hierarchies & Inodes", "POSIX System Calls & Interrupts", "IPC: Pipes, Unix Sockets & Shared Memory"],
+      "modules": [
+        {"id": "OS-01", "title": "The Kernel Boundary: User Space vs Kernel Space", "desc": "How CPUs switch between unprivileged user code and privileged OS supervisor mode via software interrupts.", "status": "In Development"},
+        {"id": "OS-02", "title": "Process Virtual Memory & Paging", "desc": "Virtual address spaces, page tables, page faults, and how the MMU isolates applications.", "status": "In Development"},
+        {"id": "OS-03", "title": "Concurrency, Mutexes & Deadlocks", "desc": "Race conditions, atomic operations, futexes, and deadlock prevention algorithms.", "status": "In Development"},
+        {"id": "OS-04", "title": "File System Architecture & Inode Allocation", "desc": "Block allocation, journaling, VFS abstraction, and directory tree traversals.", "status": "In Development"}
+      ]
+    },
+    "os-internals": {
+      "num": "Track 03",
+      "name": "OS Internals & Kernel Security",
+      "desc": "The boundary between user space and Ring 0. Memory corruption mechanics, modern exploit mitigations, Linux capabilities, and eBPF kernel observability.",
+      "topics": ["Ring 0 vs Ring 3 Privilege Transitions", "Stack & Heap Buffer Overflows", "Exploit Mitigations: ASLR, DEP/NX, Canaries", "Linux Capabilities & Seccomp", "eBPF Kernel Probes & Tracing", "Linux Security Modules: AppArmor & SELinux"],
+      "modules": [
+        {"id": "KER-01", "title": "Memory Corruption: Stack Overflows & ROP", "desc": "Smashing the call stack, return-oriented programming (ROP) chains, and control flow hijacking.", "status": "In Development"},
+        {"id": "KER-02", "title": "Modern Binary Defenses: ASLR, NX & PIE", "desc": "How address space randomization and non-executable stacks neutralize injection payloads.", "status": "In Development"},
+        {"id": "KER-03", "title": "Privilege Separation: Capabilities & Namespaces", "desc": "Splitting root into granular Linux capabilities, cgroups, and container sandboxing.", "status": "In Development"},
+        {"id": "KER-04", "title": "eBPF & Kernel Telemetry", "desc": "Running safe, sandboxed bytecode inside the Linux kernel for real-time security monitoring.", "status": "In Development"}
+      ]
+    },
+    "networking": {
+      "num": "Track 04",
+      "name": "Computer Networking & Protocols",
+      "desc": "From physical Ethernet frames to global BGP routing. The OSI and TCP/IP protocol stacks, TCP 3-way handshakes, congestion avoidance, DNS hierarchies, NAT, and VPN tunneling.",
+      "topics": ["TCP/IP Protocol Stack Architecture", "TCP 3-Way Handshake & Teardown", "Sliding Windows & Congestion Control", "Hierarchical DNS Resolution & DNSSEC", "BGP & Internet Autonomous Systems", "WireGuard & IPsec Tunneling"],
+      "modules": [
+        {"id": "NET-01", "title": "Packet Encapsulation: Ethernet to Application", "desc": "Deconstructing frame headers, IP packet routing, and transport layer segmentation.", "status": "In Development"},
+        {"id": "NET-02", "title": "TCP Reliability: Handshakes, ACKs & Windows", "desc": "Sequence numbers, retransmission timers, flow control, and slow-start congestion avoidance.", "status": "In Development"},
+        {"id": "NET-03", "title": "Global Routing: BGP, OSPF & Subnetting", "desc": "How autonomous systems exchange routes across the global internet backbone.", "status": "In Development"},
+        {"id": "NET-04", "title": "Modern VPN Architecture: WireGuard", "desc": "Noise protocol handshakes, cryptographic key routing, and stateless kernel tunnels.", "status": "In Development"}
+      ]
+    },
+    "hardware": {
+      "num": "Track 05",
+      "name": "Hardware Architecture & Silicon",
+      "desc": "Silicon architecture from logic gates to multicore superscalar microprocessors. Instruction execution cycles, CPU pipelines, L1/L2/L3 cache hierarchies, MESI coherence, and MMU page tables.",
+      "topics": ["CPU Instruction Pipelines & Hazards", "Branch Prediction & Out-of-Order Execution", "L1/L2/L3 Caches & MESI Coherence", "MMU & Translation Lookaside Buffers", "Interrupt Controllers & Direct Memory Access (DMA)", "UEFI Firmware & Secure Boot Stages"],
+      "modules": [
+        {"id": "HW-01", "title": "Instruction Pipeline & Branch Prediction", "desc": "Fetch, decode, execute, memory, writeback stages and speculative branch execution.", "status": "In Development"},
+        {"id": "HW-02", "title": "Memory Hierarchy: Caches & Coherence", "desc": "Cache lines, associative mapping, false sharing, and the MESI invalidation protocol.", "status": "In Development"},
+        {"id": "HW-03", "title": "Virtual Address Translation in Silicon", "desc": "Hardware page table walks, multi-level paging, and TLB hit/miss economics.", "status": "In Development"},
+        {"id": "HW-04", "title": "Firmware & Platform Initialization", "desc": "From CPU reset vector to UEFI PEI, DXE, and OS bootloader handover.", "status": "In Development"}
+      ]
+    },
+    "hw-security": {
+      "num": "Track 06",
+      "name": "Hardware Security & Silicon Trust",
+      "desc": "Physical attacks, microarchitectural side-channels, and silicon roots of trust. Speculative execution vulnerabilities (Spectre, Meltdown), DRAM Rowhammer, voltage glitching, TPM 2.0, and Secure Enclaves.",
+      "topics": ["Spectre & Meltdown Side-Channels", "Rowhammer DRAM Bit Flipping", "Fault Injection & Voltage Glitching", "TPM 2.0 & Measured Boot Integrity", "Secure Enclaves (Apple SEP / Titan M)", "JTAG & Hardware Debug Lockouts"],
+      "modules": [
+        {"id": "SEC-01", "title": "Transient Execution Attacks: Spectre & Meltdown", "desc": "Leaking kernel memory across privilege boundaries via CPU speculative cache side-channels.", "status": "In Development"},
+        {"id": "SEC-02", "title": "Physical Fault Injection & Glitching", "desc": "Inducing bit-flips with laser pulses and voltage drops to bypass security checks.", "status": "In Development"},
+        {"id": "SEC-03", "title": "DRAM Rowhammer & Disturbance Errors", "desc": "Rapidly activating memory rows to induce electromagnetic charge leakage in adjacent bits.", "status": "In Development"},
+        {"id": "SEC-04", "title": "Hardware Roots of Trust: TPMs & Enclaves", "desc": "Cryptographic measurement registers, platform binding, and isolated security co-processors.", "status": "In Development"}
+      ]
+    },
+    "cloud-sec": {
+      "num": "Track 07",
+      "name": "Cloud Infrastructure Security",
+      "desc": "Production zero-trust systems and distributed cloud hardening. Cloud IAM least privilege, VPC network peering, container isolation (cgroups, namespaces, seccomp), Kubernetes security, and secrets vaults.",
+      "topics": ["Zero-Trust Architecture Principles", "Cloud IAM Policies & Least Privilege", "VPC Isolation & Network Peering", "Container Sandboxing & Seccomp", "HashiCorp Vault & Dynamic Secrets", "Service Meshes & Mutual TLS (mTLS)"],
+      "modules": [
+        {"id": "CLD-01", "title": "Zero-Trust Network Architecture", "desc": "Eliminating perimeter trust: continuous authentication, microsegmentation, and device health verification.", "status": "In Development"},
+        {"id": "CLD-02", "title": "Container Isolation & Kubernetes Hardening", "desc": "Linux namespaces, cgroups, seccomp profiles, and Kubernetes RBAC authorization.", "status": "In Development"},
+        {"id": "CLD-03", "title": "Secrets Management & Dynamic Credentials", "desc": "Lease-based credential generation, secret rotation, and automated encryption-as-a-service.", "status": "In Development"},
+        {"id": "CLD-04", "title": "Service Mesh Security: Envoy & mTLS", "desc": "Automated cryptographic mutual TLS between microservices with SPIFFE identity attestation.", "status": "In Development"}
+      ]
+    },
+    "ctf-foundations": {
+      "num": "CTF Track 01",
+      "name": "Starting CTF Knowledge & Problem Patterns",
+      "desc": "The essential mental models and toolchains to conquer beginner security competitions. Flag discovery methodology, classical cipher reconnaissance (XOR, Caesar, Vigenère), multi-layer encoding detection (Base64/32/85, Hex, ROT13), and file steganography.",
+      "topics": ["Recon Methodology & Flag Formats", "CyberChef Recipe Automation", "Python pwntools Socket Scripting", "Single-Byte & Repeating XOR Decryption", "Encoding Traps (Base64/32/58/85)", "Steganography & Embedded Artifacts"],
+      "modules": [
+        {"id": "CTF-01", "title": "The CTF Arena: Flag Mechanics & Strategy", "desc": "Understanding flag formats, challenge taxonomy, point scoring dynamics, and systematic reconnaissance workflows.", "status": "Curriculum Outline"},
+        {"id": "CTF-02", "title": "Encoding vs Encryption in Challenges", "desc": "Dissecting layered Base64, ASCII hex, Morse, rot13, and multi-tier encoding puzzles without keys.", "status": "Curriculum Outline"},
+        {"id": "CTF-03", "title": "Single-Byte & Repeating-Key XOR Exploitation", "desc": "Automating Hamming distance analysis, index of coincidence, and statistical key recovery with Python.", "status": "Curriculum Outline"},
+        {"id": "CTF-04", "title": "Scripting Solvers with Pwntools & SageMath", "desc": "Interacting with remote netcat challenge services, automating binary I/O, and writing modular exploit scripts.", "status": "Curriculum Outline"}
+      ]
+    },
+    "ctf-intermediate": {
+      "num": "CTF Track 02",
+      "name": "Intermediate CTF Cryptanalysis & Exploitation",
+      "desc": "Exploiting mathematical flaws in modern cryptographic implementations. CBC padding oracle attacks, ECB byte-at-a-time decryption, RSA small exponent factorization (e=3, Wiener), PRNG state recovery, and hash length extension attacks.",
+      "topics": ["CBC Padding Oracle & Bit-Flipping", "AES-ECB Byte-at-a-Time Decryption", "RSA Attacks: Wiener, Hastad, Common Factor", "Mersenne Twister (MT19937) Inversion", "Diffie-Hellman Small Subgroups", "Hash Length Extension (MD5/SHA-1)"],
+      "modules": [
+        {"id": "CTF-05", "title": "RSA Vulnerability Zoo: Hastad, Wiener & Fermat", "desc": "Attacking small public exponents, small private exponents, and Fermat factorization for close primes p and q.", "status": "Curriculum Outline"},
+        {"id": "CTF-06", "title": "Block Cipher Manipulation: ECB & CBC Oracles", "desc": "Extracting secret plaintext byte-by-byte via ECB alignment and exploiting CBC Decryptor padding error side-channels.", "status": "Curriculum Outline"},
+        {"id": "CTF-07", "title": "Weak PRNGs & Seed Recovery in CTFs", "desc": "Untwisting MT19937 state from 624 outputs and cracking timestamp-seeded pseudo-random generators.", "status": "Curriculum Outline"},
+        {"id": "CTF-08", "title": "Signature Forgery & Length Extension Attacks", "desc": "Exploiting Merkle-Damgard state vulnerabilities with hashpump and attacking flawed ECDSA nonces.", "status": "Curriculum Outline"}
+      ]
+    },
+    "ctf-problems": {
+      "num": "CTF Track 03",
+      "name": "Curated CTF Problem Bank & Practice Challenges",
+      "desc": "An expansive, tiered challenge directory spanning cryptography, forensics, and token security. Complete with problem statements, concepts tested, flag format criteria, and prepared for future interactive challenge laboratories and asset bundles.",
+      "topics": ["Challenge Bank & Tiered Taxonomy", "Warmup Puzzles (50-100 pts)", "Intermediate Cryptanalysis (150-300 pts)", "Advanced Protocol Exploits (350-500 pts)", "Interactive Challenge Services [Planned]", "Downloadable Lab Assets & Code [Planned]"],
+      "modules": [
+        {"id": "CHAL-01", "title": "One-Time Pad Key Reuse (Warmup)", "desc": "Two secret communications encrypted with the exact same OTP key stream. Perform crib-dragging to extract flag{crib_drag_reuse_revealed}. [Assets & Downloads: Planned]", "status": "Challenge Brief"},
+        {"id": "CHAL-02", "title": "The Broken Factorizer (Easy/Medium)", "desc": "RSA key generation server sharing common prime factors across clients. Compute gcd(N1, N2) to factor the modulus and decrypt ciphertext. [Assets & Downloads: Planned]", "status": "Challenge Brief"},
+        {"id": "CHAL-03", "title": "CBC Oracle in the Wire (Medium)", "desc": "A network service decrypts authentication cookies and leaks PKCS#7 padding validation errors. Decrypt admin cookie byte-by-byte. [Assets & Downloads: Planned]", "status": "Challenge Brief"},
+        {"id": "CHAL-04", "title": "Hastad's Broadcast Heist (Medium)", "desc": "A military dispatch encrypts the flag using e=3 to three separate stations. Reconstruct with CRT and take the integer cube root. [Assets & Downloads: Planned]", "status": "Challenge Brief"},
+        {"id": "CHAL-05", "title": "PRNG Predictor & Token Guessing (Hard)", "desc": "Password reset tokens generated using Python's standard random (MT19937). Observe 624 outputs, untwist the internal state, and predict the next admin reset token. [Assets & Downloads: Planned]", "status": "Challenge Brief"},
+        {"id": "CHAL-06", "title": "Elliptic Curve Nonce Leakage (Hard)", "desc": "ECDSA server signs financial transactions while leaking the top 8 bits of nonce k. Formulate the Hidden Number Problem and solve using LLL lattice reduction. [Assets & Downloads: Planned]", "status": "Challenge Brief"}
+      ]
+    }
+  };
+
+  window.showAllTracks = function() {
+    const vt = document.getElementById('view-tracks');
+    const vc = document.getElementById('view-track-crypto');
+    const vr = document.getElementById('view-track-roadmap');
+    if (vt) vt.classList.add('active');
+    if (vc) vc.classList.remove('active');
+    if (vr) vr.classList.remove('active');
+    if (window.setBackgroundPattern) window.setBackgroundPattern('hub');
+    if (window.location.hash) {
+      try {
+        history.pushState('', document.title, window.location.pathname + window.location.search);
+      } catch (e) {}
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.selectTrack = function(trackId) {
+    if (trackId === 'crypto') {
+      const vt = document.getElementById('view-tracks');
+      const vc = document.getElementById('view-track-crypto');
+      const vr = document.getElementById('view-track-roadmap');
+      if (vt) vt.classList.remove('active');
+      if (vr) vr.classList.remove('active');
+      if (vc) vc.classList.add('active');
+      if (window.setBackgroundPattern) window.setBackgroundPattern('crypto');
+      window.location.hash = 'crypto';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  window.selectRoadmapTrack = function(trackKey) {
+    const data = ROADMAP_DATA[trackKey];
+    if (!data) return;
+
+    const vt = document.getElementById('view-tracks');
+    const vc = document.getElementById('view-track-crypto');
+    const vr = document.getElementById('view-track-roadmap');
+    if (vt) vt.classList.remove('active');
+    if (vc) vc.classList.remove('active');
+    
+    const container = document.getElementById('roadmapContentContainer');
+    const badge = document.getElementById('roadmapBadgeLabel');
+    if (badge) badge.textContent = data.num + ' • Curriculum Roadmap';
+
+    let modulesHtml = '';
+    data.modules.forEach(function(m) {
+      modulesHtml += '<div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px; margin-bottom:12px; box-shadow:var(--shadow-soft);">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+          '<strong style="color:var(--text-main); font-size:15px;">' + m.id + ': ' + m.title + '</strong>' +
+          '<span style="font-family:var(--font-mono); font-size:10.5px; background:var(--bg-alt); padding:2px 7px; border-radius:3px; border:1px solid var(--border); color:var(--text-muted);">' + (m.status || 'In Development') + '</span>' +
+        '</div>' +
+        '<div style="font-size:13.5px; color:var(--text-secondary); line-height:1.55;">' + m.desc + '</div>' +
+      '</div>';
+    });
+
+    let tagsHtml = '';
+    data.topics.forEach(function(t) {
+      tagsHtml += '<span class="hub-topic-tag" style="font-size:12px; padding:3px 9px;">' + t + '</span>';
+    });
+
+    if (container) {
+      container.innerHTML = '<header class="lesson-header" style="margin-bottom:30px;">' +
+        '<div style="font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">' + data.num + ' Curriculum Outline</div>' +
+        '<h1 class="lesson-title" style="font-size:28px;">' + data.name + '</h1>' +
+        '<p class="lesson-subtitle" style="font-size:15px; margin-top:8px;">' + data.desc + '</p>' +
+      '</header>' +
+      '<div style="margin-bottom:28px;">' +
+        '<div style="font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px;">Core Engineering Topics:</div>' +
+        '<div style="display:flex; flex-wrap:wrap; gap:8px;">' + tagsHtml + '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:20px;">' +
+        '<div style="font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:14px;">Planned Syllabus &amp; Modules:</div>' +
+        modulesHtml +
+      '</div>' +
+      '<div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px 22px; margin-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">' +
+        '<div>' +
+          '<strong style="color:var(--text-main); font-size:14px;">Looking for active interactive modules right now?</strong>' +
+          '<div style="font-size:13px; color:var(--text-secondary); margin-top:2px;">Track 01 (Applied Cryptography) is 100% complete with 13 full interactive modules.</div>' +
+        '</div>' +
+        '<button type="button" class="button button-primary" onclick="selectTrack(\'crypto\')" style="white-space:nowrap; padding:8px 16px; font-size:13px;">' +
+          'Go to Track 1: Cryptography →' +
+        '</button>' +
+      '</div>';
+    }
+
+    if (window.setBackgroundPattern) window.setBackgroundPattern(trackKey);
+    if (vr) vr.classList.add('active');
+    window.location.hash = 'track-' + trackKey;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  function checkHashRoute() {
+    const hash = window.location.hash.toLowerCase();
+    if (hash === '#crypto' || hash === '#track-crypto') {
+      selectTrack('crypto');
+    } else if (hash.startsWith('#track-')) {
+      const key = hash.replace('#track-', '');
+      if (ROADMAP_DATA[key]) {
+        selectRoadmapTrack(key);
+      } else {
+        showAllTracks();
+      }
+    } else {
+      showAllTracks();
+    }
+  }
+
+  window.addEventListener('hashchange', checkHashRoute);
+  document.addEventListener('DOMContentLoaded', checkHashRoute);
+})();
+
+/* =============================================================
+   IMMERSIVE BACKGROUND ANIMATION ENGINE
+   Active only on Home Hub and Individual Track Landing Views
+   ============================================================= */
+(function initImmersiveBackground() {
+  const canvas = document.getElementById('immersiveBgCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  let width = 0;
+  let height = 0;
+  let animId = null;
+  let currentPattern = 'hub';
+  let targetPattern = 'hub';
+  let patternOpacity = 1.0;
+  let mouse = { x: -1000, y: -1000 };
+  let tick = 0;
+
+  function getPalette() {
+    const theme = document.documentElement.getAttribute('data-theme') || 'paper';
+    if (theme === 'slate') {
+      return {
+        primary: '82, 183, 136',
+        accent: '116, 198, 157',
+        secondary: '96, 165, 250',
+        tertiary: '167, 139, 250',
+        highlight: '251, 191, 36',
+        baseAlpha: 1.0
+      };
+    } else if (theme === 'sepia') {
+      return {
+        primary: '140, 91, 54',
+        accent: '180, 83, 9',
+        secondary: '120, 53, 15',
+        tertiary: '194, 65, 12',
+        highlight: '217, 119, 6',
+        baseAlpha: 0.85
+      };
+    } else {
+      return {
+        primary: '45, 106, 79',
+        accent: '27, 67, 50',
+        secondary: '43, 108, 176',
+        tertiary: '107, 70, 193',
+        highlight: '217, 119, 6',
+        baseAlpha: 0.8
+      };
+    }
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  window.addEventListener('mouseleave', () => {
+    mouse.x = -1000;
+    mouse.y = -1000;
+  });
+  resize();
+
+  // Pattern 1: HUB Constellation
+  const hubNodes = [];
+  for (let i = 0; i < 46; i++) {
+    hubNodes.push({
+      x: Math.random() * 2000,
+      y: Math.random() * 1200,
+      vx: (Math.random() - 0.5) * 0.45,
+      vy: (Math.random() - 0.5) * 0.45,
+      r: Math.random() * 2.8 + 1.6,
+      isRoot: i % 7 === 0,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+
+  function renderHub(pal, alpha) {
+    for (let i = 0; i < hubNodes.length; i++) {
+      const n = hubNodes[i];
+      n.x += n.vx;
+      n.y += n.vy;
+      if (n.x < 0) n.x = width;
+      if (n.x > width) n.x = 0;
+      if (n.y < 0) n.y = height;
+      if (n.y > height) n.y = 0;
+
+      const mdx = n.x - mouse.x;
+      const mdy = n.y - mouse.y;
+      const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+      if (mdist < 120 && mdist > 0) {
+        const force = (120 - mdist) / 120 * 0.5;
+        n.x += (mdx / mdist) * force;
+        n.y += (mdy / mdist) * force;
+      }
+
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${n.isRoot ? pal.accent : pal.primary}, ${0.45 * alpha * pal.baseAlpha})`;
+      ctx.fill();
+
+      if (n.isRoot) {
+        const ringR = n.r + Math.sin(tick * 0.03 + n.phase) * 6 + 8;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, Math.max(ringR, 2), 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${pal.accent}, ${0.15 * alpha * pal.baseAlpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      for (let j = i + 1; j < hubNodes.length; j++) {
+        const n2 = hubNodes[j];
+        const dx = n.x - n2.x;
+        const dy = n.y - n2.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 135) {
+          const edgeAlpha = (1 - dist / 135) * 0.22 * alpha * pal.baseAlpha;
+          ctx.beginPath();
+          ctx.moveTo(n.x, n.y);
+          ctx.lineTo(n2.x, n2.y);
+          ctx.strokeStyle = `rgba(${pal.primary}, ${edgeAlpha})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // Pattern 2: CRYPTOGRAPHY (Entropy Waves & Hex Streams)
+  const cipherStreams = [];
+  const HEX_CHARS = '0123456789ABCDEF•AES•GCM•RSA•ZKP•SHA•256•KEY•HMAC';
+  for (let i = 0; i < 22; i++) {
+    cipherStreams.push({
+      x: (i / 22) * 2000 + (Math.random() * 30 - 15),
+      y: Math.random() * 1200,
+      speed: Math.random() * 0.6 + 0.35,
+      chars: Array.from({ length: 10 }, () => HEX_CHARS[Math.floor(Math.random() * HEX_CHARS.length)])
+    });
+  }
+
+  function renderCrypto(pal, alpha) {
+    // Dual harmonic entropy waveforms
+    ctx.lineWidth = 1.2;
+    for (let w = 0; w < 3; w++) {
+      ctx.beginPath();
+      const waveOffset = w * 120;
+      const freq = 0.0035 + w * 0.001;
+      const speed = tick * 0.015 * (w % 2 === 0 ? 1 : -1);
+      for (let x = 0; x <= width; x += 15) {
+        const y = height * 0.45 + waveOffset + Math.sin(x * freq + speed) * 45 + Math.cos(x * 0.002 - speed * 0.8) * 25;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      const waveCol = w === 0 ? pal.primary : (w === 1 ? pal.secondary : pal.tertiary);
+      ctx.strokeStyle = `rgba(${waveCol}, ${0.12 * alpha * pal.baseAlpha})`;
+      ctx.stroke();
+    }
+
+    // Vertical cryptographic hex streams
+    ctx.font = '11px "SF Mono", Consolas, monospace';
+    cipherStreams.forEach((s) => {
+      s.y += s.speed;
+      if (s.y > height + 200) s.y = -80;
+      const sx = (s.x % width);
+      for (let c = 0; c < s.chars.length; c++) {
+        const cy = s.y + c * 18;
+        if (cy > -20 && cy < height + 20) {
+          const charAlpha = (1 - c / s.chars.length) * 0.18 * alpha * pal.baseAlpha;
+          ctx.fillStyle = `rgba(${pal.primary}, ${charAlpha})`;
+          ctx.fillText(s.chars[c], sx, cy);
+        }
+      }
+    });
+
+    // Rotating cipher disc
+    const cx = width * 0.84;
+    const cy = height * 0.4;
+    for (let r = 50; r <= 150; r += 45) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${pal.accent}, ${0.08 * alpha * pal.baseAlpha})`;
+      ctx.setLineDash([6, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // Pattern 3: OS BASICS (Memory Paging Matrix)
+  function renderOsBasics(pal, alpha) {
+    const cols = Math.floor(width / 60) + 1;
+    const rows = Math.floor(height / 60) + 1;
+    const blockSize = 36;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * 60 + 15;
+        const y = r * 60 + 15;
+        const pageId = (r * cols + c);
+        const isActive = ((pageId + Math.floor(tick * 0.05)) % 16 === 0);
+        const cellAlpha = isActive ? 0.28 * alpha * pal.baseAlpha : 0.04 * alpha * pal.baseAlpha;
+        const borderCol = isActive ? pal.accent : pal.primary;
+
+        ctx.strokeStyle = `rgba(${borderCol}, ${cellAlpha})`;
+        ctx.strokeRect(x, y, blockSize, blockSize);
+
+        if (isActive) {
+          ctx.fillStyle = `rgba(${pal.accent}, ${0.08 * alpha * pal.baseAlpha})`;
+          ctx.fillRect(x, y, blockSize, blockSize);
+        }
+      }
+    }
+
+    const pipeY = height * 0.75;
+    ctx.strokeStyle = `rgba(${pal.secondary}, ${0.14 * alpha * pal.baseAlpha})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, pipeY);
+    ctx.lineTo(width, pipeY);
+    ctx.stroke();
+
+    const pulseX = (tick * 4) % (width + 100) - 50;
+    ctx.fillStyle = `rgba(${pal.highlight}, ${0.45 * alpha * pal.baseAlpha})`;
+    ctx.beginPath();
+    ctx.arc(pulseX, pipeY, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Pattern 4: OS INTERNALS (Protection Rings & Stack Hex Canaries)
+  function renderOsInternals(pal, alpha) {
+    const cx = width * 0.5;
+    const cy = height * 0.5;
+    const rings = [270, 190, 120, 60];
+
+    rings.forEach((r, idx) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${idx === 3 ? pal.accent : pal.primary}, ${0.12 * alpha * pal.baseAlpha})`;
+      ctx.lineWidth = idx === 3 ? 1.8 : 1;
+      ctx.stroke();
+
+      const rayAngle = tick * 0.008 + (idx * 0.7);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(rayAngle) * r, cy + Math.sin(rayAngle) * r);
+      ctx.strokeStyle = `rgba(${pal.secondary}, ${0.06 * alpha * pal.baseAlpha})`;
+      ctx.stroke();
+    });
+
+    ctx.font = '10px "SF Mono", Consolas, monospace';
+    const hexSamples = ['0x7FFE_F0A0', 'CANARY: 0xDEADBEEF', '[ESP+0x08]', 'SYS_ENTER', 'eBPF::SEC_PROBE'];
+    hexSamples.forEach((txt, i) => {
+      const hx = ((i * 260 + tick * 0.4) % (width + 200)) - 100;
+      const hy = 80 + i * 110 + Math.sin(tick * 0.02 + i) * 15;
+      ctx.fillStyle = `rgba(${pal.primary}, ${0.14 * alpha * pal.baseAlpha})`;
+      ctx.fillText(txt, hx, hy);
+    });
+  }
+
+  // Pattern 5: NETWORKING (Dynamic Routing Mesh & Packets)
+  const netNodes = [];
+  for (let i = 0; i < 30; i++) {
+    netNodes.push({
+      x: Math.random() * 2000,
+      y: Math.random() * 1200,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 3 + 2
+    });
+  }
+  const netPackets = Array.from({ length: 16 }, () => ({
+    src: Math.floor(Math.random() * 30),
+    dst: Math.floor(Math.random() * 30),
+    progress: Math.random()
+  }));
+
+  function renderNetworking(pal, alpha) {
+    netNodes.forEach(n => {
+      n.x += n.vx;
+      n.y += n.vy;
+      if (n.x < 0) n.x = width;
+      if (n.x > width) n.x = 0;
+      if (n.y < 0) n.y = height;
+      if (n.y > height) n.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${pal.secondary}, ${0.35 * alpha * pal.baseAlpha})`;
+      ctx.fill();
+    });
+
+    for (let i = 0; i < netNodes.length; i++) {
+      for (let j = i + 1; j < netNodes.length; j++) {
+        const dx = netNodes[i].x - netNodes[j].x;
+        const dy = netNodes[i].y - netNodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 180) {
+          ctx.beginPath();
+          ctx.moveTo(netNodes[i].x, netNodes[i].y);
+          ctx.lineTo(netNodes[j].x, netNodes[j].y);
+          ctx.strokeStyle = `rgba(${pal.secondary}, ${(1 - dist / 180) * 0.16 * alpha * pal.baseAlpha})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    netPackets.forEach(p => {
+      p.progress += 0.008;
+      if (p.progress >= 1) {
+        p.progress = 0;
+        p.src = p.dst;
+        p.dst = Math.floor(Math.random() * netNodes.length);
+      }
+      const n1 = netNodes[p.src];
+      const n2 = netNodes[p.dst];
+      if (n1 && n2) {
+        const px = n1.x + (n2.x - n1.x) * p.progress;
+        const py = n1.y + (n2.y - n1.y) * p.progress;
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${pal.accent}, ${0.75 * alpha * pal.baseAlpha})`;
+        ctx.fill();
+      }
+    });
+  }
+
+  // Pattern 6: HARDWARE ARCHITECTURE (Silicon Bus Traces)
+  function renderHardware(pal, alpha) {
+    const spacing = 75;
+    const colCount = Math.floor(width / spacing) + 1;
+    const rowCount = Math.floor(height / spacing) + 1;
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = `rgba(${pal.primary}, ${0.08 * alpha * pal.baseAlpha})`;
+
+    for (let c = 0; c < colCount; c++) {
+      const x = c * spacing + 20;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+
+      for (let r = 0; r < rowCount; r++) {
+        const y = r * spacing + 20;
+        if ((c + r) % 3 === 0) {
+          ctx.beginPath();
+          ctx.arc(x, y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${pal.accent}, ${0.2 * alpha * pal.baseAlpha})`;
+          ctx.fill();
+        }
+      }
+    }
+
+    for (let r = 0; r < rowCount; r++) {
+      const y = r * spacing + 20;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    const clkY = height * 0.35;
+    const pulseOffset = (tick * 6) % width;
+    ctx.beginPath();
+    ctx.arc(pulseOffset, clkY + 20, 4, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${pal.highlight}, ${0.6 * alpha * pal.baseAlpha})`;
+    ctx.fill();
+  }
+
+  // Pattern 7: HARDWARE SECURITY (Oscilloscope & Glitch Waveforms)
+  function renderHwSecurity(pal, alpha) {
+    for (let w = 0; w < 3; w++) {
+      ctx.beginPath();
+      const baseWaveY = height * 0.3 + w * 160;
+      for (let x = 0; x < width; x += 6) {
+        const isSpike = (Math.floor(x + tick * 2) % 240 < 12);
+        const noise = (Math.sin(x * 0.05 + tick * 0.1) * 6) + (Math.sin(x * 0.15) * 3);
+        const spike = isSpike ? -35 * Math.sin((x % 12) / 12 * Math.PI) : 0;
+        const y = baseWaveY + noise + spike;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = `rgba(${w === 1 ? pal.accent : pal.primary}, ${0.16 * alpha * pal.baseAlpha})`;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+
+    const glitchX = (width * 0.65);
+    const glitchY = (height * 0.55);
+    const gR = (tick * 1.5) % 90;
+    ctx.beginPath();
+    ctx.arc(glitchX, glitchY, gR, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${pal.highlight}, ${(1 - gR / 90) * 0.25 * alpha * pal.baseAlpha})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Pattern 8: CLOUD SECURITY (Zero-Trust Cluster Envelopes & mTLS Beams)
+  function renderCloudSec(pal, alpha) {
+    const clusterCenters = [
+      { x: width * 0.25, y: height * 0.45 },
+      { x: width * 0.72, y: height * 0.38 },
+      { x: width * 0.5,  y: height * 0.75 }
+    ];
+
+    for (let i = 0; i < clusterCenters.length; i++) {
+      const c1 = clusterCenters[i];
+      const c2 = clusterCenters[(i + 1) % clusterCenters.length];
+      ctx.beginPath();
+      ctx.moveTo(c1.x, c1.y);
+      ctx.lineTo(c2.x, c2.y);
+      ctx.strokeStyle = `rgba(${pal.secondary}, ${0.14 * alpha * pal.baseAlpha})`;
+      ctx.setLineDash([8, 10]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    clusterCenters.forEach((c, idx) => {
+      const envR = 100 + Math.sin(tick * 0.02 + idx) * 8;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, envR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${pal.accent}, ${0.18 * alpha * pal.baseAlpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = `rgba(${pal.accent}, ${0.03 * alpha * pal.baseAlpha})`;
+      ctx.fill();
+
+      for (let p = 0; p < 6; p++) {
+        const pAngle = (p / 6) * Math.PI * 2 + tick * 0.006 * (idx % 2 === 0 ? 1 : -1);
+        const px = c.x + Math.cos(pAngle) * (envR * 0.55);
+        const py = c.y + Math.sin(pAngle) * (envR * 0.55);
+        ctx.beginPath();
+        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${pal.primary}, ${0.45 * alpha * pal.baseAlpha})`;
+        ctx.fill();
+      }
+    });
+  }
+
+  // Pattern 9: CAPTURE THE FLAG (Radar Sweeps, Target Reticles & Flag Nodes)
+  const ctfTargets = [
+    { x: 0.22, y: 0.35, label: 'flag{x0r_1s_n0t_3n0ugh}', radius: 32 },
+    { x: 0.78, y: 0.28, label: 'flag{p4dd1ng_0r4cl3_pwn3d}', radius: 40 },
+    { x: 0.45, y: 0.68, label: 'flag{h4st4d_br04dc4st_c7f}', radius: 36 },
+    { x: 0.82, y: 0.72, label: 'flag{mt19937_st4t3_1nv3rt}', radius: 28 }
+  ];
+
+  function renderCtf(pal, alpha) {
+    const gridSize = 75;
+    ctx.lineWidth = 0.6;
+    ctx.strokeStyle = `rgba(${pal.primary}, ${0.07 * alpha * pal.baseAlpha})`;
+    for (let x = 0; x < width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    for (let y = 0; y < height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    const rx = width * 0.5;
+    const ry = height * 0.46;
+    const maxRadius = Math.min(width, height) * 0.42;
+
+    for (let r = maxRadius * 0.25; r <= maxRadius; r += maxRadius * 0.25) {
+      ctx.beginPath();
+      ctx.arc(rx, ry, r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${pal.accent}, ${0.09 * alpha * pal.baseAlpha})`;
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(rx - maxRadius, ry);
+    ctx.lineTo(rx + maxRadius, ry);
+    ctx.moveTo(rx, ry - maxRadius);
+    ctx.lineTo(rx, ry + maxRadius);
+    ctx.strokeStyle = `rgba(${pal.accent}, ${0.1 * alpha * pal.baseAlpha})`;
+    ctx.setLineDash([4, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const sweepAngle = (tick * 0.02) % (Math.PI * 2);
+    ctx.beginPath();
+    ctx.moveTo(rx, ry);
+    ctx.arc(rx, ry, maxRadius, sweepAngle, sweepAngle + 0.35);
+    ctx.closePath();
+    const sweepGrad = ctx.createRadialGradient(rx, ry, 0, rx, ry, maxRadius);
+    sweepGrad.addColorStop(0, `rgba(${pal.accent}, ${0.18 * alpha * pal.baseAlpha})`);
+    sweepGrad.addColorStop(1, `rgba(${pal.accent}, 0)`);
+    ctx.fillStyle = sweepGrad;
+    ctx.fill();
+
+    ctx.font = '10.5px "SF Mono", Consolas, monospace';
+    ctfTargets.forEach((t, idx) => {
+      const tx = t.x * width;
+      const ty = t.y * height;
+      const ping = Math.sin(tick * 0.04 + idx * 1.5) * 4;
+
+      ctx.beginPath();
+      ctx.arc(tx, ty, t.radius + ping, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${pal.secondary}, ${0.22 * alpha * pal.baseAlpha})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(tx, ty, 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${pal.highlight}, ${0.7 * alpha * pal.baseAlpha})`;
+      ctx.fill();
+
+      ctx.fillStyle = `rgba(${pal.primary}, ${0.4 * alpha * pal.baseAlpha})`;
+      ctx.fillText(t.label, tx - 60, ty + t.radius + 18);
+    });
+  }
+
+  function loop() {
+    tick++;
+    ctx.clearRect(0, 0, width, height);
+    const pal = getPalette();
+
+    switch (currentPattern) {
+      case 'crypto':
+        renderCrypto(pal, patternOpacity);
+        break;
+      case 'os-basics':
+        renderOsBasics(pal, patternOpacity);
+        break;
+      case 'os-internals':
+        renderOsInternals(pal, patternOpacity);
+        break;
+      case 'networking':
+        renderNetworking(pal, patternOpacity);
+        break;
+      case 'hardware':
+        renderHardware(pal, patternOpacity);
+        break;
+      case 'hw-security':
+        renderHwSecurity(pal, patternOpacity);
+        break;
+      case 'cloud-sec':
+        renderCloudSec(pal, patternOpacity);
+        break;
+      case 'ctf-foundations':
+      case 'ctf-intermediate':
+      case 'ctf-problems':
+      case 'ctf':
+        renderCtf(pal, patternOpacity);
+        break;
+      case 'hub':
+      default:
+        renderHub(pal, patternOpacity);
+        break;
+    }
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  window.setBackgroundPattern = function(newPattern) {
+    if (newPattern === currentPattern) return;
+    targetPattern = newPattern;
+    let fadeOut = setInterval(() => {
+      patternOpacity -= 0.15;
+      if (patternOpacity <= 0) {
+        clearInterval(fadeOut);
+        currentPattern = targetPattern;
+        patternOpacity = 0;
+        let fadeIn = setInterval(() => {
+          patternOpacity += 0.15;
+          if (patternOpacity >= 1.0) {
+            patternOpacity = 1.0;
+            clearInterval(fadeIn);
+          }
+        }, 16);
+      }
+    }, 16);
+  };
+
+  animId = requestAnimationFrame(loop);
+})();
+</script>
+
 </body>
 </html>
