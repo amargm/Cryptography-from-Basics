@@ -4,20 +4,2517 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Module 10: Key Vaults & KDFs — Cryptography from Basics</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
   <style>
-    .salt-demo-grid {
+/* -------------------------------------------------------------
+   CRYPTOGRAPHY FROM BASICS — UNIFIED DESIGN SYSTEM
+   Ergonomic, Minimalist, Cognitive-Friendly, Human-Crafted
+------------------------------------------------------------- */
+
+:root {
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --measure: 700px; /* Optimal reading length */
+  
+  --font-sans: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Charter", "Georgia", "Iowan Old Style", "Newsreader", serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+}
+
+/* 1. WARM PAPER (Default: Focused daylight, zero eye glare) */
+html[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #fbfaf8;
+  --bg-alt: #f3f1ec;
+  --surface: #ffffff;
+  --surface-hover: #f7f5f0;
+  --border: #e6e3dc;
+  --border-focus: #c8c3b8;
+  
+  --text-main: #22252a;      /* Soft charcoal ink */
+  --text-secondary: #5a6069;
+  --text-muted: #8b929c;
+  
+  --accent: #2d6a4f;         /* Forest Sage */
+  --accent-soft: rgba(45, 106, 79, 0.08);
+  --accent-border: rgba(45, 106, 79, 0.25);
+  --accent-text: #1b4332;
+
+  --code-bg: #efece5;
+  --widget-bg: #f5f3ed;
+  --widget-card: #ffffff;
+  --shadow-soft: 0 2px 8px rgba(34, 37, 42, 0.04);
+  --shadow-float: 0 8px 24px rgba(34, 37, 42, 0.08);
+  --progress-color: #2d6a4f;
+}
+
+/* 2. SEPIA (Kindle E-Reader warmth for extended study) */
+html[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --bg-alt: #eae4d8;
+  --surface: #fbf7f0;
+  --surface-hover: #ede6d9;
+  --border: #ddd5c7;
+  --border-focus: #b8ac99;
+  
+  --text-main: #2e2823;
+  --text-secondary: #655b52;
+  --text-muted: #95887b;
+  
+  --accent: #8c5b36;         /* Warm Sienna */
+  --accent-soft: rgba(140, 91, 54, 0.1);
+  --accent-border: rgba(140, 91, 54, 0.25);
+  --accent-text: #603813;
+
+  --code-bg: #e6ded1;
+  --widget-bg: #ede6d9;
+  --widget-card: #fbf7f0;
+  --shadow-soft: 0 2px 8px rgba(46, 40, 35, 0.04);
+  --shadow-float: 0 8px 24px rgba(46, 40, 35, 0.08);
+  --progress-color: #8c5b36;
+}
+
+/* 3. SLATE (Night reading with reduced blue-light) */
+html[data-theme="slate"] {
+  color-scheme: dark;
+  --bg: #141618;
+  --bg-alt: #1a1d20;
+  --surface: #202428;
+  --surface-hover: #262b30;
+  --border: #2c3238;
+  --border-focus: #424a52;
+  
+  --text-main: #e2e4e8;
+  --text-secondary: #9ea5b0;
+  --text-muted: #6a727d;
+  
+  --accent: #52b788;         /* Mint Sage */
+  --accent-soft: rgba(82, 183, 136, 0.12);
+  --accent-border: rgba(82, 183, 136, 0.3);
+  --accent-text: #74c69d;
+
+  --code-bg: #181b1e;
+  --widget-bg: #181b1f;
+  --widget-card: #202428;
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.2);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --progress-color: #52b788;
+}
+
+/* Font Switching */
+html[data-font="sans"] { --font-current: var(--font-sans); }
+html[data-font="serif"] { --font-current: var(--font-serif); }
+
+/* Theme-adaptive Ergonomic Scrollbars */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-focus) var(--bg);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-focus);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-current);
+  background-color: var(--bg);
+  color: var(--text-main);
+  line-height: 1.76;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Scroll progress */
+#readingProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--progress-color);
+  width: 0%;
+  z-index: 9999;
+}
+
+/* Topbar */
+.topbar {
+  height: 58px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: sticky !important;
+  top: 0 !important;
+  background: var(--bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000 !important;
+  width: 100%;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-main);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brand-mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.segmented-control {
+  display: flex;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.seg-btn {
+  background: none;
+  border: none;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.seg-btn.active {
+  background: var(--surface);
+  color: var(--text-main);
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.theme-picker {
+  display: flex;
+  gap: 5px;
+}
+
+.theme-chip {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.theme-chip:hover { border-color: var(--border-focus); color: var(--text-main); }
+.theme-chip.active {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 270px 1fr 220px;
+  min-height: calc(100vh - 58px);
+  max-width: 1420px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 28px 20px;
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+}
+
+.nav-group-title {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 20px 10px 8px 10px;
+}
+
+.nav-list { list-style: none; }
+.nav-item { margin-bottom: 2px; }
+
+.nav-link {
+  display: flex;
+  align-items: baseline;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.12s;
+  font-family: var(--font-sans);
+}
+.nav-link:hover { background: var(--surface-hover); color: var(--text-main); }
+.nav-link.active {
+  background: var(--surface);
+  color: var(--accent-text);
+  font-weight: 600;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.nav-index {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+/* Reading Canvas */
+.reading-canvas {
+  padding: 50px 60px 100px 60px;
+  max-width: calc(var(--measure) + 120px);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.cognitive-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lesson-headline {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  color: var(--text-main);
+}
+
+.lesson-lead {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.62;
+  margin-bottom: 34px;
+}
+
+h2 {
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 44px 0 16px 0;
+  color: var(--text-main);
+}
+
+p {
+  margin-bottom: 20px;
+  color: var(--text-main);
+  opacity: 0.94;
+}
+
+ul, ol {
+  margin: 0 0 22px 24px;
+  color: var(--text-main);
+}
+
+li {
+  margin-bottom: 8px;
+  line-height: 1.65;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  padding: 2px 5px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: inherit;
+  font-size: inherit;
+}
+
+.code-block-wrap {
+  position: relative;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 64px 14px 16px;
+  margin: 12px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-main);
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+.code-block-wrap code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.copy-btn:hover {
+  background: var(--bg-alt);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Dilemma Box */
+.dilemma-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  margin: 30px 0;
+}
+
+.dilemma-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.dilemma-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-main);
+  margin-bottom: 0;
+}
+
+/* Analogy Tooltip */
+.analogy-term {
+  border-bottom: 1.5px dotted var(--accent);
+  cursor: help;
+  color: var(--text-main);
+  font-weight: 500;
+  position: relative;
+  display: inline-block;
+}
+
+.analogy-term:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-float);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  width: 260px;
+  border-radius: var(--radius-md);
+  z-index: 1000;
+  font-family: var(--font-sans);
+  font-weight: normal;
+  pointer-events: none;
+}
+
+/* Tactical Widget Container */
+.widget-frame {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.widget-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+
+.widget-caption {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.widget-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-text);
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.widget-content {
+  padding: 24px;
+}
+
+.clean-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 11px 14px;
+  font-family: var(--font-mono);
+  font-size: 14.5px;
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: all 0.15s;
+}
+.clean-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Checkpoint Box */
+.checkpoint-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 40px 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.checkpoint-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.checkpoint-prompt {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+
+.checkpoint-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.choice-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+.choice-btn.selected-correct {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+.feedback-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  display: none;
+}
+
+/* Footer Nav */
+.lesson-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+
+.nav-btn {
+  text-decoration: none;
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+.nav-btn-sub { font-size: 11px; color: var(--text-muted); }
+
+/* Right TOC */
+.toc-panel {
+  padding: 40px 20px;
+  border-left: 1px solid var(--border);
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+  font-family: var(--font-sans);
+}
+
+.toc-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.toc-nav-list { list-style: none; }
+.toc-nav-item { margin-bottom: 8px; }
+.toc-nav-link {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+  line-height: 1.4;
+  display: block;
+}
+.toc-nav-link:hover { color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 1080px) {
+  .layout { grid-template-columns: 240px 1fr; }
+  .toc-panel { display: none; }
+}
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .reading-canvas { padding: 24px 20px; }
+  .top-controls .segmented-control { display: none; }
+}
+
+/* =============================================================
+   VISUAL INFOGRAPHICS & DIAGRAM SUITE
+   ============================================================= */
+.pillar-visual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.pillar-visual-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pillar-visual-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+.pillar-visual-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+.pillar-card-c::before,
+.pillar-card-i::before,
+.pillar-card-a::before,
+.pillar-card-r::before,
+.pillar-card-danger::before,
+.pillar-card-slate::before {
+  background: var(--accent);
+}
+
+.pillar-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.pillar-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+.pillar-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+}
+.pillar-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.pillar-card-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.pillar-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  margin: 0 -20px -20px -20px;
+  padding: 12px 20px;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.pillar-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pillar-meta-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.pillar-meta-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* Channel & Pipeline Architecture Diagrams */
+.channel-diagram {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 28px 0;
+}
+.channel-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+}
+.channel-actor-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  width: 140px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+}
+.channel-wire-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 14px 0;
+}
+.channel-line {
+  width: 100%;
+  height: 2px;
+  background: var(--border-focus);
+  position: relative;
+}
+.channel-line::before {
+  content: '►';
+  position: absolute;
+  right: 0;
+  top: -7px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+.threat-bubble {
+  background: var(--surface);
+  border: 1px dashed #c53030;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 12px;
+  color: var(--text-main);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Flow Ladders & Sequence Boxes */
+.ladder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+.ladder-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+}
+.ladder-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* =============================================================
+   INTERACTIVE PROCESS STEPPERS (FIXES NUMBER RENDERING)
+   ============================================================= */
+.step-stepper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 12px 0 24px 0;
+  padding: 0 14px;
+}
+.step-stepper::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+  transform: translateY(-50%);
+}
+.step-node {
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  transition: all 0.25s ease;
+  user-select: none;
+}
+.step-node.active {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  transform: scale(1.1);
+}
+.step-node.completed {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.process-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin: 16px 0;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sim-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* =============================================================
+   WORKED EXAMPLES (STANDARDIZED EDITORIAL FORMAT)
+   ============================================================= */
+.worked-example {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin: 32px 0;
+  box-shadow: var(--shadow-soft);
+}
+.example-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.example-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.example-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+.example-step {
+  display: flex;
+  gap: 14px;
+  margin: 12px 0;
+  align-items: flex-start;
+}
+.example-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.example-step-content {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.example-math {
+  font-family: var(--font-mono);
+  background: var(--code-bg);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 13px;
+  margin: 6px 0;
+  display: block;
+  overflow-x: auto;
+}
+.example-result {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  color: var(--accent-text);
+  font-weight: 600;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .pillar-visual-grid, .pillar-visual-grid-3 { grid-template-columns: 1fr; }
+  .channel-flow { flex-direction: column; }
+  .channel-actor-box { width: 100%; }
+}
+
+/* =============================================================
+   ATTACK POST-MORTEMS & HISTORIC CATASTROPHES
+   ============================================================= */
+.case-study {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid #c53030;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 36px 0;
+  box-shadow: var(--shadow-soft);
+}
+.case-study-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.case-study-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9b2c2c;
+  background: rgba(197, 48, 48, 0.08);
+  border: 1px solid rgba(197, 48, 48, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.case-study-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.case-study-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+.case-study-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.case-study-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.case-study-box-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.case-study-box p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.case-study-lesson {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--accent-text);
+  line-height: 1.6;
+}
+
+/* =============================================================
+   DISAMBIGUATION MATRICES, DEEP TABLES & COMPARISON TABLES
+   ============================================================= */
+.disambiguation-matrix {
+  margin: 32px 0;
+  overflow-x: auto;
+}
+table,
+.matrix-table,
+.deep-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin: 24px 0;
+}
+table th,
+.matrix-table th,
+.deep-table th {
+  background: var(--bg-alt);
+  color: var(--text-main);
+  font-weight: 700;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+table td,
+.matrix-table td,
+.deep-table td {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  vertical-align: top;
+}
+table tr:hover td,
+.matrix-table tr:hover td,
+.deep-table tr:hover td {
+  background: var(--surface-hover);
+}
+.status-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-broken {
+  background: rgba(197, 48, 48, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(197, 48, 48, 0.25);
+}
+.status-legacy {
+  background: rgba(214, 158, 46, 0.1);
+  color: #b7791f;
+  border: 1px solid rgba(214, 158, 46, 0.25);
+}
+.status-recommended {
+  background: rgba(45, 106, 79, 0.1);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.status-quantum {
+  background: rgba(107, 70, 193, 0.1);
+  color: #6b46c1;
+  border: 1px solid rgba(107, 70, 193, 0.25);
+}
+
+/* =============================================================
+   COMMANDMENTS & GOLDEN RULES
+   ============================================================= */
+.commandment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.commandment-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  gap: 14px;
+  transition: all 0.15s;
+}
+.commandment-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+.commandment-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.commandment-body h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.commandment-body p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.commandment-danger {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #c53030;
+  margin-top: 6px;
+  display: block;
+}
+
+/* =============================================================
+   GRAND UNIFIED PROTOCOL PIPELINE (HOW ALL 12 MODULES CONNECT)
+   ============================================================= */
+.protocol-pipeline {
+  position: relative;
+  margin: 36px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.protocol-stage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.15s;
+}
+.protocol-stage:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateX(4px);
+}
+.protocol-step-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.protocol-stage-content { flex: 1; }
+.protocol-stage-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+.protocol-stage-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.protocol-module-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* =============================================================
+   CIPHER ARCHITECTURE & MODES SCHEMATICS
+   ============================================================= */
+.cipher-arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.cipher-arch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.schematic-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* MODES SCHEMATICS */
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mode-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram {
+  background: var(--bg-alt);
+  border: 1px dashed var(--border-focus);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin: 10px 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-align: center;
+  color: var(--text-main);
+}
+
+/* =============================================================
+   INTERACTIVE MODES TAMPER LAB
+   ============================================================= */
+.tamper-lab-container {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin: 32px 0;
+}
+.tamper-mode-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.tamper-mode-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tamper-mode-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+.tamper-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+@media (max-width: 600px) {
+  .tamper-blocks-grid { grid-template-columns: 1fr; }
+}
+.tamper-block {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.tamper-block.corrupted {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.25);
+  animation: pulse-corrupt 0.35s ease;
+}
+.tamper-block.flipped {
+  border-color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+  animation: pulse-flipped 0.35s ease;
+}
+.tamper-block.intact {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+@keyframes pulse-corrupt {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes pulse-flipped {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.sim-btn {
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+.sim-btn-danger {
+  border-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #dc2626 !important;
+}
+.sim-btn-danger:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+.sim-btn-secondary {
+  border-color: var(--border);
+  background: var(--bg-alt);
+  color: var(--text-secondary);
+}
+.sim-btn-secondary:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+/* =============================================================
+   CRYPTOGRAPHY MYTHS VS REALITY
+   ============================================================= */
+.myth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin: 28px 0;
+}
+.myth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.myth-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c53030;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.myth-reality {
+  background: var(--bg-alt);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* =============================================================
+   CATALOG FILTER BUTTONS
+   ============================================================= */
+.catalog-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 24px 0;
+}
+.catalog-filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.catalog-filter-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.catalog-filter-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* =============================================================
+   VISUAL FLOWCHART NODES (PROFESSIONAL RENDERED DIAGRAMS)
+   ============================================================= */
+.flow-diagram-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+.flow-node-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.flow-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.flow-box-highlight {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+.flow-box-danger {
+  border-color: rgba(197, 48, 48, 0.3);
+  background: rgba(197, 48, 48, 0.05);
+}
+.flow-box-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.flow-box-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.flow-box-sub {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+.flow-substeps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.flow-substep-chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+}
+.flow-arrow-down {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  height: 20px;
+  font-size: 14px;
+}
+.flow-arrow-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  width: 24px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.flow-operator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* MODE SCHEMATICS GRID & CARDS */
+.modes-visual-schematics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  margin: 28px 0;
+}
+.mode-schematic-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-soft);
+}
+.mode-schematic-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.mode-schematic-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.mode-diagram-canvas {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 12px 0;
+}
+
+
+/* -------------------------------------------------------------
+   GLOBAL SEARCH & QUICK-LAUNCHER (MODAL & TRIGGER)
+------------------------------------------------------------- */
+.search-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-right: 8px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+.search-trigger-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-focus);
+  color: var(--text-main);
+}
+.search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  color: var(--text-muted);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+#searchModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  box-sizing: border-box;
+}
+#searchModalOverlay.active {
+  display: flex;
+}
+#searchModalCard {
+  background: var(--surface);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 640px;
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+  animation: searchCardPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes searchCardPop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+#searchModalHeader {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+#searchModalInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  color: var(--text-main);
+  outline: none;
+  font-family: var(--font-sans);
+}
+#searchModalInput::placeholder {
+  color: var(--text-muted);
+}
+#searchModalClose {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+#searchModalClose:hover {
+  background: var(--bg-alt);
+  color: var(--text-main);
+}
+#searchModalResults {
+  overflow-y: auto;
+  padding: 8px;
+  max-height: 52vh;
+}
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-main);
+  transition: background 0.12s ease;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+.search-result-item:hover,
+.search-result-item.active {
+  background: var(--accent-soft);
+}
+.search-result-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.search-result-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  margin-right: 12px;
+  white-space: nowrap;
+}
+.search-result-text {
+  overflow: hidden;
+}
+.search-result-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-result-arrow {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-left: 8px;
+  font-family: var(--font-mono);
+}
+#searchModalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+}
+
+/* -------------------------------------------------------------
+   ENVELOPE ENCRYPTION & INCIDENT RESPONSE PLAYBOOK COMPONENTS
+------------------------------------------------------------- */
+.envelope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.envelope-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+.envelope-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.envelope-card-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.envelope-step-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+.runbook-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+}
+.runbook-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-soft);
+}
+.runbook-step-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.runbook-step-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.runbook-step-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.runbook-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+.runbook-checklist li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 6px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+.runbook-checklist li::before {
+  content: "->";
+  position: absolute;
+  left: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hardware-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.hardware-tier-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hardware-tier-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  width: fit-content;
+  margin-bottom: 8px;
+}
+
+
+/* -------------------------------------------------------------
+   TLS 1.2 vs TLS 1.3 SEQUENCE DIAGRAM STYLES
+------------------------------------------------------------- */
+.seq-diagram-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: var(--shadow-soft);
+}
+.seq-diagram-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.seq-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+}
+.seq-protocol-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.seq-protocol-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.seq-protocol-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.badge-legacy {
+  background: rgba(220, 38, 38, 0.1);
+  color: #c53030;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+.badge-modern {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.seq-flow-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.seq-lifelines {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px dashed var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.seq-rtt-section {
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.seq-rtt-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+.seq-flight {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.seq-flight-dir {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 11.5px;
+}
+.seq-flight-arrow-r {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-arrow-l {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.seq-flight-payload {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-main);
+  background: var(--bg-alt);
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+.seq-flight-tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  width: fit-content;
+}
+.tag-plain {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+.tag-enc {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+/* -------------------------------------------------------------
+   SYSTEMS & SECURITY KNOWLEDGE HUB DOMAIN CARDS
+------------------------------------------------------------- */
+.hub-domains-container {
+  margin: 40px 0;
+}
+.hub-domains-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 24px;
+}
+.hub-domain-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px 22px 24px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 330px;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.hub-domain-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-float);
+  border-color: var(--accent);
+}
+.hub-domain-card.active-domain {
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-float);
+}
+.hub-domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.hub-domain-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+.hub-domain-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.badge-active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.badge-roadmap {
+  background: var(--bg-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.hub-domain-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.hub-domain-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.hub-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.hub-topic-tag {
+  font-size: 11px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+
+/* -------------------------------------------------------------
+   TRACK VIEW TOGGLE & NAVIGATION IN HUB
+------------------------------------------------------------- */
+.track-view-section {
+  display: none;
+  animation: fadeIn 0.15s ease;
+}
+.track-view-section.active {
+  display: block;
+}
+.back-to-tracks-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+.back-to-tracks-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.track-card-clickable {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.track-card-clickable:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+
+.track-card-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  transition: color 0.15s ease;
+}
+.track-card-clickable:hover .track-card-action {
+  color: var(--accent-text);
+}
+.track-action-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.track-action-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+
+/* -------------------------------------------------------------
+   WIDE SCREEN UTILIZATION & CHEATSHEET CARDS DIRECTORY
+------------------------------------------------------------- */
+.hub-main-container {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 40px 100px 40px;
+}
+@media (min-width: 1600px) {
+  .hub-main-container {
+    max-width: 1640px;
+    padding: 0 56px 120px 56px;
+  }
+}
+@media (max-width: 768px) {
+  .hub-main-container {
+    padding: 0 20px 80px 20px;
+  }
+}
+
+.hub-cheatsheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 22px;
+  margin-top: 18px;
+}
+.hub-cheatsheet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 220px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+.hub-cheatsheet-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-float);
+}
+.hub-cheatsheet-card.active-ref {
+  border-left: 4px solid var(--accent);
+}
+.cheatsheet-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cheatsheet-track-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.cheatsheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+.cheatsheet-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+/* =============================================================
+   IMMERSIVE BACKGROUND ANIMATIONS (HUB & TRACK LANDING ONLY)
+   ============================================================= */
+.immersive-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+#immersiveBgCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.immersive-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 28%, transparent 25%, var(--bg) 95%);
+  pointer-events: none;
+}
+
+/* Elevate portal content layers crisply above the ambient canvas */
+.hub-main-container,
+.modal-overlay {
+  position: relative;
+  z-index: 1;
+}
+
+</style>
+  <style>
+    .kdf-stepper-box {
+      background: var(--widget-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      margin: 36px 0;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+    .kdf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 22px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .kdf-body { padding: 24px; }
+    .kdf-cost-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
       margin-top: 14px;
     }
-    .salt-box {
+    .kdf-cost-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 16px;
     }
+    .deep-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 14px;
+    }
+    .deep-table th, .deep-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    .deep-table th { background: var(--bg-alt); font-weight: 650; }
+    .deep-table td { background: var(--surface); }
   </style>
 </head>
 <body>
@@ -27,19 +2524,24 @@
   <!-- Topbar -->
   <header class="topbar">
     <a href="../index.html" class="brand">
-      <span>CRYPTOGRAPHY</span>
-      <span class="brand-mark">MODULE 10</span>
+      <span>SYSTEMS &amp; SECURITY</span> <span class="brand-mark">MODULE 10</span>
     </a>
 
     <div class="top-controls">
+      <button type="button" class="search-trigger-btn" onclick="openSearchModal()" title="Search documentation (Ctrl+K)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <span>Search</span>
+        <kbd class="search-kbd">Ctrl K</kbd>
+      </button>
+      
       <div class="segmented-control">
         <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
         <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
       </div>
       <div class="theme-picker">
-        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
-        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
-        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">Slate</button>
       </div>
     </div>
   </header>
@@ -74,6 +2576,12 @@
       <ul class="nav-list">
         <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
         <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+        <li class="nav-item"><a href="m13-misc-topics.html" class="nav-link"><span class="nav-index">13</span><span>Connected Topics &amp; X.509</span></a></li>
+      </ul>
+      <div class="nav-group-title">Master Reference</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="../cheatsheet.html" class="nav-link"><span class="nav-index">DM</span><span>Decision Matrix & Cheatsheet</span></a></li>
+        <li class="nav-item"><a href="../openssl-cheatsheet.html" class="nav-link"><span class="nav-index">OS</span><span>OpenSSL 3.x Cheatsheet</span></a></li>
       </ul>
     </aside>
 
@@ -81,95 +2589,501 @@
     <main class="reading-canvas">
 
       <div class="cognitive-meta">
-        <span>📖 6 min read</span>
+        <span>11 min read</span>
         <span>•</span>
         <span>Tier: Key Management</span>
         <span>•</span>
         <span>Prerequisites: Modules 04, 07</span>
       </div>
 
-      <h1 class="lesson-headline">Key Vaults & Key Derivation</h1>
+      <h1 class="lesson-headline">Key Vaults, Hardware Enclaves & Key Derivation</h1>
       <p class="lesson-lead">
-        A 256-bit AES key is a string of 32 random bytes that no human can memorize. How do we turn human passwords into strong keys, and where do we safely store the world's master secrets?
+        A 256-bit cryptographic key is an inhuman string of 32 random bytes. Humans cannot memorize 32 random bytes; they remember passwords like <code>Summer2024!</code>. Here is how we bridge the human mind to high-entropy cryptography.
       </p>
 
       <!-- Section 1 -->
-      <section id="the-password-problem">
-        <h2>1. The Human Dilemma: Passwords $\neq$ Keys</h2>
+      <section id="the-entropy-chasm">
+        <h2>1. The Entropy Chasm: Why Passwords ≠ Keys</h2>
         <p>
-          Humans choose passwords like <code>Coffee2024!</code>. To a computer, that password has almost zero entropy. If a company uses a password directly as an encryption key, a hacker's GPU will crack it in 2 seconds.
+          A human password has terrible entropy: even with symbols and numbers, typical human passwords possess roughly <strong>30 to 45 bits of entropy</strong>.
         </p>
         <p>
-          To solve this, we use <strong>Key Derivation Functions (KDFs)</strong>. A KDF takes a low-entropy human password and stretches it through intense mathematical loops to produce a high-entropy 256-bit key.
+          AES-256 requires <strong>256 bits of uniform mathematical entropy</strong>. If a developer attempts to use a user password directly as an encryption key, a hacker using an 8-GPU rig (capable of guessing 100 billion SHA-256 hashes per second) will crack the password in 15 seconds.
         </p>
-      </section>
+        <div class="narrative-box">
+          <div class="narrative-tag">The Purpose of Key Derivation Functions (KDFs)</div>
+          <p class="narrative-body">
+            A <strong>Key Derivation Function (KDF)</strong> takes a weak password and passes it through an intensive computational gauntlet. It does two critical things:
+            <ol style="margin-left:20px; margin-top:8px;">
+              <li><strong>Stretches Entropy:</strong> Expands the human text into a full, high-entropy 256-bit pseudo-random key.</li>
+              <li><strong>Imposes an Economic Tax on Attackers:</strong> Deliberately slows down computation so that testing 1 billion password guesses requires millions of dollars in electricity!</li>
+            </ol>
+          </p>
+        </div>
 
-      <!-- Section 2: Interactive Salt Tool -->
-      <section id="salting-rainbow">
-        <h2>2. Salting: Defeating Rainbow Tables</h2>
-        <p>
-          Hackers have built massive databases called <strong>Rainbow Tables</strong> containing precomputed hashes for billions of common passwords. If you store plain hashes, they look up the hash in 0.001 seconds!
-        </p>
+        
+        <!-- Worked Example: KDF Stretching -->
+        <div class="worked-example">
+          <div class="example-header">
+            <span class="example-badge">Worked Example</span>
+            <h3 class="example-title">PBKDF2 / Argon2id Key Stretching & Economic Defense</h3>
+          </div>
+          <p style="font-size:14px; color:var(--text-secondary); margin-bottom:14px;">
+            Let's trace how a low-entropy user password is transformed into an unbreakable 256-bit encryption key:
+          </p>
 
-        <div class="widget-frame">
-          <div class="widget-bar">
-            <div class="widget-caption">
-              <span>Salt & Rainbow Table Breaker</span>
-              <span class="widget-badge">Interactive Inspector</span>
+          <div class="example-step">
+            <div class="example-step-num">1</div>
+            <div class="example-step-content">
+              <strong>Human Input:</strong> User enters password: <code>"CoffeeBean2024!"</code> (Estimated entropy: ~38 bits).
             </div>
-            <button class="choice-btn" style="padding:4px 10px; font-size:11px;" onclick="generateNewSalt()">Generate New Salt</button>
           </div>
 
-          <div class="widget-content">
-            <div class="salt-demo-grid">
+          <div class="example-step">
+            <div class="example-step-num">2</div>
+            <div class="example-step-content">
+              <strong>Add Cryptographic Salt:</strong> The system generates 16 bytes of true random hardware noise: <code>0x9e4a8b21...</code>.<br>
+              <em>Why?</em> The salt makes pre-computed rainbow tables and multi-user batch cracking mathematically useless.
+            </div>
+          </div>
+
+          <div class="example-step">
+            <div class="example-step-num">3</div>
+            <div class="example-step-content">
+              <strong>The Computational Gauntlet (Argon2id):</strong><br>
+              The password and salt are processed through 3 time iterations locking 64 MB of RAM across 4 CPU cores.<br>
+              • Legitimate user on smartphone: Takes <strong>60 milliseconds</strong> (unnoticeable).<br>
+              • Hacker on GPU farm: GPU memory bandwidth bottlenecks. Cracking speed drops from 100 billion guesses/sec down to <strong>15 guesses/sec</strong>!
+            </div>
+          </div>
+
+          <div class="example-result">
+             <strong>Output:</strong> A uniform 256-bit pseudorandom key (<code>0x4b7c891f...</code>) possessing full mathematical entropy ready for AES-256 full-disk encryption.
+          </div>
+        </div>
+
+        <!-- Visual Password-to-Key Stretching Funnel -->
+        <div class="channel-diagram">
+          <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:14px; text-align:center;">
+            Visual Architecture: The KDF Password Stretching & Economic Gauntlet
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Top Input -->
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px; font-weight:700; color:var(--text-main);">1. Low-Entropy Input Data</span>
+                <span style="font-size:11px; font-family:var(--font-mono); color:#dc2626;">Entropy: ~35 Bits (Vulnerable)</span>
+              </div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px; font-size:12px;">
+                <div style="background:var(--bg-alt); padding:8px; border-radius:4px; border:1px solid var(--border);">
+                  <strong>User Password:</strong> <code>"Summer2024!"</code>
+                </div>
+                <div style="background:var(--bg-alt); padding:8px; border-radius:4px; border:1px solid var(--border);">
+                  <strong>Cryptographic Salt:</strong> 16 Random CSPRNG Bytes
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align:center; color:var(--text-muted); font-size:14px; line-height:1;">▼ Injected into Memory-Hard Gauntlet ▼</div>
+
+            <!-- Middle Engine -->
+            <div style="background:var(--surface); border:1px solid var(--accent); border-radius:var(--radius-md); padding:14px; text-align:center;">
+              <span style="font-size:13px; font-weight:700; color:var(--accent-text);">2. Memory-Hard KDF Engine (Argon2id / scrypt)</span>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                Locks 64 MB of dedicated RAM per hash, runs across 4 threads for 3 iterations. Strips away the economic advantage of high-speed GPU/ASIC password cracking farms!
+              </div>
+            </div>
+
+            <div style="text-align:center; color:var(--text-muted); font-size:14px; line-height:1;">▼ Distilled High-Entropy Output ▼</div>
+
+            <!-- Bottom Output -->
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px; font-weight:700; color:var(--text-main);">3. Cryptographic Master Key</span>
+                <span style="font-size:11px; font-family:var(--font-mono); color:var(--accent-text);">Entropy: Full 256 Bits (Imp幹ious)</span>
+              </div>
+              <div style="margin-top:6px; font-family:var(--font-mono); font-size:12px; background:var(--code-bg); padding:8px 12px; border-radius:4px; word-break:break-all; color:var(--accent);">
+                f79a02bc8e1948d390a1458b29e71004bc3791a580e214d485093e7f41a8bc02
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Interactive KDF Cost Simulator -->
+      <section id="kdf-simulator">
+        <h2>2. Process Walkthrough: The Evolution of KDF Algorithms</h2>
+        <p>
+          Over the last 20 years, cryptographers engaged in an arms race against GPU and ASIC hardware password-crackers:
+        </p>
+
+        <!-- KDF Simulator Widget -->
+        <div class="kdf-stepper-box">
+          <div class="kdf-header">
+            <div>
+              <strong style="font-size:13.5px;">KDF Economic Defense Simulator</strong>
+              <div style="font-size:11.5px; color:var(--text-muted);">Comparing brute-force economics across KDF generations</div>
+            </div>
+            <span style="font-family:var(--font-mono); font-size:11px;" id="kdfModeLabel">Mode: Fast Hash (Vulnerable)</span>
+          </div>
+
+          <div class="kdf-body">
+            <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+              <button class="choice-btn active" id="btnKDF1" style="padding:6px 12px; font-size:12px;" onclick="setKDFSim(1)">1. Plain Fast Hash (SHA-256)</button>
+              <button class="choice-btn" id="btnKDF2" style="padding:6px 12px; font-size:12px;" onclick="setKDFSim(2)">2. Iterative CPU (PBKDF2)</button>
+              <button class="choice-btn" id="btnKDF3" style="padding:6px 12px; font-size:12px;" onclick="setKDFSim(3)">3. Memory-Hard (Argon2id)</button>
+            </div>
+
+            <div class="kdf-cost-grid">
               
-              <div class="salt-box">
-                <div style="font-size:13px; font-weight:700; color:#c53030;">1. Plain Hash (No Salt)</div>
-                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Password: `password123`</div>
-                <div style="font-family:var(--font-mono); font-size:12px; background:var(--code-bg); padding:8px; border-radius:4px; margin-top:6px; word-break:break-all;">
-                  ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f
-                </div>
-                <div style="font-size:11.5px; color:#c53030; margin-top:6px;">❌ Found in Rainbow Table in 1 millisecond!</div>
+              <div class="kdf-cost-card">
+                <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">For Legitimate User</div>
+                <div style="font-size:22px; font-weight:700; color:var(--text-main); margin:6px 0;" id="userLatency">0.001 ms</div>
+                <div style="font-size:12.5px; color:var(--text-secondary);" id="userDesc">Login is instantaneous; user notices zero delay.</div>
               </div>
 
-              <div class="salt-box">
-                <div style="font-size:13px; font-weight:700; color:var(--accent);">2. Salted Hash (With Salt)</div>
-                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Input: `password123` + <span id="currentSalt" style="font-family:var(--font-mono); color:var(--accent-text);">salt_79a2</span></div>
-                <div style="font-family:var(--font-mono); font-size:12px; background:var(--code-bg); padding:8px; border-radius:4px; margin-top:6px; word-break:break-all;" id="saltedHashOut">
-                  Calculating salted hash...
-                </div>
-                <div style="font-size:11.5px; color:var(--accent); margin-top:6px;">✓ Precomputed rainbow tables are useless!</div>
+              <div class="kdf-cost-card" id="hackerCard">
+                <div style="font-size:12px; font-weight:700; color:#c53030; text-transform:uppercase;">For Hacker (1 Billion Guesses)</div>
+                <div style="font-size:22px; font-weight:700; color:#c53030; margin:6px 0;" id="hackerCost">0.01 seconds ($0.0001)</div>
+                <div style="font-size:12.5px; color:var(--text-secondary);" id="hackerDesc">GPU rigs crack billions of hashes per second with ease!</div>
               </div>
 
+            </div>
+
+            <div style="margin-top:14px; font-size:13px; color:var(--text-secondary); line-height:1.5;" id="kdfAnalysis">
+              Plain fast hashes were designed for speed, not password storage. Using SHA-256 for passwords is a critical vulnerability.
             </div>
           </div>
         </div>
       </section>
 
       <!-- Section 3 -->
-      <section id="hardware-vaults">
-        <h2>3. Where Do Secrets Live? Hardware Enclaves</h2>
+      <!-- Section 3: Hardware Security & Root of Trust -->
+      <section id="hardware-security-deep">
+        <h2>3. Hardware Security: HSMs, TPMs & Silicon-Level Trust</h2>
         <p>
-          If your private key is stored in your computer's normal RAM, any malicious malware or spyware can read it. To prevent this, modern devices use dedicated physical vaults:
+          If private encryption keys exist as plain bytes in standard server RAM or operating system storage, any attacker with kernel or root privileges can dump memory and exfiltrate them. True cryptographic trust relies on physical isolation: hardware architectures where private keys <strong>never touch general system memory and can never be exported</strong>.
         </p>
-        <ul>
-          <li><strong>TPM (Trusted Platform Module):</strong> A physical crypto-chip soldered onto laptop motherboards that secures BitLocker drive encryption keys.</li>
-          <li><strong>Secure Enclaves (Apple & Android):</strong> An isolated micro-CPU inside your phone. When you use FaceID, the biometric match happens inside the enclave. Your phone's main operating system never sees the master private key!</li>
-          <li><strong>Hardware Security Modules (HSMs):</strong> Multi-thousand-dollar physical appliances used by banks. If an attacker physically drills into the case, the chip detects the pressure change and erases its internal memory instantly.</li>
-        </ul>
+
+        <!-- 4-Tier Hardware Trust Hierarchy Grid -->
+        <div class="hardware-tiers-grid">
+          <div class="hardware-tier-card">
+            <div>
+              <div class="hardware-tier-badge">Tier 1 • Software</div>
+              <strong style="color:var(--text-main); font-size:14px; display:block; margin-bottom:4px;">Software Keystore</strong>
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">OS Keychains, Filesystem .pem</div>
+              <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+                Keys reside in application memory or encrypted files on disk. High throughput, but zero physical isolation. Vulnerable to cold-boot RAM dumps, side-channel snooping, and root exploit extraction.
+              </p>
+            </div>
+            <div style="margin-top:12px; padding-top:8px; border-top:1px solid var(--border); font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">
+              Trust Level: Minimal (Software Only)
+            </div>
+          </div>
+
+          <div class="hardware-tier-card">
+            <div>
+              <div class="hardware-tier-badge">Tier 2 • Motherboard</div>
+              <strong style="color:var(--text-main); font-size:14px; display:block; margin-bottom:4px;">TPM 2.0 (Trusted Platform)</strong>
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Soldered Motherboard Cryptochip</div>
+              <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+                Performs <strong>Measured Boot</strong>: hashes UEFI firmware, bootloader, and kernel into Platform Configuration Registers (PCRs). The disk encryption key (BitLocker/LUKS) is released only if hashes match authentic state.
+              </p>
+            </div>
+            <div style="margin-top:12px; padding-top:8px; border-top:1px solid var(--border); font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">
+              Trust Level: Device Boot Integrity
+            </div>
+          </div>
+
+          <div class="hardware-tier-card">
+            <div>
+              <div class="hardware-tier-badge">Tier 3 • Mobile SOC</div>
+              <strong style="color:var(--text-main); font-size:14px; display:block; margin-bottom:4px;">Secure Enclave & Titan</strong>
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Isolated Mobile Microprocessor</div>
+              <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+                Apple SEP & Android Titan M feature isolated RISC cores, dedicated encrypted RAM, and hardware AES engines. Biometric scans (FaceID/TouchID) are matched <strong>entirely inside silicon</strong>; the main OS never touches biometric data.
+              </p>
+            </div>
+            <div style="margin-top:12px; padding-top:8px; border-top:1px solid var(--border); font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">
+              Trust Level: Hardware Sandboxed
+            </div>
+          </div>
+
+          <div class="hardware-tier-card">
+            <div>
+              <div class="hardware-tier-badge">Tier 4 • Enterprise</div>
+              <strong style="color:var(--text-main); font-size:14px; display:block; margin-bottom:4px;">Hardware Security Modules</strong>
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">CloudHSM, Thales, FIPS 140-3 L4</div>
+              <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+                Hardened physical PCIe cards or network rack appliances used by banks and root CAs. Zero key export permitted. Multi-operator quorum authorization (m-of-n) required for administrative operations.
+              </p>
+            </div>
+            <div style="margin-top:12px; padding-top:8px; border-top:1px solid var(--border); font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">
+              Trust Level: FIPS 140-3 Level 3/4
+            </div>
+          </div>
+        </div>
+
+        <!-- Silicon Defenses Callout -->
+        <div style="background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:var(--radius-md); padding:16px 20px; margin:20px 0; box-shadow:var(--shadow-soft);">
+          <div style="font-weight:700; font-size:14px; color:var(--text-main); margin-bottom:6px;">Physical Tamper Detection & Active Zeroization Circuits</div>
+          <p style="font-size:13.5px; color:var(--text-secondary); line-height:1.6; margin:0;">
+            High-assurance HSMs do not merely encrypt keys—they actively protect the silicon enclosure. An internal <strong>active serpentine wire mesh</strong> encases the cryptographic chip. If an attacker drills into the casing with an electron microprobe, cuts a trace, drops the temperature below operating thresholds (cryogenic nitrogen attacks), or injects voltage glitches, internal capacitors discharge immediately to <strong>zeroize (permanently incinerate and flash-erase) all master keys in less than 1 millisecond</strong> before physical access can succeed.
+          </p>
+        </div>
       </section>
 
-      <!-- Checkpoint -->
+      <!-- Section 4: Envelope Encryption & Cloud KMS -->
+      <section id="envelope-encryption">
+        <h2>4. Cloud KMS & Envelope Encryption: Encrypting at Petabyte Scale</h2>
+        <p>
+          Dedicated Hardware Security Modules excel at protecting keys, but they introduce a severe engineering bottleneck: an HSM can typically perform only 1,000 to 5,000 cryptographic operations per second, with 10 to 40 milliseconds of network round-trip latency.
+        </p>
+        <p>
+          If an enterprise needs to encrypt a 100 GB database, thousands of microservice payload messages, or petabytes of video in cloud storage (such as AWS S3 or Google Cloud Storage), streaming that raw data across the network to an HSM is impossible. Storing a static symmetric key on the application server disk defeats security.
+        </p>
+
+        <div class="narrative-box">
+          <div class="narrative-tag">The Architecture: Envelope Encryption</div>
+          <p class="narrative-body">
+            Envelope encryption solves the dilemma through a two-tiered key hierarchy:
+            <br><br>
+            <strong>1. Key Encryption Key (KEK / Root Key):</strong> Stored permanently inside the KMS/HSM (e.g., AWS KMS Customer Managed Key). The KEK <em>never leaves the hardware boundary under any condition</em>.
+            <br>
+            <strong>2. Data Encryption Key (DEK):</strong> A single-use, ephemeral 256-bit AES-GCM symmetric key generated on-demand to encrypt a single file, database record, or payload locally on the application server using native hardware AES-NI instructions.
+          </p>
+        </div>
+
+        <!-- Envelope Data-Flow Diagrams Grid -->
+        <div class="envelope-grid">
+          <!-- Flow A: Encryption -->
+          <div class="envelope-card">
+            <div class="envelope-card-header">
+              <span class="envelope-card-title">Encryption Workflow</span>
+              <span class="envelope-step-badge">Protecting Data</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;">
+                <div style="font-weight:700; color:var(--text-main); font-size:12px;">Step 1: Request Data Key</div>
+                <div style="color:var(--text-secondary); margin-top:2px;">App calls KMS API: <code>GenerateDataKey(KeyId="master-kek")</code>.</div>
+              </div>
+
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;">
+                <div style="font-weight:700; color:var(--text-main); font-size:12px;">Step 2: KMS Generates & Encrypts DEK</div>
+                <div style="color:var(--text-secondary); margin-top:2px;">KMS generates a random 256-bit key inside HSM and returns two items: <strong>Plaintext DEK</strong> and <strong>Ciphertext DEK</strong> (encrypted under KEK).</div>
+              </div>
+
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;">
+                <div style="font-weight:700; color:var(--text-main); font-size:12px;">Step 3: Fast Local AES-256-GCM</div>
+                <div style="color:var(--text-secondary); margin-top:2px;">App uses Plaintext DEK in server memory to encrypt the 100 GB payload locally in milliseconds.</div>
+              </div>
+
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;">
+                <div style="font-weight:700; color:var(--text-main); font-size:12px;">Step 4: Pack Envelope & Zero Memory</div>
+                <div style="color:var(--text-secondary); margin-top:2px;">App saves <code>[Ciphertext DEK Header] + [Encrypted Data + Tag]</code> to storage, then immediately wipes Plaintext DEK from RAM.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flow B: Decryption -->
+          <div class="envelope-card">
+            <div class="envelope-card-header">
+              <span class="envelope-card-title">Decryption Workflow</span>
+              <span class="envelope-step-badge">Reading Data</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;">
+                <div style="font-weight:700; color:var(--text-main); font-size:12px;">Step 1: Read Header</div>
+                <div style="color:var(--text-secondary); margin-top:2px;">App reads the stored file and extracts the 128-byte <strong>Ciphertext DEK</strong> header.</div>
+              </div>
+
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;">
+                <div style="font-weight:700; color:var(--text-main); font-size:12px;">Step 2: Unseal DEK via KMS</div>
+                <div style="color:var(--text-secondary); margin-top:2px;">App sends ONLY the 128-byte Ciphertext DEK to KMS: <code>kms.Decrypt(CiphertextDEK)</code>. KMS unseals it inside the HSM and returns Plaintext DEK.</div>
+              </div>
+
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;">
+                <div style="font-weight:700; color:var(--text-main); font-size:12px;">Step 3: Local Decryption & Authentication</div>
+                <div style="color:var(--text-secondary); margin-top:2px;">App decrypts the ciphertext locally using AES-256-GCM, verifying the 128-bit authentication tag.</div>
+              </div>
+
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;">
+                <div style="font-weight:700; color:var(--text-main); font-size:12px;">Step 4: RAM Zeroization</div>
+                <div style="color:var(--text-secondary); margin-top:2px;">Plaintext DEK is explicitly overwritten with zeroes in memory. Zero persistent key footprint on disk.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enterprise Principles Callout -->
+        <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 20px; margin-top:16px;">
+          <strong style="color:var(--text-main); font-size:13.5px; display:block; margin-bottom:6px;">Enterprise Principle: Cryptographic Separation of Duties</strong>
+          <div style="font-size:13px; color:var(--text-secondary); line-height:1.6;">
+            Envelope encryption enforces organizational defense-in-depth: Storage administrators (S3, database DBAs) have permissions to read physical data blocks, but <strong>lack KMS Decrypt permissions</strong>, meaning they cannot read contents. Conversely, KMS administrators can manage key rotation and access policies, but have zero read access to storage buckets or databases. Neither group can compromise data alone.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5: Cryptographic Incident Response Playbook -->
+      <section id="incident-response-playbook">
+        <h2>5. Production Incident Response: The Key Compromise Playbook</h2>
+        <p>
+          When an engineer accidentally commits a private key to a public GitHub repository, an insider exfiltrates a server snapshot, or a web vulnerability dumps server memory, standard security alerts stop and <strong>cryptographic containment</strong> begins.
+        </p>
+
+        <div class="runbook-container">
+          <!-- Step 1 -->
+          <div class="runbook-step">
+            <div class="runbook-step-head">
+              <span class="runbook-step-name">Phase 1: Triage & Cryptographic Blast Radius Assessment</span>
+              <span class="runbook-step-time">T+0 to T+15 Minutes</span>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">
+              Determine key classification immediately to evaluate whether historic data or active traffic is at risk:
+            </p>
+            <ul class="runbook-checklist">
+              <li><strong>Check Perfect Forward Secrecy (PFS):</strong> Was the compromised key an HTTPS/TLS private key? If your servers enforce modern TLS 1.3 or ECDHE ciphersuites, session keys were ephemeral. <em>An attacker with the stolen private key CANNOT decrypt previously recorded traffic captures</em>.</li>
+              <li><strong>Check Static Master Keys:</strong> Was the leak a database symmetric key or KMS master key credential? If so, all stored data encrypted under that key version and all past backups are compromised.</li>
+              <li><strong>Identify Leak Vector:</strong> Public Git commit, CI/CD log, heap dump, or unauthorized API token usage via audit logs.</li>
+            </ul>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="runbook-step">
+            <div class="runbook-step-head">
+              <span class="runbook-step-name">Phase 2: Immediate Containment & Cryptographic Revocation</span>
+              <span class="runbook-step-time">T+15 to T+45 Minutes</span>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">
+              Neutralize the active attack vector before attempting code or infrastructure refactoring:
+            </p>
+            <ul class="runbook-checklist">
+              <li><strong>Cloud KMS Invalidation:</strong> Disable the compromised KMS Key ID via management console or CLI: <code>aws kms disable-key --key-id &lt;id&gt;</code>. Any in-flight attacker calls immediately fail with <code>DisabledException</code>.</li>
+              <li><strong>TLS / X.509 Certificate Revocation:</strong> Submit an authenticated revocation request to your Certificate Authority (Let's Encrypt, DigiCert) with reason code <code>keyCompromise</code>. The CA publishes revocation to CRLs and OCSP responders within minutes.</li>
+              <li><strong>Fleet-Wide SSH Invalidation:</strong> Deploy automated configuration management (Ansible, Puppet) to purge the compromised public key from all fleet <code>~/.ssh/authorized_keys</code> files and terminate active SSH sessions.</li>
+            </ul>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="runbook-step">
+            <div class="runbook-step-head">
+              <span class="runbook-step-name">Phase 3: Zero-Downtime Dual-Key Migration Protocol</span>
+              <span class="runbook-step-time">T+45 to T+240 Minutes</span>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">
+              Rotating an encryption key in production without taking systems offline or corrupting existing customer records requires a strict 4-stage deployment dance:
+            </p>
+            <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-top:8px; font-size:12.5px; line-height:1.6;">
+              <strong>Stage 1 (Dual-Read, Old-Write):</strong> Deploy newly generated Key <code>K2</code> to application servers. Services are configured to decrypt with <code>K1 OR K2</code>, but all new encryptions continue with <code>K1</code>.<br>
+              <strong>Stage 2 (Dual-Read, New-Write):</strong> Flip the write pointer. All newly created records are encrypted strictly under <code>K2</code>. Decryption continues to seamlessly serve legacy records under <code>K1</code>.<br>
+              <strong>Stage 3 (Background Re-encryption):</strong> An asynchronous batch job traverses database tables, reading records encrypted under <code>K1</code> and re-encrypting them under <code>K2</code>.<br>
+              <strong>Stage 4 (Retirement):</strong> Verify database audit shows 0 records remaining under <code>K1</code>. Permanently destroy and zeroize <code>K1</code>. Zero downtime, zero decrypt errors!
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="runbook-step">
+            <div class="runbook-step-head">
+              <span class="runbook-step-name">Phase 4: Post-Mortem & Preventative Controls</span>
+              <span class="runbook-step-time">Post-Incident</span>
+            </div>
+            <ul class="runbook-checklist">
+              <li>Deploy automated secret scanning in Git pre-commit hooks and CI/CD pipelines (Gitleaks, TruffleHog).</li>
+              <li>Enforce automated 90-day cryptographic key rotation in KMS to minimize future exposure windows.</li>
+              <li>Replace long-lived static API tokens with short-lived dynamic credentials (AWS IAM Instance Profiles, HashiCorp Vault dynamic leases).</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+<section id="seed-phrases">
+        <h2>6. Seed Phrases & Master Derivation Trees (BIP-39)</h2>
+        <p>
+          In modern cryptocurrencies and decentralized identity systems, how does a user back up dozens of asymmetric public/private key pairs with a single piece of paper?
+        </p>
+        <div class="narrative-box">
+          <div class="narrative-tag">The BIP-39 / BIP-44 Derivation Hierarchy</div>
+          <p class="narrative-body">
+            1. The hardware wallet generates <strong>128 or 256 bits of pure physical entropy</strong> from a TRNG.<br>
+            2. It appends a checksum and maps the bits into <strong>12 or 24 human words</strong> chosen from a standardized 2,048-word dictionary (BIP-39).<br>
+            3. The 12 words are passed through <strong>2,048 rounds of PBKDF2-HMAC-SHA512</strong> to derive a 512-bit Master Seed.<br>
+            4. Using <strong>Hierarchical Deterministic (HD) derivation</strong>, this single 512-bit seed can generate an infinite mathematical tree of unique private keys!
+          </p>
+        </div>
+
+        <!-- Visual BIP-32 HD Derivation Tree -->
+        <div class="channel-diagram">
+          <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:14px; text-align:center;">
+            Visual Architecture: The Hierarchical Deterministic (HD) Derivation Tree
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--surface); border:2px solid var(--accent); border-radius:var(--radius-md); padding:12px; text-align:center;">
+              <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">Root: 12-Word Mnemonic Phrase</div>
+              <strong style="color:var(--accent-text); font-size:14px;">"witch collapse practice feed shame open despair..."</strong>
+            </div>
+
+            <div style="text-align:center; color:var(--text-muted); font-size:13px; line-height:1;">▼ PBKDF2-SHA512 (2048 Rounds) ▼</div>
+
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px; text-align:center;">
+              <strong style="font-size:13px; color:var(--text-main);">Master Node (<em>m</em>)</strong>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">512-Bit Master Key + Chain Code</div>
+            </div>
+
+            <div style="text-align:center; color:var(--text-muted); font-size:13px; line-height:1;">▼ Derivation Path: m / 44' / 60' / 0' / 0 ▼</div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px; text-align:center;">
+                <div style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono);">Child Key 0</div>
+                <div style="font-size:12px; font-weight:700; color:var(--text-main); margin-top:2px;">Address 0</div>
+                <div style="font-size:10.5px; font-family:var(--font-mono); color:var(--text-muted); margin-top:2px;">0x71aB...</div>
+              </div>
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px; text-align:center;">
+                <div style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono);">Child Key 1</div>
+                <div style="font-size:12px; font-weight:700; color:var(--text-main); margin-top:2px;">Address 1</div>
+                <div style="font-size:10.5px; font-family:var(--font-mono); color:var(--text-muted); margin-top:2px;">0x39cF...</div>
+              </div>
+              <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px; text-align:center;">
+                <div style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono);">Child Key 2</div>
+                <div style="font-size:12px; font-weight:700; color:var(--text-main); margin-top:2px;">Address 2</div>
+                <div style="font-size:10.5px; font-family:var(--font-mono); color:var(--text-muted); margin-top:2px;">0xa841...</div>
+              </div>
+            </div>
+            <div style="text-align:center; font-size:12px; color:var(--accent-text); margin-top:4px; font-weight:600;">
+              Result: Infinite addresses all cryptographically restorable from one 12-word seed!
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5 -->
       <section id="checkpoint">
         <div class="checkpoint-card">
           <div class="checkpoint-eyebrow">Checkpoint Question</div>
           <div class="checkpoint-prompt">
-            Why are modern password hashing algorithms (like Argon2 or bcrypt) deliberately designed to be slow, taking hundreds of milliseconds to calculate?
+            Why is Argon2id significantly more effective at defeating customized GPU and ASIC password-cracking rigs than PBKDF2?
           </div>
           <div class="checkpoint-choices">
-            <button class="choice-btn" onclick="handleQuiz(this, true, 'For a normal user logging in, 0.2 seconds is imperceptible. But for a hacker trying to guess 10 billion passwords on a GPU rig, this deliberate slowness makes brute-force attacks cost millions of dollars in electricity!')">A) To make brute-force password guessing economically and computationally impossible for hackers.</button>
-            <button class="choice-btn" onclick="handleQuiz(this, false, 'Argon2 is state-of-the-art modern cryptography.')">B) Because modern CPUs are too slow to run modern math.</button>
-            <button class="choice-btn" onclick="handleQuiz(this, false, 'Salts and keys are separate concepts.')">C) Because it requires waiting for the user to enter a salt.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'PBKDF2 requires almost no RAM, allowing an attacker to pack thousands of parallel cracking cores onto a single GPU or ASIC. Argon2id is memory-hard: it forces every single thread to consume megabytes of RAM, causing GPU memory bandwidth to choke and making ASICs prohibitively expensive to build.')">A) Argon2id is memory-hard: it requires substantial RAM for each calculation, neutralizing the parallel efficiency of GPUs and custom ASICs.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Argon2 produces standard 256-bit or 512-bit keys.')">B) Argon2id produces keys that are 10x longer than PBKDF2.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Argon2 runs on standard commodity processors.')">C) Argon2id requires quantum computing coprocessors.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+
+        <!-- Checkpoint Question 2 -->
+        <div class="checkpoint-card" style="margin-top: 24px;">
+          <div class="checkpoint-eyebrow">Checkpoint Question 2</div>
+          <div class="checkpoint-prompt">
+            In an Envelope Encryption architecture (e.g. AWS KMS or Google Cloud KMS), why does an application store the encrypted Data Encryption Key (Ciphertext DEK) directly alongside the ciphertext on disk?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'The Ciphertext DEK is encrypted with the master Key Encryption Key (KEK), which remains locked inside the KMS/HSM and cannot be exported. Storing the Ciphertext DEK alongside the file allows the application to send only the 128-byte DEK to the KMS for unsealing when needed, avoiding streaming massive files over the network while keeping the master key safe.')">A) Because the Ciphertext DEK can only be unsealed by calling KMS with the root Key Encryption Key (KEK) locked inside the HSM, preventing unauthorized decryption even if the disk is stolen.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'AES-256 can encrypt data of arbitrary size.')">B) Because AES-256 is unable to encrypt files larger than 128 bytes without an envelope.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'KMS does not delete keys or inspect databases automatically.')">C) Because cloud storage providers will delete databases if unencrypted keys are stored.</button>
           </div>
           <div class="feedback-note"></div>
         </div>
@@ -193,31 +3107,479 @@
     <aside class="toc-panel">
       <div class="toc-heading">In This Lesson</div>
       <ul class="toc-nav-list">
-        <li class="toc-nav-item"><a href="#the-password-problem" class="toc-nav-link">1. Passwords != Keys</a></li>
-        <li class="toc-nav-item"><a href="#salting-rainbow" class="toc-nav-link">2. Salting & Rainbow Tables</a></li>
-        <li class="toc-nav-item"><a href="#hardware-vaults" class="toc-nav-link">3. Hardware Vaults</a></li>
+        <li class="toc-nav-item"><a href="#the-entropy-chasm" class="toc-nav-link">1. The Entropy Chasm</a></li>
+        <li class="toc-nav-item"><a href="#kdf-simulator" class="toc-nav-link">2. KDF Economic Simulator</a></li>
+        <li class="toc-nav-item"><a href="#hardware-security-deep" class="toc-nav-link">3. Hardware Security & HSMs</a></li>
+        <li class="toc-nav-item"><a href="#envelope-encryption" class="toc-nav-link">4. Envelope Encryption & KMS</a></li>
+        <li class="toc-nav-item"><a href="#incident-response-playbook" class="toc-nav-link">5. Incident Response Playbook</a></li>
+        <li class="toc-nav-item"><a href="#seed-phrases" class="toc-nav-link">6. Seed Phrases & BIP-39</a></li>
         <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
       </ul>
     </aside>
 
   </div>
 
-  <script src="../assets/js/common.js"></script>
   <script>
-    async function updateSaltHash(saltStr) {
-      document.getElementById('currentSalt').textContent = saltStr;
-      const combined = "password123" + saltStr;
-      const buf = new TextEncoder().encode(combined);
-      const hash = await crypto.subtle.digest('SHA-256', buf);
-      const hex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-      document.getElementById('saltedHashOut').textContent = hex;
+/* -------------------------------------------------------------
+   CRYPTOGRAPHY FROM BASICS — SHARED CORE JAVASCRIPT
+   Theme, Typography, Reading Progress, Checkpoints, & Global Search
+------------------------------------------------------------- */
+
+(function () {
+  let savedTheme = 'paper';
+  let savedFont = 'sans';
+  try {
+    savedTheme = localStorage.getItem('crypto_theme') || 'paper';
+  } catch (e) {}
+  try {
+    savedFont = localStorage.getItem('crypto_font') || 'sans';
+  } catch (e) {}
+
+  setTheme(savedTheme, false);
+  setFont(savedFont, false);
+
+  // Setup Scroll Progress Bar
+  window.addEventListener('scroll', updateReadingProgress);
+
+  // DOM Ready Initializations
+  document.addEventListener('DOMContentLoaded', () => {
+    highlightActiveNavLink();
+    updateThemeUI(savedTheme);
+    updateFontUI(savedFont);
+    initGlobalSearch();
+  });
+})();
+
+// Reading Progress
+function updateReadingProgress() {
+  const progressBar = document.getElementById('readingProgress');
+  if (!progressBar) return;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  if (docHeight <= 0) {
+    progressBar.style.width = '0%';
+    return;
+  }
+  const scrolled = (window.scrollY / docHeight) * 100;
+  progressBar.style.width = Math.min(100, Math.max(0, scrolled)) + '%';
+}
+
+// Theme Switcher
+function setTheme(themeName, persist = true) {
+  document.documentElement.setAttribute('data-theme', themeName);
+  if (persist) {
+    try {
+      localStorage.setItem('crypto_theme', themeName);
+    } catch (e) {}
+  }
+  updateThemeUI(themeName);
+}
+
+function updateThemeUI(themeName) {
+  document.querySelectorAll('.theme-chip').forEach(chip => chip.classList.remove('active'));
+  const activeBtn = document.getElementById('theme' + themeName.charAt(0).toUpperCase() + themeName.slice(1));
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+// Font Switcher
+function setFont(fontType, persist = true) {
+  document.documentElement.setAttribute('data-font', fontType);
+  if (persist) {
+    try {
+      localStorage.setItem('crypto_font', fontType);
+    } catch (e) {}
+  }
+  updateFontUI(fontType);
+}
+
+function updateFontUI(fontType) {
+  const btnSans = document.getElementById('btnSans');
+  const btnSerif = document.getElementById('btnSerif');
+  if (btnSans && btnSerif) {
+    btnSans.classList.toggle('active', fontType === 'sans');
+    btnSerif.classList.toggle('active', fontType === 'serif');
+  }
+}
+
+// Sidebar Active Page Matcher
+function highlightActiveNavLink() {
+  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && href.endsWith(currentPath)) {
+      link.classList.add('active');
+    }
+  });
+}
+
+// Universal Checkpoint Quiz Engine
+function handleQuiz(button, isCorrect, explanationText) {
+  const parentCard = button.closest('.checkpoint-card') || button.parentElement.parentElement;
+  const feedback = parentCard.querySelector('.feedback-note');
+  const allButtons = parentCard.querySelectorAll('.choice-btn');
+
+  allButtons.forEach(btn => {
+    btn.style.opacity = '0.45';
+    btn.disabled = true;
+  });
+
+  button.style.opacity = '1';
+  if (feedback) {
+    feedback.style.display = 'block';
+    if (isCorrect) {
+      button.classList.add('selected-correct');
+      feedback.style.background = 'var(--accent-soft)';
+      feedback.style.color = 'var(--accent-text)';
+      feedback.style.border = '1px solid var(--accent-border)';
+      feedback.innerHTML = '<strong>Correct.</strong> ' + explanationText;
+    } else {
+      button.style.borderColor = '#c53030';
+      feedback.style.background = 'rgba(197, 48, 48, 0.08)';
+      feedback.style.color = '#c53030';
+      feedback.style.border = '1px solid rgba(197, 48, 48, 0.2)';
+      feedback.innerHTML = '<strong>Not quite.</strong> ' + explanationText;
+    }
+  }
+}
+
+/* -------------------------------------------------------------
+   UNIVERSAL CRYPTOGRAPHIC SEARCH & QUICK LAUNCHER (CTRL+K)
+------------------------------------------------------------- */
+const SEARCH_INDEX = [
+  // Foundations
+  { title: "CIA Triad & Non-Repudiation (CIA-R)", badge: "M01 Foundations", desc: "Confidentiality, Integrity, Availability, and Non-Repudiation pillars", path: "modules/m01-foundations.html#cia-triad", keywords: "cia confidentiality integrity availability non-repudiation triad pillars" },
+  { title: "Kerckhoffs's Principle & Shannon Maxim", badge: "M01 Foundations", desc: "Why security through obscurity fails: the enemy knows the system", path: "modules/m01-foundations.html#kerckhoffs", keywords: "kerckhoffs shannon obscurity open design enemy knows system" },
+  { title: "Threat Models & Cryptographic Adversaries", badge: "M01 Foundations", desc: "Ciphertext-only, Known-Plaintext, Chosen-Plaintext, Chosen-Ciphertext attacks", path: "modules/m01-foundations.html#threat-models", keywords: "adversary attack coa kpa cpa cca mitm passive active" },
+  
+  // Bits & Encoding
+  { title: "Bits, Bytes, Hexadecimal & ASCII", badge: "M02 Encoding", desc: "Foundational computer representations and binary conversions", path: "modules/m02-bits-and-encoding.html#bits-hex", keywords: "bits bytes binary hex hexadecimal ascii nibble base16" },
+  { title: "Base64 Encoding & 6-Bit Chunking", badge: "M02 Encoding", desc: "Representing raw binary data over 7-bit ASCII channels with padding", path: "modules/m02-bits-and-encoding.html#base64", keywords: "base64 encoding padding mime pem binary to text chunking" },
+  { title: "XOR (Exclusive OR) Cryptographic Properties", badge: "M02 Encoding", desc: "Self-inversion, commutativity, and the backbone of all modern ciphers", path: "modules/m02-bits-and-encoding.html#xor-properties", keywords: "xor exclusive or self-inverse bitwise stream cipher reversibility" },
+  
+  // Steganography
+  { title: "Steganography vs Encryption", badge: "M03 Steganography", desc: "Hiding data existence vs hiding data meaning", path: "modules/m03-steganography.html#steg-vs-crypto", keywords: "steganography hiding cover covert channel carrier" },
+  { title: "LSB (Least Significant Bit) Image Injection", badge: "M03 Steganography", desc: "Modifying lowest-order color bits to conceal secret byte payloads", path: "modules/m03-steganography.html#lsb-deep", keywords: "lsb least significant bit pixel color rgb carrier steganalysis payload" },
+
+  // Randomness
+  { title: "Entropy, PRNGs & CSPRNGs", badge: "M04 Randomness", desc: "True entropy sources vs deterministic pseudo-random generators", path: "modules/m04-randomness-entropy.html#entropy-sources", keywords: "entropy randomness prng csprng urandom seed unpredictability trng" },
+  { title: "The Dual-EC-DRBG Backdoor & Seed Compromise", badge: "M04 Randomness", desc: "How kleptographic backdoors and low entropy destroy key secrecy", path: "modules/m04-randomness-entropy.html#csprng-failures", keywords: "dual-ec-drbg backdoor nsa seed compromise debian openssl bug debian" },
+
+  // Classical Ciphers
+  { title: "Caesar & Vigenère Ciphers", badge: "M05 Classical", desc: "Monoalphabetic shifts and polyalphabetic keystreams", path: "modules/m05-classical-ciphers.html#caesar-vigenere", keywords: "caesar vigenere substitution shift polyalphabetic kasiski tabula recta" },
+  { title: "Frequency Analysis & Cryptanalysis", badge: "M05 Classical", desc: "Cracking classical ciphers using letter frequency distributions", path: "modules/m05-classical-ciphers.html#frequency-analysis", keywords: "frequency analysis cryptanalysis etaoin shrdlu letter distribution index coincidence" },
+  { title: "One-Time Pad (OTP) & Perfect Secrecy", badge: "M05 Classical", desc: "Information-theoretic security: key length >= message, truly random, never reused", path: "modules/m05-classical-ciphers.html#one-time-pad", keywords: "one time pad otp vernam perfect secrecy shannon unconditional vernam cipher" },
+
+  // Symmetric & AES
+  { title: "Block Ciphers vs Stream Ciphers", badge: "M06 Symmetric", desc: "Fixed 128-bit blocks vs continuous pseudo-random keystream XOR", path: "modules/m06-symmetric-aes.html#block-vs-stream", keywords: "block cipher stream cipher aes chacha20 keystream salsa20" },
+  { title: "AES (Advanced Encryption Standard) Round Architecture", badge: "M06 Symmetric", desc: "SubBytes (S-Box confusion), ShiftRows & MixColumns (diffusion), AddRoundKey", path: "modules/m06-symmetric-aes.html#aes-internals", keywords: "aes rijndael subbytes shiftrows mixcolumns addroundkey sbox confusion diffusion 128 192 256" },
+  { title: "Block Cipher Modes: ECB, CBC, CTR & GCM", badge: "M06 Symmetric", desc: "Why ECB is forbidden, CBC error propagation, and modern AEAD GCM", path: "modules/m06-symmetric-aes.html#block-modes-deep", keywords: "ecb cbc ctr gcm aead modes initialization vector iv authentication tag ghash" },
+  { title: "Interactive Tamper Simulator Lab", badge: "M06 Symmetric", desc: "Hands-on experiment: flip 1 ciphertext bit and watch error propagation across modes", path: "modules/m06-symmetric-aes.html#tamper-simulator", keywords: "tamper simulator lab bit-flip malleability authentication tag dropped error propagation" },
+
+  // Hashing & Integrity
+  { title: "Cryptographic Hash Functions: SHA-256, SHA-3, BLAKE3", badge: "M07 Hashing", desc: "Pre-image resistance, collision resistance, and the avalanche effect", path: "modules/m07-hashing-integrity.html#hash-properties", keywords: "sha256 sha3 keccak blake3 avalanche collision pre-image digest md5 sha1 sha2" },
+  { title: "HMAC (Keyed-Hash Message Authentication Code)", badge: "M07 Hashing", desc: "Why simple Hash(Key || Message) is vulnerable to Length Extension Attacks", path: "modules/m07-hashing-integrity.html#hmac-deep", keywords: "hmac length extension attack hash mac integrity authenticity secret key ipad opad" },
+  { title: "Merkle Trees & Lightweight Cryptographic Proofs", badge: "M07 Hashing", desc: "How Git and distributed systems verify 1 file out of 100,000 using 32-byte hashes", path: "modules/m07-hashing-integrity.html#merkle-trees", keywords: "merkle tree merkle root proof git commit integrity distributed blockchain" },
+
+  // Asymmetric & Public-Key
+  { title: "Diffie-Hellman Key Exchange (DH & ECDH)", badge: "M08 Asymmetric", desc: "Establishing a shared secret over an insecure channel without transmitting the key", path: "modules/m08-asymmetric-diffie-hellman.html#diffie-hellman", keywords: "diffie hellman ecdh discrete log public key shared secret x25519 color mixing" },
+  { title: "RSA Cryptosystem & Prime Factorization", badge: "M08 Asymmetric", desc: "Trapdoor one-way functions, Euler's totient, modular exponentiation", path: "modules/m08-asymmetric-diffie-hellman.html#rsa-deep", keywords: "rsa prime factorization modular exponentiation public private key euler totient trapdoor" },
+  { title: "Elliptic Curve Cryptography (ECC & Curve25519)", badge: "M08 Asymmetric", desc: "Point multiplication on Weierstrass and Montgomery curves for smaller, faster keys", path: "modules/m08-asymmetric-diffie-hellman.html#ecc-deep", keywords: "elliptic curve ecc curve25519 p256 point addition scalar multiplication secp256k1" },
+
+  // Signatures & PKI
+  { title: "Digital Signatures: Ed25519 & ECDSA", badge: "M09 Signatures", desc: "Authenticity and non-repudiation: sign with private key, verify with public key", path: "modules/m09-signatures-pki.html#digital-signatures", keywords: "digital signatures ed25519 ecdsa rsa sign verify signature signature verification" },
+  { title: "Public Key Infrastructure (PKI) & X.509", badge: "M09 Signatures", desc: "Certificate Authorities, trust chains, Root CAs, and Subject Alternative Names", path: "modules/m09-signatures-pki.html#pki-deep", keywords: "pki x509 certificate authority root ca intermediate chain san csr cert pem" },
+  { title: "Certificate Revocation: CRL, OCSP & OCSP Stapling", badge: "M09 Signatures", desc: "How browsers detect compromised certificates without privacy leaks or latency", path: "modules/m09-signatures-pki.html#revocation-deep", keywords: "revocation crl ocsp stapling letsencrypt compromised certificate crl distribution" },
+
+  // Key Vaults, KMS & Incident Response
+  { title: "Key Derivation Functions: Argon2id, bcrypt, PBKDF2", badge: "M10 Key Vaults", desc: "Memory-hard password hashing to neutralize GPU, FPGA, and ASIC brute-force", path: "modules/m10-key-vaults-kdfs.html#kdf-simulator", keywords: "argon2id bcrypt pbkdf2 password hashing salt pepper cost factor scrypt kdf" },
+  { title: "Hardware Security: HSMs, TPMs & Secure Enclaves", badge: "M10 Key Vaults", desc: "FIPS 140-3 physical silicon trust, Measured Boot, and zeroization circuits", path: "modules/m10-key-vaults-kdfs.html#hardware-security-deep", keywords: "hsm tpm secure enclave titan fips 140-3 measured boot zeroization hardware vault" },
+  { title: "Cloud KMS & Envelope Encryption Architecture", badge: "M10 Key Vaults", desc: "DEKs (Data Encryption Keys) + KEKs (Key Encryption Keys) for petabyte-scale encryption", path: "modules/m10-key-vaults-kdfs.html#envelope-encryption", keywords: "envelope encryption kms kek dek aws kms hashicorp vault key management google cloud kms" },
+  { title: "Cryptographic Incident Response & Key Compromise Playbook", badge: "M10 Key Vaults", desc: "Production triage, zero-downtime dual-key migration, and secret revocation runbook", path: "modules/m10-key-vaults-kdfs.html#incident-response-playbook", keywords: "incident response key compromise leak rotation playbook zero-downtime rekeying triage" },
+  { title: "Seed Phrases & BIP-39 Derivation Trees", badge: "M10 Key Vaults", desc: "Master seed phrases, checksums, and hierarchical deterministic key generation", path: "modules/m10-key-vaults-kdfs.html#seed-phrases", keywords: "bip39 seed phrase mnemonic hierarchical deterministic wallet recovery bip44" },
+
+  // Applied Protocols
+  { title: "TLS 1.3 Handshake Protocol & Forward Secrecy", badge: "M11 Applied", desc: "1-RTT encrypted handshake, ephemeral Diffie-Hellman, and zero-round-trip resumption", path: "modules/m11-applied-https-tokens.html#tls-handshake", keywords: "tls 1.3 https handshake forward secrecy pfs session resumption sni cipher suite" },
+  { title: "Token Authentication: JWT vs PASETO", badge: "M11 Applied", desc: "Why 'alg: none' ruined JWT, and how PASETO enforces cryptographic security", path: "modules/m11-applied-https-tokens.html#tokens-deep", keywords: "jwt paseto tokens alg none signature authorization bearer claims jws jwe" },
+  { title: "SSH & WireGuard Cryptographic Architecture", badge: "M11 Applied", desc: "Noise protocol, modern ChaCha20-Poly1305 tunnels, and Ed25519 identity", path: "modules/m11-applied-https-tokens.html#wireguard-ssh", keywords: "ssh wireguard noise protocol vpn authorized_keys tunneling modern crypto" },
+
+  // Quantum & ZKP
+  { title: "Post-Quantum Cryptography: NIST Standards (ML-KEM & ML-DSA)", badge: "M12 Quantum & ZKP", desc: "Shor's algorithm threat and lattice-based post-quantum cryptography (Kyber & Dilithium)", path: "modules/m12-zkp-quantum-era.html#pqc-deep", keywords: "post quantum pqc shor grover ml-kem kyber ml-dsa dilithium lattice nist quantum era" },
+  { title: "Zero-Knowledge Proofs: zk-SNARKs & zk-STARKs Intuition", badge: "M12 Quantum & ZKP", desc: "Proving knowledge of a secret without revealing the secret itself", path: "modules/m12-zkp-quantum-era.html#zkp-deep", keywords: "zero knowledge zkp snark stark proof prover verifier succinct rollups" },
+
+  // Module 13: Connected Topics & Public-Key Anatomy
+  { title: "Anatomy of an X.509 Certificate (RFC 5280)", badge: "M13 Connected Topics", desc: "TBSCertificate dissection, Subject Alternative Name (SAN), Basic Constraints, and Key Usage", path: "modules/m13-misc-topics.html#x509-anatomy", keywords: "x509 certificate rfc 5280 san subject alternative name tbscertificate basic constraints eku" },
+  { title: "Certificate Formats & Keystores: PEM, DER, PKCS#12, PKCS#7", badge: "M13 Connected Topics", desc: "Comparing Base64 PEM, raw binary DER, PKCS#7 chains, and password-encrypted PKCS#12 archives", path: "modules/m13-misc-topics.html#cert-formats", keywords: "pem der pkcs12 pfx pkcs7 p7b keystore jks certificate format conversion" },
+  { title: "Cryptographic Serialization & Canonical Encodings (ASN.1 & DER)", badge: "M13 Connected Topics", desc: "Why non-deterministic JSON fails signature checks and how ASN.1 DER and CBOR guarantee unique bitstreams", path: "modules/m13-misc-topics.html#canonical-serialization", keywords: "asn1 der cbor serialization canonical encoding tlv distinguished encoding rules json" },
+  { title: "Cryptographic Time: NTP Vulnerabilities, NTS & RFC 3161 TSP", badge: "M13 Connected Topics", desc: "Network Time Security (NTS) authenticated time and Timestamp Authorities for legal non-repudiation", path: "modules/m13-misc-topics.html#crypto-time", keywords: "time ntp nts network time security rfc 3161 tsp timestamp authority clock drift" },
+
+  // Systems & Security Engineering Tracks
+  { title: "Track 2: Operating System Fundamentals", badge: "Hub Track 02", desc: "Process lifecycles, virtual memory paging, CPU schedulers, file system inodes, and POSIX syscalls", path: "index.html#track-os-basics", keywords: "operating systems os processes threads virtual memory paging scheduling inodes syscalls ipc" },
+  { title: "Track 3: OS Internals & Kernel Security", badge: "Hub Track 03", desc: "Ring 0 vs Ring 3, memory corruption, ASLR, DEP/NX, Linux capabilities, and eBPF tracing", path: "index.html#track-os-internals", keywords: "os internals kernel security ring 0 aslr dep nx buffer overflow ebpf selinux apparmor" },
+  { title: "Track 4: Computer Networking & Protocols", badge: "Hub Track 04", desc: "TCP/IP stack, 3-way handshakes, congestion control, BGP routing, DNS, and WireGuard tunnels", path: "index.html#track-networking", keywords: "networking protocols tcp ip handshake bgp dns wireguard sockets congestion control" },
+  { title: "Track 5: Hardware Architecture & Silicon", badge: "Hub Track 05", desc: "CPU instruction pipelines, branch prediction, L1/L2/L3 caches, MESI coherence, and MMU page tables", path: "index.html#track-hardware", keywords: "hardware architecture cpu pipeline cache mesi mmu page table uefi dma interrupts" },
+  { title: "Track 6: Hardware Security & Silicon Trust", badge: "Hub Track 06", desc: "Spectre, Meltdown, Rowhammer, fault injection, voltage glitching, TPM 2.0, and Secure Enclaves", path: "index.html#track-hw-security", keywords: "hardware security spectre meltdown rowhammer fault injection tpm secure enclave glitching" },
+  { title: "Track 7: Cloud Infrastructure Security", badge: "Hub Track 07", desc: "Zero-Trust architecture, Cloud IAM least privilege, VPC peering, container isolation, and Vault", path: "index.html#track-cloud-sec", keywords: "cloud security zero trust iam vpc container kubernetes vault mtls service mesh" },
+
+  // CTF Engineering Tracks
+  { title: "CTF Track 1: Starting CTF Knowledge & Problem Patterns", badge: "CTF Track 01", desc: "Flag discovery methodology, classical cipher reconnaissance (XOR, Caesar, Vigenère), and encoding detection", path: "modules/ctf01-starting-knowledge.html", keywords: "ctf capture the flag beginner patterns cyberchef pwntools recon xor caesar vigenere encoding base64 stego" },
+  { title: "Interactive CTF Decryption Workbench", badge: "CTF Lab", desc: "Hands-on challenge lab: Multi-layer onion decoder, single-byte XOR breaker, and crib-dragging attack", path: "modules/ctf01-starting-knowledge.html#interactive-workbench", keywords: "ctf lab workbench onion decoder single byte xor frequency breaker crib dragging" },
+  { title: "CTF Track 2: Intermediate CTF Cryptanalysis & Exploitation", badge: "CTF Track 02", desc: "CBC padding oracle attacks, ECB byte-at-a-time, RSA small exponent, PRNG state recovery, and hash length extension", path: "index.html#track-ctf-intermediate", keywords: "ctf intermediate cryptanalysis padding oracle ecb rsa factorisation mt19937 prng hash length extension jwt" },
+  { title: "CTF Track 3: Curated CTF Problem Bank & Hands-on Challenges", badge: "CTF Track 03", desc: "Categorized CTF practice challenge bank spanning crypto, forensics, token exploits, and flag formats", path: "index.html#track-ctf-problems", keywords: "ctf problems challenge bank practice ctf crypto pcap forensics web jwt flag labs" },
+
+  // Cheatsheets
+  { title: "When to Use What — Master Decision Matrix", badge: "Cheatsheet", desc: "Head-to-head algorithm comparisons, NIST lifetime matrix, and the 10 Golden Rules", path: "cheatsheet.html", keywords: "cheatsheet decision matrix recommendations comparison golden rules when to use what" },
+  { title: "OpenSSL 3.x Modern Command Handbook", badge: "OpenSSL", desc: "Intuitive command patterns for keys, certificates, HMACs, encryption, and TLS inspection", path: "openssl-cheatsheet.html", keywords: "openssl openssl 3 command cheatsheet req x509 genpkey dgst enc s_client s_server" }
+];
+
+let searchModalEl = null;
+let searchInputEl = null;
+let searchResultsEl = null;
+let activeResultIndex = -1;
+let filteredResults = [];
+
+function initGlobalSearch() {
+  if (!document.getElementById('searchModalOverlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'searchModalOverlay';
+    overlay.innerHTML = `
+      <div id="searchModalCard" onclick="event.stopPropagation()">
+        <div id="searchModalHeader">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchModalInput" placeholder="Search algorithms, ciphers, RFCs, tools, or concepts..." autocomplete="off">
+          <button id="searchModalClose" type="button" onclick="closeSearchModal()" title="Close (Esc)">&times;</button>
+        </div>
+        <div id="searchModalResults"></div>
+        <div id="searchModalFooter">
+          <span>Navigate with <kbd class="search-kbd">↑</kbd> <kbd class="search-kbd">↓</kbd></span>
+          <span>Select <kbd class="search-kbd">Enter</kbd></span>
+          <span>Close <kbd class="search-kbd">Esc</kbd></span>
+        </div>
+      </div>
+    `;
+    overlay.addEventListener('click', closeSearchModal);
+    document.body.appendChild(overlay);
+  }
+
+  searchModalEl = document.getElementById('searchModalOverlay');
+  searchInputEl = document.getElementById('searchModalInput');
+  searchResultsEl = document.getElementById('searchModalResults');
+
+  if (searchInputEl) {
+    searchInputEl.addEventListener('input', handleSearchInput);
+    searchInputEl.addEventListener('keydown', handleSearchKeydown);
+  }
+
+  // Keyboard shortcut listener
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      toggleSearchModal();
+    }
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      openSearchModal();
+    }
+    if (e.key === 'Escape' && searchModalEl && searchModalEl.classList.contains('active')) {
+      closeSearchModal();
+    }
+  });
+
+  renderSearchResults('');
+}
+
+function openSearchModal() {
+  if (!searchModalEl) initGlobalSearch();
+  searchModalEl.classList.add('active');
+  if (searchInputEl) {
+    searchInputEl.value = '';
+    renderSearchResults('');
+    setTimeout(() => searchInputEl.focus(), 50);
+  }
+}
+
+function closeSearchModal() {
+  if (searchModalEl) {
+    searchModalEl.classList.remove('active');
+  }
+}
+
+function toggleSearchModal() {
+  if (searchModalEl && searchModalEl.classList.contains('active')) {
+    closeSearchModal();
+  } else {
+    openSearchModal();
+  }
+}
+
+function handleSearchInput(e) {
+  renderSearchResults(e.target.value);
+}
+
+function handleSearchKeydown(e) {
+  if (!filteredResults.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex + 1) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeResultIndex = (activeResultIndex - 1 + filteredResults.length) % filteredResults.length;
+    updateActiveResultUI();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (activeResultIndex >= 0 && activeResultIndex < filteredResults.length) {
+      navigateToSearchResult(filteredResults[activeResultIndex]);
+    }
+  }
+}
+
+function updateActiveResultUI() {
+  const items = searchResultsEl.querySelectorAll('.search-result-item');
+  items.forEach((item, idx) => {
+    if (idx === activeResultIndex) {
+      item.classList.add('active');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+function renderSearchResults(query) {
+  if (!searchResultsEl) return;
+  const q = query.trim().toLowerCase();
+  
+  if (!q) {
+    filteredResults = SEARCH_INDEX.slice(0, 8);
+  } else {
+    const scored = [];
+    SEARCH_INDEX.forEach(item => {
+      const titleLower = item.title.toLowerCase();
+      const descLower = item.desc.toLowerCase();
+      const badgeLower = item.badge.toLowerCase();
+      const kwLower = item.keywords.toLowerCase();
+      
+      let score = 0;
+      if (titleLower === q) score += 200;
+      else if (titleLower.startsWith(q)) score += 150;
+      else if (titleLower.includes(' ' + q) || titleLower.includes('(' + q)) score += 120;
+      else if (titleLower.includes(q)) score += 40;
+
+      if (kwLower.includes(q)) score += 60;
+      if (descLower.includes(q)) score += 20;
+      if (badgeLower.includes(q)) score += 20;
+
+      if (score > 0) {
+        scored.push({ item, score });
+      }
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    filteredResults = scored.map(s => s.item);
+  }
+
+  activeResultIndex = filteredResults.length > 0 ? 0 : -1;
+
+  if (filteredResults.length === 0) {
+    searchResultsEl.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13.5px;">No cryptographic concepts found matching "<strong>' + escapeHtml(query) + '</strong>".</div>';
+    return;
+  }
+
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+
+  let html = '';
+  filteredResults.forEach((item, idx) => {
+    let resolvedPath = item.path;
+    if (isInsideModules) {
+      if (resolvedPath.startsWith('modules/')) {
+        resolvedPath = resolvedPath.replace('modules/', '');
+      } else {
+        resolvedPath = '../' + resolvedPath;
+      }
+    } else {
+      resolvedPath = item.path;
     }
 
-    function generateNewSalt() {
-      const rand = Math.floor(Math.random() * 65536).toString(16).padStart(4, '0');
-      updateSaltHash('salt_' + rand);
+    const isActive = idx === activeResultIndex ? ' active' : '';
+    html += `
+      <a href="${resolvedPath}" class="search-result-item${isActive}" onclick="closeSearchModal()">
+        <div class="search-result-left">
+          <span class="search-result-badge">${item.badge}</span>
+          <div class="search-result-text">
+            <div class="search-result-title">${escapeHtml(item.title)}</div>
+            <div class="search-result-desc">${escapeHtml(item.desc)}</div>
+          </div>
+        </div>
+        <span class="search-result-arrow">→</span>
+      </a>
+    `;
+  });
+
+  searchResultsEl.innerHTML = html;
+}
+
+function navigateToSearchResult(item) {
+  const isInsideModules = window.location.pathname.includes('/modules/') || window.location.href.includes('/modules/');
+  let resolvedPath = item.path;
+  if (isInsideModules) {
+    if (resolvedPath.startsWith('modules/')) {
+      resolvedPath = resolvedPath.replace('modules/', '');
+    } else {
+      resolvedPath = '../' + resolvedPath;
     }
-    updateSaltHash('salt_79a2');
+  }
+  closeSearchModal();
+  window.location.href = resolvedPath;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+</script>
+  <script>
+    function setKDFSim(mode) {
+      document.querySelectorAll('#btnKDF1, #btnKDF2, #btnKDF3').forEach(b => b.classList.remove('active'));
+      document.getElementById('btnKDF' + mode).classList.add('active');
+
+      const modeLabel = document.getElementById('kdfModeLabel');
+      const userLat = document.getElementById('userLatency');
+      const userDesc = document.getElementById('userDesc');
+      const hackerCost = document.getElementById('hackerCost');
+      const hackerDesc = document.getElementById('hackerDesc');
+      const analysis = document.getElementById('kdfAnalysis');
+      const card = document.getElementById('hackerCard');
+
+      if (mode === 1) {
+        modeLabel.textContent = "Mode: Fast Hash (Vulnerable)";
+        userLat.textContent = "0.001 ms";
+        userDesc.textContent = "Login is instantaneous; user notices zero delay.";
+        hackerCost.textContent = "0.01 seconds ($0.0001)";
+        hackerCost.style.color = "#c53030";
+        hackerDesc.textContent = "8x GPU rig computes 100 billion hashes/sec. Broken instantly!";
+        analysis.textContent = "Fast algorithms like SHA-256 or MD5 provide zero resistance against GPU rigs. A password database leak leads to total compromise.";
+        card.style.borderColor = "#c53030";
+      } else if (mode === 2) {
+        modeLabel.textContent = "Mode: Iterative CPU (PBKDF2 - 600,000 Rounds)";
+        userLat.textContent = "120 ms";
+        userDesc.textContent = "User experiences an imperceptible 0.1-second delay.";
+        hackerCost.textContent = "3.2 hours ($15 electricity)";
+        hackerCost.style.color = "#d97706";
+        hackerDesc.textContent = "Moderate resistance. High-end ASIC arrays can still crack passwords over days.";
+        analysis.textContent = "PBKDF2 is CPU-intensive, but because it uses almost zero memory, custom ASICs can pack thousands of parallel cores on a single silicon chip.";
+        card.style.borderColor = "#d97706";
+      } else {
+        modeLabel.textContent = "Mode: Memory-Hard (Argon2id - 64MB RAM)";
+        userLat.textContent = "250 ms";
+        userDesc.textContent = "Takes 0.25 seconds on a smartphone. Completely comfortable for humans.";
+        hackerCost.textContent = "4,200 years ($48,000,000)";
+        hackerCost.style.color = "var(--accent)";
+        hackerDesc.textContent = "GPUs choke on memory bandwidth; ASICs are economically impossible to build!";
+        analysis.textContent = "Argon2id forces every single guess to allocate 64 megabytes of RAM. Parallel GPU attacks collapse because memory bandwidth becomes the bottleneck.";
+        card.style.borderColor = "var(--accent)";
+      }
+    }
   </script>
 </body>
 </html>
