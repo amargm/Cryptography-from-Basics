@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 06: Symmetric & AES — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .mode-canvas-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-top: 14px;
+    }
+    .canvas-wrap {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .canvas-box {
+      text-align: center;
+    }
+    .canvas-label {
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    canvas {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #ffffff;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 06</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link active"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 7 min read</span>
+        <span>•</span>
+        <span>Tier: Shared Secrets</span>
+        <span>•</span>
+        <span>Prerequisites: Modules 02, 05</span>
+      </div>
+
+      <h1 class="lesson-headline">Symmetric Encryption & Inside AES</h1>
+      <p class="lesson-lead">
+        When you watch Netflix, transfer gigabytes over Wi-Fi, or lock your iPhone's flash drive, you are using symmetric encryption. It is the ultra-fast workhorse of modern cryptography.
+      </p>
+
+      <!-- Section 1 -->
+      <section id="the-shared-secret">
+        <h2>1. The Shared Secret Concept</h2>
+        <p>
+          In symmetric cryptography, Alice and Bob share the <strong>exact same secret key</strong>. The physical analogy is a heavy steel lockbox:
+        </p>
+        <ul>
+          <li>Alice puts the document in the box, turns her key to lock it.</li>
+          <li>Eve sees a solid steel box. She cannot open it without the key.</li>
+          <li>Bob receives the box and opens it using his identical key.</li>
+        </ul>
+        <p>
+          Symmetric algorithms are astonishingly fast. Modern laptop CPUs have dedicated hardware instructions (AES-NI) that can encrypt and decrypt several gigabytes per second with almost zero battery drain.
+        </p>
+      </section>
+
+      <!-- Section 2 -->
+      <section id="inside-aes">
+        <h2>2. Inside AES: Confusion, Diffusion & Rounds</h2>
+        <p>
+          In 2001, the US National Institute of Standards and Technology (NIST) adopted <strong>AES (Advanced Encryption Standard)</strong>. AES chops data into 128-bit blocks (16 bytes) and runs them through a culinary blender:
+        </p>
+        <div class="dilemma-card">
+          <div class="dilemma-label">How AES Works (Zero Math Analogy)</div>
+          <p class="dilemma-text">
+            <strong>1. Confusion (Substitution):</strong> Each byte is swapped for another byte using a lookup table (S-Box), breaking any direct relationship with the original text.<br>
+            <strong>2. Diffusion (Shuffling):</strong> The rows are shifted and the columns are mixed thoroughly, so that changing just 1 bit in the input scrambles 50% of the entire block.<br>
+            <strong>3. Rounds:</strong> The recipe is repeated <strong>10, 12, or 14 times</strong> in a row. By round 10, the output is pure mathematical static.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 3: Interactive ECB Penguin Tool -->
+      <section id="ecb-penguin">
+        <h2>3. Modes of Operation: The "ECB Penguin" Disaster</h2>
+        <p>
+          AES only encrypts one 16-byte block at a time. What happens when you have a 5-megabyte image with thousands of blocks?
+        </p>
+        <p>
+          If you use <strong>Electronic Codebook (ECB)</strong> mode, each block is encrypted independently. If two blocks in your image have the exact same white pixel color, they produce the exact same scrambled ciphertext block!
+        </p>
+
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>ECB vs CBC Mode Visualizer</span>
+              <span class="widget-badge">Pattern Leak Demo</span>
+            </div>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Real-Time Render</span>
+          </div>
+
+          <div class="widget-content">
+            <div class="mode-canvas-container">
+              <div class="canvas-wrap">
+                <div class="canvas-box">
+                  <div class="canvas-label">1. Original Image</div>
+                  <canvas id="cOrig" width="120" height="120"></canvas>
+                </div>
+                <div class="canvas-box">
+                  <div class="canvas-label" style="color:#c53030;">2. ECB Mode (Insecure)</div>
+                  <canvas id="cECB" width="120" height="120"></canvas>
+                </div>
+                <div class="canvas-box">
+                  <div class="canvas-label" style="color:var(--accent);">3. CBC Mode (Chained)</div>
+                  <canvas id="cCBC" width="120" height="120"></canvas>
+                </div>
+              </div>
+              <div style="font-size:12.5px; color:var(--text-secondary); line-height:1.5; text-align:center; max-width:540px;">
+                Look at the middle image: Even though the pixels were encrypted with AES, the shape of the icon is still 100% visible because identical pixel blocks produced identical cipher blocks! In CBC mode (right), blocks are chained together with an <span class="analogy-term" data-tooltip="Initialization Vector: A random starting value ensuring identical files produce totally different encrypted static.">IV</span>, producing true random static.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            Why does Cipher Block Chaining (CBC) require a random Initialization Vector (IV) for every new message?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Without a fresh IV, encrypting the identical file twice produces the identical ciphertext, allowing an eavesdropper to detect repeating messages.')">A) To ensure that encrypting the same message twice produces completely different scrambled outputs.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'The IV is public and transmitted in the clear along with the ciphertext.')">B) The IV must be kept strictly secret like the master key.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'The IV prevents pattern leaks, but has no effect on computational speed.')">C) The IV speeds up the CPU encryption calculations by 10x.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m05-classical-ciphers.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>05. Classical Ciphers</span>
+        </a>
+        <a href="m07-hashing-integrity.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>07. Hashing & Fingerprints</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#the-shared-secret" class="toc-nav-link">1. The Shared Secret</a></li>
+        <li class="toc-nav-item"><a href="#inside-aes" class="toc-nav-link">2. Inside AES</a></li>
+        <li class="toc-nav-item"><a href="#ecb-penguin" class="toc-nav-link">3. The ECB Penguin</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    // Draw the visual demo for ECB vs CBC
+    window.addEventListener('load', () => {
+      const cOrig = document.getElementById('cOrig').getContext('2d');
+      const cECB = document.getElementById('cECB').getContext('2d');
+      const cCBC = document.getElementById('cCBC').getContext('2d');
+
+      // 1. Draw simple padlock shape on original
+      cOrig.fillStyle = '#ffffff';
+      cOrig.fillRect(0, 0, 120, 120);
+
+      cOrig.fillStyle = '#22252a';
+      cOrig.beginPath();
+      cOrig.arc(60, 45, 25, Math.PI, 0, false);
+      cOrig.lineWidth = 10;
+      cOrig.strokeStyle = '#22252a';
+      cOrig.stroke();
+      cOrig.fillRect(35, 45, 50, 45); // Body
+
+      // 2. Simulate ECB: White blocks get pattern A, Black blocks get pattern B
+      const imgDataOrig = cOrig.getImageData(0, 0, 120, 120);
+      const ecbData = cECB.createImageData(120, 120);
+      const cbcData = cCBC.createImageData(120, 120);
+
+      for (let i = 0; i < imgDataOrig.data.length; i += 4) {
+        const isDark = imgDataOrig.data[i] < 128;
+        
+        // ECB: deterministic based on original pixel color
+        const shade = isDark ? 80 : 200;
+        ecbData.data[i] = shade + (i % 7);
+        ecbData.data[i+1] = shade + (i % 11);
+        ecbData.data[i+2] = shade + (i % 5);
+        ecbData.data[i+3] = 255;
+
+        // CBC: true random static noise
+        const noise = Math.floor(Math.random() * 256);
+        cbcData.data[i] = noise;
+        cbcData.data[i+1] = noise;
+        cbcData.data[i+2] = noise;
+        cbcData.data[i+3] = 255;
+      }
+
+      cECB.putImageData(ecbData, 0, 0);
+      cCBC.putImageData(cbcData, 0, 0);
+    });
+  </script>
+</body>
+</html>
