@@ -1,1 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 02: Bits, Data & Encoding — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .rep-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+    .rep-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+    .rep-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      font-family: var(--font-sans);
+    }
+    .rep-name { font-size: 12.5px; font-weight: 650; color: var(--text-main); }
+    .rep-desc { font-size: 11.5px; color: var(--text-muted); }
+    .rep-output {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      color: var(--text-main);
+      background: var(--code-bg);
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 02</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link active"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 6 min read</span>
+        <span>•</span>
+        <span>Tier: Foundations</span>
+        <span>•</span>
+        <span>Prerequisites: Module 01</span>
+      </div>
+
+      <h1 class="lesson-headline">Bits, Characters & Encoding</h1>
+      <p class="lesson-lead">
+        Computers do not speak English, Spanish, or Hindi; they only understand micro-switches. Before you can scramble a message, you must understand how thoughts turn into raw digital material.
+      </p>
+
+      <!-- Section 1 -->
+      <section id="bits-bytes">
+        <h2>1. From Switches to Characters</h2>
+        <p>
+          At the atomic level, all digital data is made of two states:
+        </p>
+        <ul>
+          <li><strong>Bit:</strong> A single 0 or 1 (a physical microscopic switch: off or on).</li>
+          <li><strong>Byte:</strong> A bundle of 8 bits. An 8-bit byte can represent $2^8 = 256$ different combinations (numbers from 0 to 255).</li>
+        </ul>
+        <p>
+          In the 1960s, engineers standardized <strong>ASCII</strong> (American Standard Code for Information Interchange). It is simply a dictionary mapping numbers to English letters. For example, the capital letter <code>A</code> is number 65 (`01000001` in binary).
+        </p>
+        <p>
+          As the internet grew global, <strong>Unicode (UTF-8)</strong> was born to give a unique number to every letter, accent, and emoji in every human language.
+        </p>
+      </section>
+
+      <!-- Section 2: Interactive Live Inspector -->
+      <section id="live-inspector">
+        <h2>2. Live Data Inspector</h2>
+        <p>
+          Type any word into the box below. Watch how the exact same text transforms simultaneously into raw switches (Binary), clean shorthand (Hex), and web-safe packaging (Base64):
+        </p>
+
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>Interactive Data Inspector</span>
+              <span class="widget-badge">No External Server</span>
+            </div>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);" id="byteStats">6 characters (6 bytes)</span>
+          </div>
+
+          <div class="widget-content">
+            <div style="margin-bottom:14px;">
+              <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Type Plaintext:</label>
+              <input type="text" id="plainInput" class="clean-input" value="Secret" placeholder="Type here...">
+            </div>
+
+            <div class="rep-stack">
+              <div class="rep-card">
+                <div class="rep-top">
+                  <span class="rep-name">1. Binary (8-bit bytes)</span>
+                  <span class="rep-desc">What silicon chips physically store</span>
+                </div>
+                <div class="rep-output" id="outBin">01010011 01100101 01100011 01110010 01100101 01110100</div>
+              </div>
+
+              <div class="rep-card">
+                <div class="rep-top">
+                  <span class="rep-name">2. Hexadecimal (Base16)</span>
+                  <span class="rep-desc">The global shorthand for keys & hashes</span>
+                </div>
+                <div class="rep-output" id="outHex">53 65 63 72 65 74</div>
+              </div>
+
+              <div class="rep-card">
+                <div class="rep-top">
+                  <span class="rep-name">3. Base64</span>
+                  <span class="rep-desc">6-bit safe transport across text protocols</span>
+                </div>
+                <div class="rep-output" id="outB64">U2VjcmV0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="hex-base64">
+        <h2>3. Hexadecimal & The Mystery of Base64 "=" Padding</h2>
+        <p>
+          Why do cryptographers love <strong>Hexadecimal (Base16)</strong>? Binary is too long for humans to read (`01001111` is dizzying). Hex counts from <code>0-9</code> and <code>a-f</code>. Exactly two hex characters represent one full 8-bit byte. Whenever you see a hash like <code>e3b0c442...</code>, each pair of letters is just one byte!
+        </p>
+        <p>
+          <strong>Base64</strong> solves a different problem: old email protocols and web URLs crash if you send raw binary bytes. Base64 groups 3 bytes (24 bits) into 4 chunks of 6 bits, representing them using 64 safe characters (`A-Z`, `a-z`, `0-9`, `+`, `/`).
+        </p>
+        <p>
+          <strong>Why the <code>=</code> signs?</strong> Try typing <code>Test</code> (4 bytes) in the inspector above. You will see <code>VGVzdA==</code>. Because 4 bytes doesn't divide evenly into groups of 3, the computer pads the empty bits with zeroes and appends <code>==</code> to tell the recipient: <em>"These trailing bytes are just spacers!"</em>
+        </p>
+      </section>
+
+      <!-- Section 4 -->
+      <section id="cardinal-rule">
+        <h2>4. The Cardinal Law: Encoding $\neq$ Encryption</h2>
+        <div class="dilemma-card">
+          <div class="dilemma-label">Crucial Industry Rule</div>
+          <p class="dilemma-text">
+            <strong>Encoding is publicly reversible with zero password.</strong> It is used strictly for data compatibility. Anyone can paste Base64 into a browser and decode it in 1 millisecond. Never store confidential passwords or credit cards using Base64.
+          </p>
+        </div>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            A developer says: <em>"We convert our customers' credit card numbers to Base64 before sending them over the internet, so they are completely safe from hackers."</em> What is the fatal mistake?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Base64 takes minimal space and operates instantly.')">A) Base64 slows down the connection too much.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Base64 has no key, no secret, and is an open public standard. Any hacker can decode it in milliseconds.')">B) Base64 is an open encoding, not encryption; anyone can decode it instantly without a key.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Base64 supports all numbers and letters.')">C) Base64 cannot encode numbers, only letters.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m01-foundations.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>01. The Core Philosophy</span>
+        </a>
+        <a href="m03-steganography.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>03. Steganography</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#bits-bytes" class="toc-nav-link">1. Switches to Characters</a></li>
+        <li class="toc-nav-item"><a href="#live-inspector" class="toc-nav-link">2. Live Data Inspector</a></li>
+        <li class="toc-nav-item"><a href="#hex-base64" class="toc-nav-link">3. Hex & Base64 Padding</a></li>
+        <li class="toc-nav-item"><a href="#cardinal-rule" class="toc-nav-link">4. Encoding != Encryption</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    const input = document.getElementById('plainInput');
+    const binOut = document.getElementById('outBin');
+    const hexOut = document.getElementById('outHex');
+    const b64Out = document.getElementById('outB64');
+    const stats = document.getElementById('byteStats');
+
+    function updateInspector() {
+      const text = input.value;
+      if (!text) {
+        binOut.textContent = "—";
+        hexOut.textContent = "—";
+        b64Out.textContent = "—";
+        stats.textContent = "0 characters (0 bytes)";
+        return;
+      }
+
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(text);
+      stats.textContent = `${text.length} characters (${bytes.length} bytes)`;
+
+      binOut.textContent = Array.from(bytes).map(b => b.toString(2).padStart(8, '0')).join(' ');
+      hexOut.textContent = Array.from(bytes).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+
+      try {
+        let binStr = '';
+        bytes.forEach(b => binStr += String.fromCharCode(b));
+        b64Out.textContent = btoa(binStr);
+      } catch (e) {
+        b64Out.textContent = "Encoding error";
+      }
+    }
+
+    input.addEventListener('input', updateInspector);
+    updateInspector();
+  </script>
+</body>
+</html>
 
