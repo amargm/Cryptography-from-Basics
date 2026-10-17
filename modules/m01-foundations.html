@@ -1,1 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 01: The Core Philosophy — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .perspective-frame {
+      border: 1px solid var(--border);
+      background: var(--widget-bg);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin: 28px 0;
+    }
+    .perspective-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .view-btn {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .view-btn.active {
+      background: var(--surface);
+      border-color: var(--accent);
+      color: var(--text-main);
+      font-weight: 600;
+      box-shadow: var(--shadow-soft);
+    }
+    .perspective-display {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .perspective-annotation {
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 01</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link active"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 5 min read</span>
+        <span>•</span>
+        <span>Tier: Foundations</span>
+        <span>•</span>
+        <span>Prerequisites: None</span>
+      </div>
+
+      <h1 class="lesson-headline">The Core Philosophy</h1>
+      <p class="lesson-lead">
+        Cryptography is not the art of secret languages; it is the mathematical science of trust in a world where everyone might be listening.
+      </p>
+
+      <!-- Section 1 -->
+      <section id="the-cast">
+        <h2>1. The Cast of Characters</h2>
+        <p>
+          In 1978, computer scientists Ron Rivest, Adi Shamir, and Leonard Adleman got tired of writing <em>"User A wants to send data to User B while Adversary C listens."</em> They invented the cast of characters used in every security textbook on Earth:
+        </p>
+        <ul>
+          <li><strong>Alice & Bob:</strong> The legitimate communicators. They could be your phone talking to your bank's server.</li>
+          <li><strong>Eve (The Eavesdropper):</strong> A passive listener. Eve sits in the middle (e.g. coffee shop public Wi-Fi) reading everything, but she does not tamper with the data.</li>
+          <li><strong>Mallory (The Malicious Attacker):</strong> An active adversary. Mallory doesn't just listen; she deletes messages, alters payment amounts, and injects fake packets.</li>
+        </ul>
+
+        <div class="perspective-frame">
+          <div class="perspective-tabs">
+            <button class="view-btn active" id="btnSender" onclick="togglePerspective('alice')">👤 Alice's Screen</button>
+            <button class="view-btn" id="btnEve" onclick="togglePerspective('eve')">🕵️ Eve's Wiretap</button>
+          </div>
+          <div class="perspective-display" id="perspBox">
+            <div style="color:var(--text-muted); font-size:12px;">Alice's Plaintext View:</div>
+            <div style="color:var(--accent-text); margin-top:4px;">"Approve wire transfer: $1,200 to Bob"</div>
+          </div>
+          <div class="perspective-annotation" id="perspNote">
+            On Alice's physical screen, the message is readable text. Before leaving her device, it must be encrypted.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2 -->
+      <section id="the-four-pillars">
+        <h2>2. The Four Pillars of Trust</h2>
+        <p>
+          Most people think cryptography is only about keeping things secret. Secrecy is only one quarter of the puzzle. Modern systems solve four distinct problems:
+        </p>
+
+        <div class="dilemma-card">
+          <div class="dilemma-label">The 4 Pillars Breakdown</div>
+          <p class="dilemma-text">
+            <strong>1. Confidentiality:</strong> Only intended recipients can read the message.<br>
+            <strong>2. Integrity:</strong> Proof that nobody altered a single byte during transit.<br>
+            <strong>3. Authenticity:</strong> Proof of who actually created the message.<br>
+            <strong>4. Non-Repudiation:</strong> The sender cannot later lie and claim: <em>"I never sent that!"</em>
+          </p>
+        </div>
+
+        <p>
+          Notice how you can have integrity without confidentiality! If a government publishes a new tax law, it doesn't need to be secret (no confidentiality), but citizens must know for sure that no hacker modified the numbers (integrity & authenticity).
+        </p>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="kerckhoffs-law">
+        <h2>3. Kerckhoffs’s Principle: The Golden Rule</h2>
+        <p>
+          In 1883, military cryptographer Auguste Kerckhoffs stated the most important rule in security engineering:
+        </p>
+        <p style="font-size:17px; font-style:italic; border-left: 2px solid var(--accent); padding-left:16px; margin:24px 0;">
+          "A cryptosystem should be secure even if everything about the system, except the key, is public knowledge."
+        </p>
+        <p>
+          Why? Because if your security depends on keeping the lock mechanism secret ("Security through Obscurity"), you are ruined the moment one disgruntled employee leaks the code or a reverse-engineer inspects the app.
+        </p>
+        <p>
+          In modern cryptography, algorithms like <strong>AES-256</strong> and <strong>RSA</strong> are completely public. Millions of researchers scrutinize them daily. The security lives 100% inside the <strong>secret key</strong>.
+        </p>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            A startup claims: <em>"We invented our own proprietary encryption algorithm and keep its source code locked in a vault, so hackers can never study how it works."</em> How should a security professional evaluate this?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Keeping code secret violates Kerckhoffs\'s principle. Once reverse-engineered, hidden flaws are trivially exploited.')">A) This is ideal; secrecy of the algorithm provides double protection.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Proprietary, untested ciphers almost always contain catastrophic mathematical flaws. Open, peer-reviewed ciphers with secret keys are vastly superior.')">B) This is a severe red flag violating Kerckhoffs’s principle.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Security through obscurity is widely recognized as a fragile anti-pattern.')">C) It is safe as long as the employees sign Non-Disclosure Agreements.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="../index.html" class="nav-btn">
+          <span class="nav-btn-sub">← HOME</span>
+          <span>Course Portal</span>
+        </a>
+        <a href="m02-bits-and-encoding.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>02. Bits, Data & Encoding</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#the-cast" class="toc-nav-link">1. The Cast of Characters</a></li>
+        <li class="toc-nav-item"><a href="#the-four-pillars" class="toc-nav-link">2. The 4 Pillars of Trust</a></li>
+        <li class="toc-nav-item"><a href="#kerckhoffs-law" class="toc-nav-link">3. Kerckhoffs's Principle</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    function togglePerspective(actor) {
+      const btnSender = document.getElementById('btnSender');
+      const btnEve = document.getElementById('btnEve');
+      const box = document.getElementById('perspBox');
+      const note = document.getElementById('perspNote');
+
+      if (actor === 'alice') {
+        btnSender.classList.add('active');
+        btnEve.classList.remove('active');
+        box.innerHTML = `
+          <div style="color:var(--text-muted); font-size:12px;">Alice's Plaintext View:</div>
+          <div style="color:var(--accent-text); margin-top:4px;">"Approve wire transfer: $1,200 to Bob"</div>
+        `;
+        note.textContent = "On Alice's physical screen, the message is readable text. Before leaving her device, it must be encrypted.";
+      } else {
+        btnEve.classList.add('active');
+        btnSender.classList.remove('active');
+        box.innerHTML = `
+          <div style="color:var(--text-muted); font-size:12px;">Eve's Intercepted Wi-Fi Packet:</div>
+          <div style="color:#c53030; margin-top:4px; word-break:break-all;">7b29e04f9810a471bc609e25d082fa19e34c00b</div>
+        `;
+        note.textContent = "Because Alice's phone used an encryption key, Eve intercepts only random mathematical noise.";
+      }
+    }
+  </script>
+</body>
+</html>
 
