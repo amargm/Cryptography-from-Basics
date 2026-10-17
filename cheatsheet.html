@@ -159,11 +159,13 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
-  position: sticky;
-  top: 0;
+  position: sticky !important;
+  top: 0 !important;
   background: var(--bg);
-  backdrop-filter: blur(8px);
-  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000 !important;
+  width: 100%;
 }
 
 .brand {
@@ -373,6 +375,79 @@ code {
   padding: 2px 5px;
   border-radius: var(--radius-sm);
   color: var(--text-main);
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: inherit;
+  font-size: inherit;
+}
+
+.code-block-wrap {
+  position: relative;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 64px 14px 16px;
+  margin: 12px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-main);
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+.code-block-wrap code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.copy-btn:hover {
+  background: var(--bg-alt);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Dilemma Box */
@@ -1085,43 +1160,48 @@ code {
 }
 
 /* =============================================================
-   DISAMBIGUATION MATRICES & COMPARISON TABLES
+   DISAMBIGUATION MATRICES, DEEP TABLES & COMPARISON TABLES
    ============================================================= */
 .disambiguation-matrix {
   margin: 32px 0;
   overflow-x: auto;
 }
-.matrix-table {
+table,
+.matrix-table,
+.deep-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13.5px;
   text-align: left;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
+  border-radius: var(--radius-sm);
+  margin: 24px 0;
 }
-.matrix-table th {
+table th,
+.matrix-table th,
+.deep-table th {
   background: var(--bg-alt);
   color: var(--text-main);
   font-weight: 700;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.matrix-table td {
+table td,
+.matrix-table td,
+.deep-table td {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
   color: var(--text-secondary);
   line-height: 1.55;
   vertical-align: top;
 }
-.matrix-table tr:last-child td {
-  border-bottom: none;
-}
-.matrix-table tr:hover td {
+table tr:hover td,
+.matrix-table tr:hover td,
+.deep-table tr:hover td {
   background: var(--surface-hover);
 }
 .status-pill {
@@ -2113,20 +2193,28 @@ code {
 }
 .hub-domains-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 24px;
 }
 .hub-domain-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 26px 24px 22px 24px;
   box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-height: 330px;
   position: relative;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.hub-domain-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-float);
+  border-color: var(--accent);
 }
 .hub-domain-card.active-domain {
   border: 2px solid var(--accent);
@@ -2236,6 +2324,34 @@ code {
   box-shadow: var(--shadow-float);
 }
 
+.track-card-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  transition: color 0.15s ease;
+}
+.track-card-clickable:hover .track-card-action {
+  color: var(--accent-text);
+}
+.track-action-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.track-action-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 
 /* -------------------------------------------------------------
    WIDE SCREEN UTILIZATION & CHEATSHEET CARDS DIRECTORY
@@ -2259,26 +2375,29 @@ code {
 
 .hub-cheatsheet-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 22px;
   margin-top: 18px;
 }
 .hub-cheatsheet-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 22px;
+  padding: 24px;
   box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  min-height: 220px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   text-decoration: none;
   color: inherit;
 }
 .hub-cheatsheet-card:hover {
   border-color: var(--accent);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-float);
 }
 .hub-cheatsheet-card.active-ref {
@@ -2310,6 +2429,46 @@ code {
   color: var(--text-secondary);
   line-height: 1.55;
   margin-bottom: 16px;
+}
+
+/* =============================================================
+   IMMERSIVE BACKGROUND ANIMATIONS (HUB & TRACK LANDING ONLY)
+   ============================================================= */
+.immersive-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+#immersiveBgCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.immersive-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 28%, transparent 25%, var(--bg) 95%);
+  pointer-events: none;
+}
+
+/* Elevate portal content layers crisply above the ambient canvas */
+.hub-main-container,
+.modal-overlay {
+  position: relative;
+  z-index: 1;
 }
 
 </style>
@@ -2436,46 +2595,7 @@ code {
         <span>Search</span>
         <kbd class="search-kbd">Ctrl K</kbd>
       </button>
-      <a href="openssl-cheatsheet.html" style="font-size: 13px; font-weight: 600; color: var(--accent-text); background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 5px 11px; border-radius: var(--radius-sm); text-decoration: none; margin-right: 10px;">OpenSSL 3.x Cheatsheet</a>
-      <a href="index.html" style="font-size: 13px; color: var(--text-secondary); text-decoration: none; margin-right: 12px; font-weight: 600;">← All Modules</a>
-      <!-- Font Switcher -->
-      <div class="segmented-control">
-        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
-        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
-      </div>
-
-      <!-- Theme Switcher -->
-      <div class="theme-picker">
-        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">Paper</button>
-        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">Sepia</button>
-        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">Slate</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Reference Container -->
-  <main style="max-width: 900px; margin: 0 auto; padding: 0 24px 100px 24px;">
-
-    <!-- Hero -->
-    <section class="ref-hero">
-      <div class="ref-eyebrow">Practical Engineering Reference & Guidelines</div>
-      <h1 class="ref-title">When to Use What</h1>
-      <p class="ref-subtitle">
-        A battle-tested decision guide for engineers and students. Stop guessing between algorithms: here are the definitive modern defaults, head-to-head trade-offs, security lifetimes, and the 10 Golden Commandments of applied cryptography.
-      </p>
-
-      <div class="nav-pills">
-        <a href="#decision-matrix" class="nav-pill-btn">Decision Matrix</a>
-        <a href="#comparisons" class="nav-pill-btn">Head-to-Head Comparisons</a>
-        <a href="#security-lifetimes" class="nav-pill-btn">Security Lifetimes &amp; NIST</a>
-        <a href="#commandments" class="nav-pill-btn">The 10 Commandments</a>
-        <a href="#protocol-flow" class="nav-pill-btn">The Protocol Pipeline</a>
-        <a href="#master-catalog" class="nav-pill-btn">Master Algorithm Catalog</a>
-        <a href="#attack-taxonomy" class="nav-pill-btn">Attacker's Playbook</a>
-        <a href="#myths-vs-reality" class="nav-pill-btn">Myths vs. Reality</a>
-        <a href="#disambiguation" class="nav-pill-btn">Disambiguation</a>
-        <a href="#enterprise-kms-playbook" class="nav-pill-btn">KMS & Incident Playbook</a>
-        <a href="openssl-cheatsheet.html" class="nav-pill-btn" style="border-color:var(--accent); color:var(--accent-text); font-weight:700;">OpenSSL 3.x Cheatsheet →</a>
+      
       </div>
     </section>
 
@@ -3716,6 +3836,11 @@ const SEARCH_INDEX = [
   { title: "Track 5: Hardware Architecture & Silicon", badge: "Hub Track 05", desc: "CPU instruction pipelines, branch prediction, L1/L2/L3 caches, MESI coherence, and MMU page tables", path: "index.html#track-hardware", keywords: "hardware architecture cpu pipeline cache mesi mmu page table uefi dma interrupts" },
   { title: "Track 6: Hardware Security & Silicon Trust", badge: "Hub Track 06", desc: "Spectre, Meltdown, Rowhammer, fault injection, voltage glitching, TPM 2.0, and Secure Enclaves", path: "index.html#track-hw-security", keywords: "hardware security spectre meltdown rowhammer fault injection tpm secure enclave glitching" },
   { title: "Track 7: Cloud Infrastructure Security", badge: "Hub Track 07", desc: "Zero-Trust architecture, Cloud IAM least privilege, VPC peering, container isolation, and Vault", path: "index.html#track-cloud-sec", keywords: "cloud security zero trust iam vpc container kubernetes vault mtls service mesh" },
+
+  // CTF Engineering Tracks
+  { title: "CTF Track 1: Starting CTF Knowledge & Problem Patterns", badge: "CTF Track 01", desc: "Flag discovery methodology, classical cipher reconnaissance (XOR, Caesar, Vigenère), and encoding detection", path: "index.html#track-ctf-foundations", keywords: "ctf capture the flag beginner patterns cyberchef pwntools recon xor caesar vigenere encoding base64 stego" },
+  { title: "CTF Track 2: Intermediate CTF Cryptanalysis & Exploitation", badge: "CTF Track 02", desc: "CBC padding oracle attacks, ECB byte-at-a-time, RSA small exponent, PRNG state recovery, and hash length extension", path: "index.html#track-ctf-intermediate", keywords: "ctf intermediate cryptanalysis padding oracle ecb rsa factorisation mt19937 prng hash length extension jwt" },
+  { title: "CTF Track 3: Curated CTF Problem Bank & Hands-on Challenges", badge: "CTF Track 03", desc: "Categorized CTF practice challenge bank spanning crypto, forensics, token exploits, and flag formats", path: "index.html#track-ctf-problems", keywords: "ctf problems challenge bank practice ctf crypto pcap forensics web jwt flag labs" },
 
   // Cheatsheets
   { title: "When to Use What — Master Decision Matrix", badge: "Cheatsheet", desc: "Head-to-head algorithm comparisons, NIST lifetime matrix, and the 10 Golden Rules", path: "cheatsheet.html", keywords: "cheatsheet decision matrix recommendations comparison golden rules when to use what" },
