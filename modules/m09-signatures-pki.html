@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper" data-font="sans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 09: Signatures & PKI — Cryptography from Basics</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .mitm-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .flow-step-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .flow-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="readingProgress"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <span>CRYPTOGRAPHY</span>
+      <span class="brand-mark">MODULE 09</span>
+    </a>
+
+    <div class="top-controls">
+      <div class="segmented-control">
+        <button class="seg-btn active" id="btnSans" onclick="setFont('sans')">Sans</button>
+        <button class="seg-btn" id="btnSerif" onclick="setFont('serif')">Serif</button>
+      </div>
+      <div class="theme-picker">
+        <button class="theme-chip active" id="themePaper" onclick="setTheme('paper')">🌿 Paper</button>
+        <button class="theme-chip" id="themeSepia" onclick="setTheme('sepia')">☕ Sepia</button>
+        <button class="theme-chip" id="themeSlate" onclick="setTheme('slate')">🌙 Slate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <aside class="sidebar">
+      <div class="nav-group-title">Foundations</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m01-foundations.html" class="nav-link"><span class="nav-index">01</span><span>The Core Philosophy</span></a></li>
+        <li class="nav-item"><a href="m02-bits-and-encoding.html" class="nav-link"><span class="nav-index">02</span><span>Bits, Data & Encoding</span></a></li>
+        <li class="nav-item"><a href="m03-steganography.html" class="nav-link"><span class="nav-index">03</span><span>Steganography</span></a></li>
+        <li class="nav-item"><a href="m04-randomness-entropy.html" class="nav-link"><span class="nav-index">04</span><span>Randomness & Entropy</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Symmetric Systems</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m05-classical-ciphers.html" class="nav-link"><span class="nav-index">05</span><span>Classical Ciphers</span></a></li>
+        <li class="nav-item"><a href="m06-symmetric-aes.html" class="nav-link"><span class="nav-index">06</span><span>Symmetric & AES</span></a></li>
+        <li class="nav-item"><a href="m07-hashing-integrity.html" class="nav-link"><span class="nav-index">07</span><span>Hashing & Fingerprints</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Asymmetric & Trust</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m08-asymmetric-diffie-hellman.html" class="nav-link"><span class="nav-index">08</span><span>Public-Key Revolution</span></a></li>
+        <li class="nav-item"><a href="m09-signatures-pki.html" class="nav-link active"><span class="nav-index">09</span><span>Signatures & PKI</span></a></li>
+        <li class="nav-item"><a href="m10-key-vaults-kdfs.html" class="nav-link"><span class="nav-index">10</span><span>Key Vaults & KDFs</span></a></li>
+      </ul>
+
+      <div class="nav-group-title">Applied & Future</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="m11-applied-https-tokens.html" class="nav-link"><span class="nav-index">11</span><span>Applied HTTPS & Tokens</span></a></li>
+        <li class="nav-item"><a href="m12-zkp-quantum-era.html" class="nav-link"><span class="nav-index">12</span><span>ZKP & Quantum Era</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Reading Canvas -->
+    <main class="reading-canvas">
+
+      <div class="cognitive-meta">
+        <span>📖 7 min read</span>
+        <span>•</span>
+        <span>Tier: Trust</span>
+        <span>•</span>
+        <span>Prerequisites: Modules 07, 08</span>
+      </div>
+
+      <h1 class="lesson-headline">Digital Signatures, PKI & Trust</h1>
+      <p class="lesson-lead">
+        Public keys let you encrypt messages, but how do you know the public key actually belongs to your bank, and not to a hacker impersonating your bank?
+      </p>
+
+      <!-- Section 1 -->
+      <section id="digital-signatures">
+        <h2>1. Turning Asymmetric Keys Upside Down</h2>
+        <p>
+          In public-key encryption, we encrypt with the public key and decrypt with the private key.
+        </p>
+        <p>
+          What happens if you reverse the process?
+        </p>
+        <div class="dilemma-card">
+          <div class="dilemma-label">The Digital Signature Recipe</div>
+          <p class="dilemma-text">
+            <strong>Step 1:</strong> Alice hashes her contract using SHA-256 (creating a unique 32-byte fingerprint).<br>
+            <strong>Step 2:</strong> Alice encrypts that fingerprint using her <strong>Private Key</strong>. This encrypted hash is her <strong>Digital Signature</strong>.<br>
+            <strong>Step 3:</strong> Anyone in the world can decrypt the signature using Alice's <strong>Public Key</strong>. If the decrypted hash matches the document, it proves beyond doubt: <em>Only Alice could have created it, and not a single letter was altered!</em>
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 2: Interactive MITM Simulator -->
+      <section id="mitm-attack">
+        <h2>2. The Man-in-the-Middle (MITM) Disaster</h2>
+        <p>
+          Public keys solve key exchange, but they do NOT solve <strong>identity</strong>.
+        </p>
+
+        <div class="widget-frame">
+          <div class="widget-bar">
+            <div class="widget-caption">
+              <span>Man-in-the-Middle Simulator</span>
+              <span class="widget-badge">Interactive Explainer</span>
+            </div>
+            <button class="choice-btn" style="padding:4px 10px; font-size:11px;" id="toggleCertBtn" onclick="toggleMITMCert()">Add Certificate Authority (Fix)</button>
+          </div>
+
+          <div class="widget-content">
+            <div class="mitm-stage" id="mitmFlow">
+              
+              <div class="flow-step-box">
+                <div>
+                  <strong>1. Alice sends her Public Key</strong>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Alice says: "Hi, use my Key [A] to talk to me!"</div>
+                </div>
+                <span class="flow-badge" style="background:var(--accent-soft); color:var(--accent-text);">Origin</span>
+              </div>
+
+              <div class="flow-step-box" style="border-color:#c53030;" id="malloryBox">
+                <div>
+                  <strong style="color:#c53030;">2. Mallory Intercepts & Swaps Keys!</strong>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Mallory drops Key [A] and forwards her own Key [M] to Bob!</div>
+                </div>
+                <span class="flow-badge" style="background:rgba(197,48,48,0.1); color:#c53030;">Attacker</span>
+              </div>
+
+              <div class="flow-step-box" id="bobStatusBox">
+                <div>
+                  <strong>3. Bob receives Key [M] thinking it is Alice</strong>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Bob encrypts his password with Key [M]. Mallory decrypts and reads everything!</div>
+                </div>
+                <span class="flow-badge" style="background:rgba(197,48,48,0.1); color:#c53030;" id="bobBadge">Vulnerable!</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="pki-certificates">
+        <h2>3. The Solution: PKI & Digital Certificates</h2>
+        <p>
+          How does Bob know Key [A] really belongs to Alice?
+        </p>
+        <p>
+          The solution is <strong>Public Key Infrastructure (PKI)</strong> and <strong>Digital Certificates (X.509)</strong>:
+        </p>
+        <ul>
+          <li><strong>The Passport Analogy:</strong> When you travel internationally, border control doesn't just believe your handwritten name badge; they check your government-issued passport, verified by a trusted authority seal.</li>
+          <li><strong>Certificate Authority (CA):</strong> Globally trusted institutions (like Let's Encrypt or DigiCert) whose root certificates are pre-installed into your smartphone and operating system.</li>
+          <li><strong>The Certificate:</strong> When your browser connects to <code>google.com</code>, Google presents a certificate signed by a root CA saying: <em>"We verify that this public key belongs to Google."</em></li>
+        </ul>
+      </section>
+
+      <!-- Checkpoint -->
+      <section id="checkpoint">
+        <div class="checkpoint-card">
+          <div class="checkpoint-eyebrow">Checkpoint Question</div>
+          <div class="checkpoint-prompt">
+            Why can't a hacker simply issue a fake digital certificate for `bankofamerica.com` and send it to your browser?
+          </div>
+          <div class="checkpoint-choices">
+            <button class="choice-btn" onclick="handleQuiz(this, true, 'Your web browser validates the cryptographic signature of the certificate against its built-in Root Certificate Authorities. A self-signed or fake certificate causes a red warning screen.')">A) Your browser verifies the CA signature against its pre-installed trusted root store, displaying a security alert if the signature is invalid.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Hackers can buy domain names, but cannot forge CA root keys.')">B) Hackers cannot purchase domain names.</button>
+            <button class="choice-btn" onclick="handleQuiz(this, false, 'Certificates are public documents.')">C) Certificates are secret documents that cannot be copied.</button>
+          </div>
+          <div class="feedback-note"></div>
+        </div>
+      </section>
+
+      <!-- Footer Navigation -->
+      <div class="lesson-footer-nav">
+        <a href="m08-asymmetric-diffie-hellman.html" class="nav-btn">
+          <span class="nav-btn-sub">← PREVIOUS</span>
+          <span>08. Public-Key Revolution</span>
+        </a>
+        <a href="m10-key-vaults-kdfs.html" class="nav-btn" style="text-align: right;">
+          <span class="nav-btn-sub">NEXT →</span>
+          <span>10. Key Vaults & KDFs</span>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Right TOC -->
+    <aside class="toc-panel">
+      <div class="toc-heading">In This Lesson</div>
+      <ul class="toc-nav-list">
+        <li class="toc-nav-item"><a href="#digital-signatures" class="toc-nav-link">1. Digital Signatures</a></li>
+        <li class="toc-nav-item"><a href="#mitm-attack" class="toc-nav-link">2. MITM Simulator</a></li>
+        <li class="toc-nav-item"><a href="#pki-certificates" class="toc-nav-link">3. PKI & Certificates</a></li>
+        <li class="toc-nav-item"><a href="#checkpoint" class="toc-nav-link">Checkpoint Quiz</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    let certActive = false;
+    function toggleMITMCert() {
+      certActive = !certActive;
+      const btn = document.getElementById('toggleCertBtn');
+      const mallory = document.getElementById('malloryBox');
+      const bobStatus = document.getElementById('bobStatusBox');
+      const bobBadge = document.getElementById('bobBadge');
+
+      if (certActive) {
+        btn.textContent = "Remove Certificate Authority";
+        mallory.style.borderColor = 'var(--border)';
+        mallory.innerHTML = `
+          <div>
+            <strong>2. Mallory Attempts Key Swap (Blocked!)</strong>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Mallory sends Key [M], but cannot produce a valid digital signature from a trusted Certificate Authority!</div>
+          </div>
+          <span class="flow-badge" style="background:var(--accent-soft); color:var(--accent-text);">BLOCKED</span>
+        `;
+        bobBadge.textContent = "Protected by PKI";
+        bobBadge.style.background = 'var(--accent-soft)';
+        bobBadge.style.color = 'var(--accent-text)';
+      } else {
+        btn.textContent = "Add Certificate Authority (Fix)";
+        mallory.style.borderColor = '#c53030';
+        mallory.innerHTML = `
+          <div>
+            <strong style="color:#c53030;">2. Mallory Intercepts & Swaps Keys!</strong>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Mallory drops Key [A] and forwards her own Key [M] to Bob!</div>
+          </div>
+          <span class="flow-badge" style="background:rgba(197,48,48,0.1); color:#c53030;">Attacker</span>
+        `;
+        bobBadge.textContent = "Vulnerable!";
+        bobBadge.style.background = 'rgba(197,48,48,0.1)';
+        bobBadge.style.color = '#c53030';
+      }
+    }
+  </script>
+</body>
+</html>
